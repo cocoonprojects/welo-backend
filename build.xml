@@ -1,27 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="ora-prod" default="build">
-
-<target name="build"
-   depends="prepare,lint,phploc,pdepend,phpmd-ci,phpcs-ci,phpcpd,phpunit,phpunit-i,behat"/>
-
- <target name="build-parallel"
-   depends="prepare,lint,tools-parallel,phpunit,phpunit-i,behat"/>
+<project name="welo" default="build">
 
  <target name="build-local"
          description="local build"
          depends="prepare,lint,phpunit,phpunit-i,behat"/>
-
- <target name="tools-parallel" description="Run tools in parallel">
-  <parallel threadCount="2">
-   <sequential>
-    <antcall target="pdepend"/>
-    <antcall target="phpmd-ci"/>
-   </sequential>
-   <antcall target="phpcpd"/>
-   <antcall target="phpcs-ci"/>
-   <antcall target="phploc"/>
-  </parallel>
- </target>
 
  <target name="clean" description="Cleanup build artifacts">
   <delete dir="${basedir}/build/api"/>
@@ -51,85 +33,6 @@
    </fileset>
 
   </apply>
- </target>
-
- <target name="phploc" description="Measure project size using PHPLOC">
-  <exec executable="phploc">
-   <arg value="--count-tests" />
-   <arg value="--log-csv" />
-   <arg value="${basedir}/build/logs/phploc.csv" />
-   <arg value="--exclude" />
-   <arg value="vendor" />
-   <arg value="--exclude" />
-   <arg value="tests" />
-   <arg path="${basedir}" />
-  </exec>
- </target>
-
- <target name="pdepend" description="Calculate software metrics using PHP_Depend">
-  <exec executable="pdepend">
-   <arg value="--jdepend-xml=${basedir}/build/logs/jdepend.xml" />
-   <arg value="--jdepend-chart=${basedir}/build/pdepend/dependencies.svg" />
-   <arg value="--overview-pyramid=${basedir}/build/pdepend/overview-pyramid.svg" />
-   <arg value="--ignore=vendor,tests" />
-   <arg path="${basedir}" />
-  </exec>
- </target>
-
- <target name="phpmd"
-         description="Perform project mess detection using PHPMD and print human readable output. Intended for usage on the command line before committing.">
-  <exec executable="phpmd">
-   <arg path="${basedir}/module" />
-   <arg value="text" />
-   <arg value="${basedir}/build/phpmd.xml" />
-   <arg value="--exclude" />
-   <arg value="vendor/*,tests/*" />
-  </exec>
- </target>
-
- <target name="phpmd-ci" description="Perform project mess detection using PHPMD creating a log file for the continuous integration server">
-  <exec executable="phpmd">
-   <arg path="${basedir}" />
-   <arg value="xml" />
-   <arg value="${basedir}/build/phpmd.xml" />
-   <arg value="--reportfile" />
-   <arg value="${basedir}/build/logs/pmd.xml" />
-   <arg value="--exclude" />
-   <arg value="vendor/*,tests/*" />
-  </exec>
- </target>
-
- <target name="phpcs"
-         description="Find coding standard violations using PHP_CodeSniffer and print human readable output. Intended for usage on the command line before committing.">
-  <exec executable="phpcs">
-   <arg value="--standard=${basedir}/build/phpcs.xml" />
-   <arg value="--extensions=php" />
-   <arg value="--ignore=*vendor*,*tests*" />
-   <arg path="${basedir}" />
-  </exec>
- </target>
-
- <target name="phpcs-ci" description="Find coding standard violations using PHP_CodeSniffer creating a log file for the continuous integration server">
-  <exec executable="phpcs">
-   <arg value="--report=checkstyle" />
-   <arg value="--report-file=${basedir}/build/logs/checkstyle.xml" />
-   <arg value="--standard=${basedir}/build/phpcs.xml" />
-   <arg value="--extensions=php" />
-   <arg value="--ignore=*vendor*,*tests*" />
-   <arg path="${basedir}" />
-  </exec>
- </target>
-
- <target name="phpcpd" description="Find duplicate code using PHPCPD">
-  <exec executable="phpcpd">
-   <arg value="--log-pmd" />
-   <arg value="${basedir}/build/logs/pmd-cpd.xml" />
-   <arg value="--exclude" />
-   <arg value="vendor" />
-   <arg value="--exclude" />
-   <arg value="tests" />
-   <arg path="${basedir}" />
-  </exec>
  </target>
 
  <target name="phpunit" description="Run unit tests with PHPUnit">
@@ -179,4 +82,5 @@
    <arg value="tests/sql/init.sql" />
   </exec>
  </target>
+
 </project>
