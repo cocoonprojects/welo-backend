@@ -5,6 +5,7 @@ namespace TaskManagement\Service;
 use AcMailer\Service\MailServiceInterface;
 use Application\Entity\BasicUser;
 use Application\Entity\User;
+use Application\Service\FrontendRouter;
 use Application\Service\UserService;
 use People\Entity\Organization;
 use People\Entity\OrganizationMembership;
@@ -57,6 +58,8 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
 		$this->userService = $userService;
 		$this->taskService = $taskService;
 		$this->orgService = $orgService;
+
+        $this->feRouter = new FrontendRouter();
 	
 	}
 	
@@ -108,6 +111,7 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
 		$streamEvent = $event->getTarget ();
 		$taskId = $streamEvent->metadata ()['aggregate_id'];
 		$task = $this->taskService->findTask ( $taskId );
+
 		if ($task->getStatus() == Task::STATUS_IDEA) {
 			$memberId = $event->getParam ( 'by' );
 			$member = is_null($task->getMember($memberId)) ? null : $task->getMember($memberId)->getUser();
@@ -130,10 +134,10 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
 		$taskId = $streamEvent->metadata ()['aggregate_id'];
 		$task = $this->taskService->findTask ( $taskId );
 		
-			$memberId = $event->getParam ( 'by' );
-			$org = $task->getStream()->getOrganization();
-			$memberships = $this->orgService->findOrganizationMemberships($org,null,null);
-			$this->sendTaskOpenedInfoMail($task, $memberships);
+        $memberId = $event->getParam ( 'by' );
+        $org = $task->getStream()->getOrganization();
+        $memberships = $this->orgService->findOrganizationMemberships($org,null,null);
+        $this->sendTaskOpenedInfoMail($task, $memberships);
 		
 	}
 	
@@ -169,13 +173,14 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
 			
 			$message = $this->mailService->getMessage();
 			$message->setTo($owner->getEmail());
-			$message->setSubject ( 'Estimation added to "' . $task->getSubject() . '" item');
+			$message->setSubject('Estimation added to "' . $task->getSubject() . '" item');
 			
 			$this->mailService->setTemplate( 'mail/estimation-added-info.phtml', [
 					'task' => $task,
 					'recipient'=> $owner,
 					'member'=> $member,
-					'host' => $this->host
+					'host' => $this->host,
+                    'router' => $this->feRouter
 			]);
 			
 			$this->mailService->send();
@@ -209,8 +214,9 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
 					'task' => $task,
 					'recipient'=> $owner,
 					'member'=> $member,
-					'host' => $this->host
-			]);
+					'host' => $this->host,
+                    'router' => $this->feRouter
+            ]);
 			
 			$this->mailService->send();
 			$rv[] = $owner;
@@ -227,6 +233,7 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
 	{
 		$rv = [];
 		$taskMembersWithEmptyShares = $task->findMembersWithEmptyShares();
+
 		foreach ($taskMembersWithEmptyShares as $tm){
 			$member = $tm->getUser();
 			$message = $this->mailService->getMessage();
@@ -236,7 +243,8 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
 			$this->mailService->setTemplate( 'mail/reminder-assignment-shares.phtml', [
 				'task' => $task,
 				'recipient'=> $member,
-				'host' => $this->host
+				'host' => $this->host,
+                'router' => $this->feRouter
 			]);
 
 			$this->mailService->send();
@@ -263,8 +271,9 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
 			$this->mailService->setTemplate( 'mail/reminder-add-estimation.phtml', [
 				'task' => $task,
 				'recipient'=> $member,
-				'host' => $this->host
-			]);
+				'host' => $this->host,
+                'router' => $this->feRouter
+            ]);
 			
 			$this->mailService->send();
 			$rv[] = $member;
@@ -291,8 +300,9 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
 			$this->mailService->setTemplate( 'mail/task-closed-info.phtml', [
 				'task' => $task,
 				'recipient'=> $member,
-				'host' => $this->host
-			]);
+				'host' => $this->host,
+                'router' => $this->feRouter
+            ]);
 			
 			$this->mailService->send();
 			$rv[] = $member;
@@ -325,7 +335,8 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
 				'recipient'=> $recipient,
 				'organization'=> $org,
 				'stream'=> $stream,
-				'host' => $this->host
+				'host' => $this->host,
+                'router' => $this->feRouter
 			]);
 			$this->mailService->send();
 			$rv[] = $recipient;
@@ -352,8 +363,9 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
 			$this->mailService->setTemplate( 'mail/task-accepted-info.phtml', [
 				'task' => $task,
 				'recipient'=> $member,
-				'host' => $this->host
-			]);
+				'host' => $this->host,
+                'router' => $this->feRouter
+            ]);
 				
 			$this->mailService->send();
 			$rv[] = $member;
@@ -379,8 +391,9 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
 					'recipient'=> $recipient,
 					'organization'=> $org,
 					'stream'=> $stream,
-					'host' => $this->host
-			]);
+					'host' => $this->host,
+                    'router' => $this->feRouter
+            ]);
 			$this->mailService->send();
 			$rv[] = $recipient;
 		}
@@ -406,8 +419,9 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
 					'recipient'=> $recipient,
 					'organization'=> $org,
 					'stream'=> $stream,
-					'host' => $this->host
-			]);
+					'host' => $this->host,
+                   'router' => $this->feRouter
+            ]);
 			$this->mailService->send();
 			$rv[] = $recipient;
 		}

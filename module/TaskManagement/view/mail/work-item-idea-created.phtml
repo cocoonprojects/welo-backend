@@ -1,9 +1,11 @@
+<?php $link = $this->router->url($this->host, $this->task); ?>
+
 <p>Hi <?= $this->recipient->getFirstname() ?>,<br>
 <?php if(is_null($this->member)) {
 	echo 'an organization member';
 } else {
 	echo '<b>'.$this->member->getFirstname().' '.$this->member->getLastname().'</b>';
-}?> proposed a new work item idea into the "<?= $this->stream->getSubject()?>" stream: <b><?= $this->task->getSubject()?></b>.</p>
+}?> proposed a new work item idea into the "<?= $this->stream->getSubject()?>" stream: <b><a href="<?= $link ?>"><?= $this->task->getSubject()?></a></b>.</p>
 <p>Check it out and vote for accepting or rejecting it!</p>
 <p>Welo</p>
 <hr>

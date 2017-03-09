@@ -1,7 +1,9 @@
+<?php $link = $this->router->url($this->host, $this->task); ?>
+
 <p>Hi <?= $this->recipient->getFirstname() ?>,<br>
-the item you contributed to "<?= $this->task->getSubject()?>" has been closed!</p>
+the item you contributed to <a href="<?= $link ?>"<?= $this->task->getSubject()?>"</a> has been closed!</p>
 <p>The credits you gained have been transferred into your account.</p>
 <p>Thank you for contributing and keep on doing it!</p>
 <p>Welo</p>
 <hr>
-<p style="font-size: 12px">You are receiving this e-mail because you are member of the "<?= $this->task->getSubject() ?>" item.</p>
+< style="font-size: 12px">You are receiving this e-mail because you are member of the  <a href="<?= $link ?>"<?= $this->task->getSubject() ?>"</a> item.</p>
