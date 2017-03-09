@@ -1,5 +1,7 @@
+<?php $link = $this->router->member($this->host, $this->organization, $this->member); ?>
+
 <p>Hi <?= $this->recipient->getFirstname() ?>,<br>
-	<b><?= $this->organization->getName() ?></b> has a new member! <strong><?= $this->member->getFirstname() ?> <?= $this->member->getLastname() ?></strong> just joined the organization.</p>
+    <b><?= $this->organization->getName() ?></b> has a new member! <strong><a href="<?= $link ?>"><?= $this->member->getFirstname() ?> <?= $this->member->getLastname() ?></a></strong> just joined the organization.</p>
 <p>Don't miss the chance to send her / him your welcome message :-)</p>
 <p>Welo</p>
 <hr>

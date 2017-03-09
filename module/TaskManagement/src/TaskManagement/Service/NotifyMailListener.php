@@ -10,6 +10,7 @@ use Application\Service\UserService;
 use People\Entity\Organization;
 use People\Entity\OrganizationMembership;
 use People\Service\OrganizationService;
+use People\OrganizationMemberAdded;
 use TaskManagement\Entity\Task;
 use TaskManagement\EstimationAdded;
 use TaskManagement\SharesAssigned;
@@ -153,7 +154,6 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
 	
 	}
 
-	
 	/**
 	 * @param Task $task
 	 * @param User $member
