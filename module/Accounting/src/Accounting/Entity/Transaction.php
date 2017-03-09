@@ -2,7 +2,7 @@
 namespace Accounting\Entity;
 
 use Doctrine\ORM\Mapping AS ORM;
-use Application\Entity\BasicUser;
+use Application\Entity\User;
 
 /**
  * @ORM\Entity @ORM\Table(name="account_transactions")
@@ -94,10 +94,10 @@ abstract class Transaction
 	}
 	/**
 	 *
-	 * @param BasicUser $user
+	 * @param User $user
 	 * @return $this
 	 */
-	public function setCreatedBy(BasicUser $user) {
+	public function setCreatedBy(User $user) {
 		$this->createdBy = $user;
 		return $this;
 	}

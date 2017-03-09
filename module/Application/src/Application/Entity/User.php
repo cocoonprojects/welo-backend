@@ -91,9 +91,20 @@ class User extends BasicUser implements RoleInterface , ResourceInterface
 	private function __construct() {
 		$this->memberships = new ArrayCollection();
 		$this->flowcards = new ArrayCollection();
-	}
+    }
 
-	public static function create(User $createdBy = null) {
+    public static function createWithId($id, User $createdBy = null) {
+        $rv = new self();
+        $rv->id = $id;
+        $rv->status = self::STATUS_ACTIVE;
+        $rv->createdAt = new \DateTime();
+        $rv->createdBy = $createdBy;
+        $rv->mostRecentEditAt = $rv->createdAt;
+        $rv->mostRecentEditBy = $rv->createdBy;
+        return $rv;
+    }
+
+    public static function create(User $createdBy = null) {
 		$rv = new self();
 		$rv->id = Uuid::uuid4()->toString();
 		$rv->status = self::STATUS_ACTIVE;
@@ -129,10 +140,10 @@ class User extends BasicUser implements RoleInterface , ResourceInterface
 	}
 
 	/**
-	 * @param BasicUser $user
+	 * @param User $user
 	 * @return $this
 	 */
-	public function setCreatedBy(BasicUser $user) {
+	public function setCreatedBy(User $user) {
 		$this->createdBy = $user;
 		return $this;
 	}

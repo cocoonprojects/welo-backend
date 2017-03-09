@@ -739,7 +739,7 @@ class Task extends DomainEntity implements TaskInterface
 		$this->organizationId = Uuid::fromString($p['organizationId']);
 		$this->streamId = Uuid::fromString($p['streamId']);
 		$this->createdAt = $this->mostRecentEditAt = $event->occurredOn();
-		$this->createdBy = BasicUser::createBasicUser($p['by']);
+		$this->createdBy = User::createWithId($p['by']);
 	}
 
 	protected function whenTaskOngoing(TaskOngoing $event) {

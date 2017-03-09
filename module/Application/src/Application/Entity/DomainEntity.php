@@ -24,7 +24,7 @@ abstract class DomainEntity {
 	/**
 	 * @ORM\ManyToOne(targetEntity="Application\Entity\User")
 	 * @ORM\JoinColumn(name="createdBy_id", referencedColumnName="id", nullable=TRUE)
-	 * @var BasicUser
+	 * @var User
 	 */
 	protected $createdBy;
 	
@@ -58,7 +58,7 @@ abstract class DomainEntity {
 	}
 	/**
 	 * 
-	 * @return BasicUser
+	 * @return User $user
 	 */
 	public function getCreatedBy()
 	{
@@ -66,10 +66,10 @@ abstract class DomainEntity {
 	}
 	/**
 	 * 
-	 * @param BasicUser $user
+	 * @param User $user
 	 * @return $this
 	 */
-	public function setCreatedBy(BasicUser $user) {
+	public function setCreatedBy(User $user) {
 		$this->createdBy = $user;
 		return $this;
 	}

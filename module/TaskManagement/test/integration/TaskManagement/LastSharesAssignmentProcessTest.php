@@ -14,14 +14,8 @@ use ZFX\Test\Authentication\AdapterMock;
 use ZFX\Test\Authentication\OAuth2AdapterMock;
 use Behat\Testwork\Tester\Setup\Teardown;
 
-class LastSharesAssignmentProcessTest extends \PHPUnit_Framework_TestCase
-{
-	protected $controller;
-	protected $request;
-	protected $response;
-	protected $routeMatch;
-	protected $event;
-
+class LastSharesAssignmentTaskProcessTest extends \BaseTaskProcessTest
+{	
 	protected $task;
 	protected $owner;
 	protected $member;
@@ -34,41 +28,23 @@ class LastSharesAssignmentProcessTest extends \PHPUnit_Framework_TestCase
 
 	protected function setUp()
 	{
-		$serviceManager = Bootstrap::getServiceManager();
-		$userService = $serviceManager->get('Application\UserService');
-		$this->owner = $userService->findUser('60000000-0000-0000-0000-000000000000');
-		$this->member = $userService->findUser('70000000-0000-0000-0000-000000000000');
+        parent::setupController(new \TaskManagement\Controller\SharesController($this->taskService), 'shares');
 
-		$streamService = $serviceManager->get('TaskManagement\StreamService');
-		$stream = $streamService->getStream('00000000-1000-0000-0000-000000000000');
+        $userService = $this->serviceManager->get('Application\UserService');
+        $this->owner = $userService->findUser('60000000-0000-0000-0000-000000000000');
+        $this->member = $userService->findUser('70000000-0000-0000-0000-000000000000');
 
-		$taskService = $serviceManager->get('TaskManagement\TaskService');
-		$this->controller = new SharesController($taskService);
-		$this->request	= new Request();
-
-		$this->routeMatch = new RouteMatch(array('controller' => 'shares'));
-		$this->event	  = new MvcEvent();
-		$config = $serviceManager->get('Config');
-		$routerConfig = isset($config['router']) ? $config['router'] : array();
-		$router = $serviceManager->get('HttpRouter');
-		$router->setRequestUri(new Http("http://example.com"));
-
-		$this->event->setRouter($router);
-		$this->event->setRouteMatch($this->routeMatch);
-		$this->controller->setEvent($this->event);
-		$this->controller->setServiceLocator($serviceManager);
-
-		$adapter = new AdapterMock();
+        $adapter = new AdapterMock();
 		$adapter->setEmail($this->owner->getEmail());
-		$this->authService = $serviceManager->get('Zend\Authentication\AuthenticationService');
+		$this->authService = $this->serviceManager->get('Zend\Authentication\AuthenticationService');
 		$this->authService->authenticate($adapter);
 
-		$pluginManager = $serviceManager->get('ControllerPluginManager');
-		$this->controller->setPluginManager($pluginManager);
+        $streamService = $this->serviceManager->get('TaskManagement\StreamService');
+        $stream = $streamService->getStream('00000000-1000-0000-0000-000000000000');
 
-		$this->intervalForCloseTasks = new \DateInterval('P7D');
-
-		$transactionManager = $serviceManager->get('prooph.event_store');
+        $this->intervalForCloseTasks = new \DateInterval('P7D');
+		
+		$transactionManager = $this->serviceManager->get('prooph.event_store');
 		$transactionManager->beginTransaction();
 
 		try {
@@ -82,7 +58,7 @@ class LastSharesAssignmentProcessTest extends \PHPUnit_Framework_TestCase
 			$task->complete($this->owner);
 			$task->accept($this->owner, $this->intervalForCloseTasks);
 			$task->assignShares([ $this->owner->getId() => 0.4, $this->member->getId() => 0.6 ], $this->member);
-			$this->task = $taskService->addTask($task);
+			$this->task = $this->taskService->addTask($task);
 			$transactionManager->commit();
 		} catch (\Exception $e) {
 			var_dump($e->getMessage());

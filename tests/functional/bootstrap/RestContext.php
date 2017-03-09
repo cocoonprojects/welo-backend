@@ -307,8 +307,8 @@ class RestContext extends RawMinkContext
 	public function thePropertyShouldBe($propertyName, $value){
 		$rv = null;
 		$str = '$rv = $this->json->'.str_replace('.', '->', $propertyName).';';
-		eval($str);
-		if($value == 'null' && !is_null($rv)) {
+        eval($str);
+        if($value == 'null' && !is_null($rv)) {
 			throw new Exception("'$propertyName' property value is not '$value''. It is '$rv'");
 	   	} elseif ($rv != $value) {
 			throw new Exception("'$propertyName' property value is not equal to '$value'. It is '$rv'");

@@ -51,7 +51,7 @@ interface TaskInterface extends ResourceInterface
 	public function getCreatedAt();
 
 	/**
-	 * @return BasicUser
+	 * @return User
 	 */
 	public function getCreatedBy();
 

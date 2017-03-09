@@ -285,6 +285,7 @@ class TasksControllerTest extends ControllerTest {
 		$this->assertEquals('task', $t['type']);
 		$this->assertEquals($task1->getStatus(), $t['status']);
 		$this->assertEquals('John Doe', $t['createdBy']);
+		$this->assertNotNull($t['author']);
 		$this->assertArrayHasKey($this->user->getId(), $t['members']);
 
 		$m = $t['members'][$this->user->getId()];
