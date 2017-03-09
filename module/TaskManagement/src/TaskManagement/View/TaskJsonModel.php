@@ -182,6 +182,7 @@ class TaskJsonModel extends JsonModel {
 				'decision' => $task->isDecision() ? "true" : "false",
 				'createdAt' => date_format ( $task->getCreatedAt (), 'c' ),
 				'createdBy' => is_null ( $task->getCreatedBy () ) ? "" : $task->getCreatedBy ()->getFirstname () . " " . $task->getCreatedBy ()->getLastname (),
+            	'author' => is_null ( $task->getCreatedBy() ) ? "" : $this->serializeOneUser($task->getCreatedBy()),
 				'mostRecentEditAt' => date_format ( $task->getMostRecentEditAt(), 'c' ),
 				'type' => $task->getType (),
 				'status' => $task->getStatus (),
@@ -234,6 +235,21 @@ class TaskJsonModel extends JsonModel {
 		$rv ['id'] = $task->getOrganizationId ();
 		return $rv;
 	}
+	protected function serializeOneUser(\Application\Entity\BasicUser $user) {
+        $rv = [
+                'id' => $user->getId(),
+                'firstname' => $user->getFirstname(),
+                'lastname' => $user->getLastname(),
+                'picture' => $user->getPicture(),
+                'role' => $user->getRole(),
+                'createdAt' => date_format ( $user->getCreatedAt(), 'c' )
+        ];
+
+		$rv ['_links'] = [ ];
+		return $rv;
+	}
+
+
 	protected function serializeOneMember($tm) {
 		if ($tm instanceof TaskMember) {
 			$member = $tm->getMember ();
@@ -281,6 +297,8 @@ class TaskJsonModel extends JsonModel {
 		;
 		return $rv;
 	}
+
+
 	protected function serializeOneMemberApproval($approval) {
 		if ($approval instanceof Approval) {
 			$voter = $approval->getVoter ();

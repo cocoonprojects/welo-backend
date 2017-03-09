@@ -194,6 +194,10 @@ class Task extends EditableEntity implements TaskInterface
 		return $this->stream->getOrganization()->getId();
 	}
 
+	public function getAuthor() {
+	    return $this->createdBy;
+    }
+	
 	public function addMember(User $user, $role, BasicUser $by, \DateTime $when) {
 		$taskMember = new TaskMember($this, $user, $role);
 		$taskMember->setCreatedAt($when)

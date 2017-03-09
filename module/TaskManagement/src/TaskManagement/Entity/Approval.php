@@ -50,7 +50,7 @@ abstract class Approval{
 	/**
 	 * @ORM\ManyToOne(targetEntity="Application\Entity\User")
 	 * @ORM\JoinColumn(name="createdBy_id", referencedColumnName="id")
-	 * @var BasicUser
+	 * @var User
 	 */
 	protected $createdBy;
 	
