@@ -1,6 +1,6 @@
 <?php
 return [
-	'mail_domain' => 'http://example.com/#',
+	'mail_domain' => 'http://welo.dev/',
 	'acmailer_options' => [
 
 		// Default mail service

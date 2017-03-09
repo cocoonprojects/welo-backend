@@ -102,11 +102,14 @@ class MailNotificationProcessTest extends \PHPUnit_Framework_TestCase
 		$emails = $this->getEmailMessages();
 
 		$this->assertNotEmpty($emails);
-		$this->assertEquals(1, count($emails));
+		$this->assertCount(1, $emails);
 		$this->assertContains($this->task->getSubject(), $emails[0]->subject);
 		$this->assertEmailHtmlContains('estimation', $emails[0]);
 		$this->assertNotEmpty($emails[0]->recipients);
 		$this->assertEquals($emails[0]->recipients[0], '<mark.rogers@ora.local>');
+
+		$expected = "http://welo.dev/index.html#/{$this->task->getOrganizationId()}/items/{$this->task->getId()}";
+        $this->assertEmailHtmlContains($expected, $emails[0]);
 	}
 
 	public function testSharesAssignedNotification(){
@@ -184,7 +187,8 @@ class MailNotificationProcessTest extends \PHPUnit_Framework_TestCase
 	protected function cleanEmailMessages()
 	{
 		$request = $this->mailcatcher->delete('/messages');
-		$response = $request->send();
+
+		return $request->send();
 	}
 
 	protected function getEmailMessages()
@@ -192,6 +196,7 @@ class MailNotificationProcessTest extends \PHPUnit_Framework_TestCase
 		$request = $this->mailcatcher->get('/messages');
 		$response = $request->send();
 		$json = json_decode($response->getBody());
+
 		return $json;
 	}
 
@@ -205,10 +210,18 @@ class MailNotificationProcessTest extends \PHPUnit_Framework_TestCase
 		return reset($messages);
 	}
 
+	public function getEmailBody($email)
+    {
+        $request = $this->mailcatcher->get("/messages/{$email->id}.html");
+
+        return $request->send();
+    }
+
 	public function assertEmailHtmlContains($needle, $email, $description = '')
 	{
 		$request = $this->mailcatcher->get("/messages/{$email->id}.html");
 		$response = $request->send();
+
 		$this->assertContains($needle, (string)$response->getBody(), $description);
 	}
 }

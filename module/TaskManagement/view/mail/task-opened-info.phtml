@@ -1,5 +1,7 @@
+<?php $link = $this->router->url($this->host, $this->task); ?>
+
 <p>Hi <?= $this->recipient->getFirstname() ?>,<br>
-a new work item idea has been accepted  in  "<?= $this->stream->getSubject()?>" stream: <b><?= $this->task->getSubject()?></b>.</p>
+a new work item idea has been accepted  in  "<?= $this->stream->getSubject()?>" stream: <b><a href="<?= $link ?>"><?= $this->task->getSubject()?></a></b>.</p>
 <p>Check the details</p>
 <p>Welo</p>
 <hr>

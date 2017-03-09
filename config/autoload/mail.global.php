@@ -1,7 +1,7 @@
 <?php
 return [
 	'acmailer_options' => [
-
+        'mail_domain' => 'http://welo.ideato.it/',
 		// Default mail service
 		'default' => [
 			/*
