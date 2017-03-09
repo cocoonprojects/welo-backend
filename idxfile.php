@@ -8,7 +8,7 @@ $targets = array(
         'ssh_params' => ['user' => 'cocoon'],
         'deploy' => array(
             'local_base_dir' => __DIR__,
-            'remote_base_dir' => "/var/www/vhosts/cocoon/",
+            'remote_base_dir' => '/var/www/vhosts/cocoon/',
             'rsync_exclude_file' => 'deploy_exclude'
         ),
     ),
@@ -17,7 +17,7 @@ $targets = array(
         'ssh_params' => ['user' => 'cocoon'],
         'deploy' => array(
             'local_base_dir' => __DIR__,
-            'remote_base_dir' => "/var/www/vhosts/welo/",
+            'remote_base_dir' => '/var/www/vhosts/welo/',
             'rsync_exclude_file' => 'deploy_exclude'
         ),
     ),
