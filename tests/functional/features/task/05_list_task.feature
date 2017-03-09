@@ -250,7 +250,7 @@ Feature: List tasks
     #And echo last response
     And the response should be JSON
     And the response should have a "_embedded.{'ora:task'}[0].subject" property
-    And the "_embedded.{'ora:task'}[0].subject" property should be "Technology stack definition"
+    And the "_embedded.{'ora:task'}[0].subject" property should be "This update subject is a lot better than the previous one"
 
   Scenario: Ordering task item list by mostRecentEditAt parameter DESC
     Given that I am authenticated as "mark.rogers@ora.local"
