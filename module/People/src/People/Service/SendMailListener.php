@@ -2,12 +2,12 @@
 
 namespace People\Service;
 
+use Application\Service\FrontendRouter;
 use People\Organization;
 use People\OrganizationMemberAdded;
 use Zend\EventManager\EventManagerInterface;
 use Zend\EventManager\Event;
 use Zend\EventManager\ListenerAggregateInterface;
-use TaskManagement\Task;
 use AcMailer\Service\MailService;
 use Application\Service\UserService;
 use Application\Entity\User;
@@ -28,12 +28,16 @@ class SendMailListener implements ListenerAggregateInterface
 	 */
 	private $organizationService;
 
+	private $feRouter;
+
 	protected $listeners = array ();
 
 	public function __construct(MailService $mailService, UserService $userService, OrganizationService $organizationService) {
 		$this->mailService = $mailService;
 		$this->userService = $userService;
 		$this->organizationService = $organizationService;
+		$this->feRouter = new FrontendRouter();
+
 	}
 
 	public function attach(EventManagerInterface $events) {
@@ -67,17 +71,23 @@ class SendMailListener implements ListenerAggregateInterface
 
 		$admins = $organization->getAdmins();
 		foreach ($admins as $id => $profile) {
+
 			if($id == $member->getId()) {
 				continue;
 			}
+
 			$recipient = $this->userService->findUser($id);
+
 			$this->mailService->setTemplate( 'mail/new-member-info.phtml', array(
 				'recipient' => $recipient,
 				'member'=> $member,
-				'organization'=> $organization
+				'organization'=> $organization,
+                'router' => $this->feRouter
 			));
+
 			$message->setTo($recipient->getEmail());
-			$result = $this->mailService->send();
+
+			$this->mailService->send();
 		}
 	}
 }
