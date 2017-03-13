@@ -65,9 +65,8 @@ class CloseItemIdeaListener implements ListenerAggregateInterface {
 		$approvals = $taskReadModel->getApprovals ();
 		
 		
-		$ownerReadModel = $taskReadModel->getOwner();
-		$owner = $this->userService->findUser ( $ownerReadModel->getUser());
-		
+		$ownerReadModel = $taskReadModel->getCreatedBy();
+		$owner = $this->userService->findUser ( $ownerReadModel->getId() );
 		
 		$accept = 0;
 		$reject = 0;
