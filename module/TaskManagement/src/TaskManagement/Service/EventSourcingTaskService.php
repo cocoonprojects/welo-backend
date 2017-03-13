@@ -331,4 +331,8 @@ class EventSourcingTaskService extends AggregateRepository implements TaskServic
 		return $events;
 	}
 
+    public function refreshEntity(ReadModelTask $task)
+    {
+        $this->entityManager->refresh($task);
+    }
 }

@@ -28,7 +28,7 @@ class LastSharesAssignmentTaskProcessTest extends \BaseTaskProcessTest
 
 	protected function setUp()
 	{
-        parent::setupController(new \TaskManagement\Controller\SharesController($this->taskService), 'shares');
+        parent::setupController('TaskManagement\Controller\Shares', 'shares');
 
         $userService = $this->serviceManager->get('Application\UserService');
         $this->owner = $userService->findUser('60000000-0000-0000-0000-000000000000');

@@ -325,7 +325,6 @@ class TasksController extends OrganizationAwareController
 				$kanbanizeTask = KanbanizeTask::create ( $aggStream, $subject, $this->identity (), $options );
 				$kanbanizeTask->setAssignee ( null, $this->identity () );
 				$kanbanizeTask->setDescription ( $description, $this->identity () );
-				//$kanbanizeTask->addMember ( $this->identity (), KanbanizeTask::ROLE_OWNER );
 
 				$this->taskService->addTask ( $kanbanizeTask );
 				$this->transaction ()->commit ();

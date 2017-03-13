@@ -7,12 +7,6 @@ use Zend\Mvc\Router\Http\TreeRouteStack as HttpRouter;
 use Zend\Mvc\Router\RouteMatch;
 use Zend\Uri\Http;
 
-/**
- * Created by PhpStorm.
- * User: rad
- * Date: 08/03/17
- * Time: 19:54
- */
 class BaseTaskProcessTest extends \PHPUnit_Framework_TestCase
 {
     protected $controller;
@@ -37,13 +31,13 @@ class BaseTaskProcessTest extends \PHPUnit_Framework_TestCase
         $this->kanbanizeService = $this->serviceManager->get('Kanbanize\KanbanizeService');
     }
 
-    protected function setupController($controller, $action)
+    protected function setupController($controllerName, $actionName)
     {
-        $this->controller = $controller;
+        $this->controller = $this->serviceManager->get('ControllerManager')->get($controllerName);
 
         $this->request	= new Request();
 
-        $this->routeMatch = new RouteMatch(array('controller' => $action));
+        $this->routeMatch = new RouteMatch(array('controller' => $actionName));
         $this->event	  = new MvcEvent();
         $config = $this->serviceManager->get('Config');
         $routerConfig = isset($config['router']) ? $config['router'] : array();

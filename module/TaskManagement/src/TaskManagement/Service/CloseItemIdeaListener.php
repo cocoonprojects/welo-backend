@@ -62,8 +62,7 @@ class CloseItemIdeaListener implements ListenerAggregateInterface {
 		$memberhipcount = $this->organizationService->countOrganizationMemberships ( $organization, 
 			[ OrganizationMembership::ROLE_ADMIN, OrganizationMembership::ROLE_MEMBER ] );
 		$taskReadModel = $this->taskService->findTask ( $taskId );
-		$approvals = $taskReadModel->getApprovals ();
-		
+        $approvals = $taskReadModel->getApprovals ();
 		
 		$ownerReadModel = $taskReadModel->getCreatedBy();
 		$owner = $this->userService->findUser ( $ownerReadModel->getId() );
@@ -71,8 +70,9 @@ class CloseItemIdeaListener implements ListenerAggregateInterface {
 		$accept = 0;
 		$reject = 0;
 		$abstain = 0;
+
 		foreach ( $approvals as $approval ) {
-			switch ($approval->getVote ()->getValue ()) {
+			switch ($approval->getVote()->getValue ()) {
 				case Vote::VOTE_FOR :
 					$accept ++;
 					break;
@@ -84,6 +84,7 @@ class CloseItemIdeaListener implements ListenerAggregateInterface {
 					break;
 			}
 		}
+
 		if ($accept > $memberhipcount / 2) {
 			
 			$this->transactionManager->beginTransaction ();
