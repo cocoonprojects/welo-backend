@@ -18,7 +18,7 @@ class EventSourcingUserService implements UserService, EventManagerAwareInterfac
 	 * 
 	 * @var EntityManager
 	 */
-	private $entityManager;
+	public $entityManager;
 	
 	public function __construct(EntityManager $entityManager)
 	{
@@ -92,4 +92,10 @@ class EventSourcingUserService implements UserService, EventManagerAwareInterfac
 		}
 		return $this->events;
 	}
+
+	public function refreshEntity(User $user)
+    {
+        $this->entityManager->refresh($user);
+    }
+
 }

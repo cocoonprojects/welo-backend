@@ -1,17 +1,8 @@
 <?php
 namespace TaskManagement;
 
-use PHPUnit_Framework_TestCase;
-use TaskManagement\Controller\SharesController;
-use Zend\Http\Request;
-use Zend\Http\Response;
-use Zend\Mvc\MvcEvent;
-use Zend\Mvc\Router\Http\TreeRouteStack as HttpRouter;
-use Zend\Mvc\Router\RouteMatch;
-use Zend\Uri\Http;
 use ZFX\Test\Authentication\AdapterMock;
 use ZFX\Test\Authentication\OAuth2AdapterMock;
-use Behat\Testwork\Tester\Setup\Teardown;
 
 class TaskCreationTaskProcessTest extends \BaseTaskProcessTest
 {	
@@ -28,12 +19,7 @@ class TaskCreationTaskProcessTest extends \BaseTaskProcessTest
 	protected function setUp()
 	{
 
-	    parent::setupController(
-	        new \TaskManagement\Controller\TasksController(
-                $this->taskService, $this->streamService, $this->organizationService, $this->kanbanizeService
-            ),
-            ''
-        );
+	    parent::setupController('TaskManagement\Controller\Tasks', '');
 
         $stream = $this->streamService->getStream('00000000-1000-0000-0000-000000000000');
 
@@ -62,7 +48,7 @@ class TaskCreationTaskProcessTest extends \BaseTaskProcessTest
 	}
 
 	public function testCheckAuthor() {
-		$readModelTask = $this->controller->getTaskService()->findTask($this->task->getId());
+		$readModelTask = $this->taskService->findTask($this->task->getId());
 
         $this->assertNotNull($readModelTask->getAuthor());
         $this->assertNull($readModelTask->getOwner());

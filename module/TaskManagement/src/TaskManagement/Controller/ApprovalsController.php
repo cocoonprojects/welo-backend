@@ -76,9 +76,9 @@ class ApprovalsController extends HATEOASRestfulController {
 			return $this->response;
 		}
 	
-		$this->transaction ()->begin ();
-	
-		try {
+		$this->transaction()->begin ();
+
+        try {
 			$task->addApproval ( $vote, $this->identity (), $description );
 			$this->transaction ()->commit ();
 			$this->response->setStatusCode ( 201 );
