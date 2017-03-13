@@ -15,7 +15,7 @@ class FlowCard extends DomainEntity implements FlowCardInterface {
 	/**
 	 * @var array
 	 */
-	private $content;
+	protected $content;
 	/**
 	 * @var \DateTime
 	*/
