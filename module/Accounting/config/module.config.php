@@ -58,8 +58,9 @@ return array(
 	'listeners' => array(
 		'Accounting\AccountCommandsListener',
 		'Accounting\CreatePersonalAccountListener',
-		'Accounting\CreateOrganizationAccountListener'
-	),
+		'Accounting\CreateOrganizationAccountListener',
+        'Accounting\CreditTransferNotifiedViaMailListener',
+    ),
 	'personal_transactions_default_limit' => 10,
 	'organization_transactions_default_limit' => 10
 );

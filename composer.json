@@ -36,5 +36,10 @@
     "behat/mink-goutte-driver": "*",
     "behat/mink-selenium2-driver": "*",
     "heroku/heroku-buildpack-php": "*"
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Test\\": "tests/functional/Test"
+    }
   }
 }

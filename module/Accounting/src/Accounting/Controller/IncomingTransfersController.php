@@ -58,7 +58,7 @@ class IncomingTransfersController extends TransfersController
 		$payerValidator = new ValidatorChain();
 		$payerValidator
 				->attach(new NotEmpty())
-				->attach(new EmailAddress());
+				->attach(new EmailAddress(['useDomainCheck' => false]));
 		if(!isset($data['payer'])) {
 			$error->addSecondaryErrors('payer', ['payer email is required. It must be the email address of an organization member']);
 		} elseif(!$payerValidator->isValid($data['payer'])) {

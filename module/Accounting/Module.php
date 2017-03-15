@@ -12,6 +12,7 @@ use Accounting\Controller\PersonalStatementController;
 use Accounting\Controller\StatementsController;
 use Accounting\Controller\StatsController;
 use Accounting\Controller\WithdrawalsController;
+use Accounting\Service\CreditTransferNotifiedViaMailListener;
 use Accounting\Service\AccountCommandsListener;
 use Accounting\Service\CreateOrganizationAccountListener;
 use Accounting\Service\CreatePersonalAccountListener;
@@ -128,6 +129,23 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
 					$entityManager = $locator->get('doctrine.entitymanager.orm_default');
 					return new AccountCommandsListener($entityManager);
 				},
+				'Accounting\CreditTransferNotifiedViaMailListener' => function ($locator) {
+
+					$listener = new CreditTransferNotifiedViaMailListener(
+                        $locator->get('AcMailer\Service\MailService'),
+                        $locator->get('Application\UserService'),
+                        $locator->get('People\OrganizationService'),
+                        $locator->get('Accounting\CreditsAccountsService')
+                    );
+
+                    $config = $locator->get('Config');
+
+                    if(isset($config['mail_domain'])) {
+                        $listener->setHost($config['mail_domain']);
+                    }
+
+                    return $listener;
+				},
 				'Accounting\CreateOrganizationAccountListener' => function ($locator) {
 					$accountService = $locator->get('Accounting\CreditsAccountsService');
 					$organizationService = $locator->get('People\OrganizationService');
@@ -136,9 +154,9 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
 				},
 				'Accounting\CreatePersonalAccountListener' => function ($locator) {
 					$accountService = $locator->get('Accounting\CreditsAccountsService');
-					$organizationService = $locator->get('People\OrganizationService');
-					$userService = $locator->get('Application\UserService');
-					return new CreatePersonalAccountListener($accountService, $userService, $organizationService);
+                    $userService =  $locator->get('Application\UserService');
+                    $organizationService = $locator->get('People\OrganizationService');
+                    return new CreatePersonalAccountListener($accountService, $userService, $organizationService);
 				},
 			),
 		);

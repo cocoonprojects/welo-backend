@@ -58,7 +58,7 @@ class OutgoingTransfersController extends TransfersController
 		$payeeValidator = new ValidatorChain();
 		$payeeValidator
 				->attach(new NotEmpty())
-				->attach(new EmailAddress());
+				->attach(new EmailAddress(['useDomainCheck' => false]));
 		if(!isset($data['payee'])) {
 			$error->addSecondaryErrors('payee', ['payee email is required. It must be the email address of an organization member']);
 		} elseif(!$payeeValidator->isValid($data['payee'])) {

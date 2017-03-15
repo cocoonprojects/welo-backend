@@ -71,6 +71,10 @@ abstract class Account extends EditableEntity implements ResourceInterface {
 		return $this->holders->toArray();
 	}
 
+	public function holders() {
+	    return $this->holders;
+    }
+
 	/**
 	 * @param User $holder
 	 * @return $this
