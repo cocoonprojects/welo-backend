@@ -75,7 +75,7 @@ class TaskApprovalTaskProcessTest extends \BaseTaskProcessTest
             throw $e;
         }
 
-        $taskReadModel = $this->taskService->findTask ( $taskId );
+        $taskReadModel = $this->taskService->findTask ( $task->getId() );
         $this->taskService->refreshEntity( $taskReadModel );
     }
 
