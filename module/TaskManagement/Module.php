@@ -4,6 +4,7 @@ namespace TaskManagement;
 use TaskManagement\Controller\AcceptancesController;
 use TaskManagement\Controller\ApprovalsController;
 use TaskManagement\Controller\AttachmentsController;
+use TaskManagement\Controller\Console\SharesClosingController;
 use TaskManagement\Controller\EstimationsController;
 use TaskManagement\Controller\MembersController;
 use TaskManagement\Controller\OwnerController;
@@ -184,7 +185,21 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
 
 					return $controller;
 				},
-				'TaskManagement\Controller\History' => function ($sm) {
+                'TaskManagement\Controller\Console\SharesClosing' => function ($sm) {
+                    $locator = $sm->getServiceLocator();
+                    $taskService = $locator->get('TaskManagement\TaskService');
+                    $orgService = $locator->get('People\OrganizationService');
+                    $userService = $locator->get('Application\UserService');
+
+                    $controller = new SharesClosingController(
+                        $taskService,
+                        $orgService,
+                        $userService
+                    );
+
+                    return $controller;
+                },
+                'TaskManagement\Controller\History' => function ($sm) {
 					$locator = $sm->getServiceLocator();
 					$taskService = $locator->get('TaskManagement\TaskService');
 					$controller = new HistoryController($taskService);

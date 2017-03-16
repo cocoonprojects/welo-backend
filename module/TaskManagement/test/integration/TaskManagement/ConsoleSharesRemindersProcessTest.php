@@ -2,7 +2,7 @@
 
 namespace TaskManagement;
 
-use TaskManagement\Controller\Console\RemindersController;
+use TaskManagement\Controller\Console\SharesRemindersController;
 use PHPUnit_Framework_TestCase;
 use Guzzle\Http\Client;
 use IntegrationTest\Bootstrap;
@@ -18,7 +18,7 @@ use TaskManagement\Service\TaskService;
 use Zend\Console\Request as ConsoleRequest;
 use TaskManagement\Service\MailService;
 
-class ConsoleRemindersProcessTest extends \PHPUnit_Framework_TestCase
+class ConsoleSharesRemindersProcessTest extends \PHPUnit_Framework_TestCase
 {
 
 	private $controller;
@@ -60,14 +60,20 @@ class ConsoleRemindersProcessTest extends \PHPUnit_Framework_TestCase
 		$this->task->addMember($this->owner, TaskMember::ROLE_OWNER, $this->owner, new \DateTime());
 		$this->task->addMember($this->member, TaskMember::ROLE_MEMBER, $this->member, new \DateTime());
 
-		$vote = new Vote(new \DateTime('today'));
-		$vote->setValue(1);
-		$this->task->addApproval($vote, $this->owner, new \DateTime('today'), 'Voto a favore');
+		$this->task->setStatus(Task::STATUS_COMPLETED);
+
+		$members = $this->task->getMembers();
+		$owner = array_shift($members);
+		$member = array_shift($members);
+        $owner->assignShare($owner, 100, new \DateTime('today'));
+        $owner->assignShare($member, 80, new \DateTime('today'));
+
+        $this->task->updateMembersShare(new \DateTime('today'));
 
 		$this->taskService = $this->getMockBuilder(TaskService::class)->getMock();
 		$this->orgService = $this->getMockBuilder(OrganizationService::class)->getMock();
 
-		$this->controller = new RemindersController(
+		$this->controller = new SharesRemindersController(
 			$this->taskService,
 			$this->mailService,
 			$this->orgService
@@ -100,10 +106,10 @@ class ConsoleRemindersProcessTest extends \PHPUnit_Framework_TestCase
 		$this->assertContains($needle, (string)$response->getBody(), $description);
 	}
 
-	public function testSendNotificationToUserWhoDidntVote()
+	public function testSendNotificationToUserWhoDidntAssignShares()
 	{
 		$this->taskService
-			->method('findIdeasCreatedBetween')
+			->method('findAcceptedTasksBetween')
 			->willReturn([$this->task]);
 
 		$this->orgService
@@ -121,7 +127,7 @@ class ConsoleRemindersProcessTest extends \PHPUnit_Framework_TestCase
 		$this->assertNotEmpty($emails);
 		$this->assertEquals(1, count($emails));
 		$this->assertContains($this->task->getSubject(), $emails[0]->subject);
-		$this->assertEmailHtmlContains('approval', $emails[0]);
+		$this->assertEmailHtmlContains('shares', $emails[0]);
 		$this->assertNotEmpty($emails[0]->recipients);
 		$this->assertEquals($emails[0]->recipients[0], '<jane.doe@foo.com>');
 	}
