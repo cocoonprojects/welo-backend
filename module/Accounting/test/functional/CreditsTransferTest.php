@@ -66,9 +66,17 @@ class CreditsTransferTest extends \PHPUnit_Framework_TestCase
         $mail = $this->mailbox->getLastMessage();
 
         $this->assertContains(
-            "Bruce transfered 200 credits from your account into 'my org' account",
+            "Bruce transferred 200 credits from your account into 'my org' account",
             $mail
         );
+
+        $this->client->setJWTToken(static::$tokens['phil.toledo@ora.local']);
+
+        $response = $this->client->get('/flow-management/cards')->decodeJson();
+
+        $flowCardData = array_shift($response['_embedded']['ora:flowcard'])['content']['description'];
+
+        $this->assertEquals('The user Bruce subtracted 200 credits from your account', $flowCardData);
 	}
 
     public function testOutgoingTransfer()
@@ -109,9 +117,17 @@ class CreditsTransferTest extends \PHPUnit_Framework_TestCase
         $mail = $this->mailbox->getLastMessage();
 
         $this->assertContains(
-            "Bruce transfered 200 credits in your account from 'my org' account",
+            "Bruce transferred 200 credits in your account from 'my org' account",
             $mail
         );
+
+        $this->client->setJWTToken(static::$tokens['phil.toledo@ora.local']);
+
+        $response = $this->client->get('/flow-management/cards')->decodeJson();
+
+        $flowCardData = array_shift($response['_embedded']['ora:flowcard'])['content']['description'];
+
+        $this->assertEquals('The user Bruce took these credits from \'my org\' account', $flowCardData);
 	}
 
 }

@@ -8,6 +8,7 @@ use FlowManagement\Service\EventSourcingFlowService;
 use FlowManagement\Service\CardCommandsListener;
 use FlowManagement\Service\ItemCommandsListener;
 use FlowManagement\Service\OrganizationCommandsListener;
+use FlowManagement\Service\CreditsTransferNotifiedViaFlowCardListener;
 
 
 class Module implements AutoloaderProviderInterface, ConfigProviderInterface{
@@ -38,6 +39,14 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface{
 						'FlowManagement\CardCommandsListener' => function ($locator) {
 							$entityManager = $locator->get('doctrine.entitymanager.orm_default');
 							return new CardCommandsListener($entityManager);
+						},
+						'FlowManagement\CreditsTransferNotifiedViaFlowCardListener' => function ($locator) {
+
+							return new CreditsTransferNotifiedViaFlowCardListener(
+                                $locator->get('Application\UserService'),
+                                $locator->get('Accounting\CreditsAccountsService'),
+                                $locator->get('doctrine.entitymanager.orm_default')
+                            );
 						},
 						'FlowManagement\ItemCommandsListener' => function ($locator) {
 							$flowService = $locator->get('FlowManagement\FlowService');

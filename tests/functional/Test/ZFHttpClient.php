@@ -176,6 +176,7 @@ class ZFHttpClient
         $this->application
             ->getRequest()
             ->getHeaders()
+            ->clearHeaders()
             ->addHeaderLine('ORA-JWT', $token);
     }
 
