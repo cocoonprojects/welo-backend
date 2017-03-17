@@ -4,9 +4,9 @@ namespace FlowManagement\Entity;
 
 use Doctrine\ORM\Mapping AS ORM;
 use FlowManagement\FlowCardInterface;
+
 /**
  * @ORM\Entity
- *
  */
 class VoteCompletedItemReopenedCard extends FlowCard {
 	
