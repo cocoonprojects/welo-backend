@@ -86,7 +86,7 @@ class CreditTransferNotifiedViaMailListener implements ListenerAggregateInterfac
         }
 
         $data = $streamEvent->payload();
-        $amount = $data['amount'];
+        $amount = abs($data['amount']);
 
         $by = $this->userService->findUser($data['by']);
         $payeeAccount = $this->accountService->findAccount($data['payee']);
@@ -94,7 +94,7 @@ class CreditTransferNotifiedViaMailListener implements ListenerAggregateInterfac
         $payee = $payeeAccount->holders()->first();
         $org = $payeeAccount->getOrganization();
 
-        $this->sendOutgoingCreditsTransferInfoMail($by, $payee, $amount, $org);
+        $this->sendCreditsAddedInfoMail($by, $payee, $amount, $org);
     }
 
 	public function processIncomingCreditsTransferred(Event $event) {
@@ -107,24 +107,24 @@ class CreditTransferNotifiedViaMailListener implements ListenerAggregateInterfac
         }
 
         $data = $streamEvent->payload();
-        $amount = $data['amount'];
+        $amount = abs($data['amount']);
 
 		$by = $this->userService->findUser($data['by']);
         $payerAccount = $this->accountService->findAccount($data['payer']);
         $payer = $payerAccount->holders()->first();
         $org = $payerAccount->getOrganization();
 
-		$this->sendIncomingTransferInfoMail($by, $payer, $amount, $org);
+		$this->sendCreditsSubtractedInfoMail($by, $payer, $amount, $org);
 
 	}
 
-	public function sendIncomingTransferInfoMail(User $by, User $payer, $amount, Organization $org){
+	public function sendCreditsSubtractedInfoMail(User $by, User $payer, $amount, Organization $org){
 
         $message = $this->mailService->getMessage();
         $message->setTo($payer->getEmail());
-        $message->setSubject("$amount credits transfered from your account in the '{$org->getName()}' organization'");
+        $message->setSubject("$amount credits transferred from your account in the '{$org->getName()}' organization'");
 			
-        $this->mailService->setTemplate('mail/incoming-credits-transfer.phtml', [
+        $this->mailService->setTemplate('mail/credits-subtracted.phtml', [
             'recipient' => $payer,
             'by' => $by,
             'amount' => $amount,
@@ -138,13 +138,13 @@ class CreditTransferNotifiedViaMailListener implements ListenerAggregateInterfac
 		return $payer;
 	}
 
-	public function sendOutgoingCreditsTransferInfoMail(User $by, User $payee, $amount, Organization $org){
+	public function sendCreditsAddedInfoMail(User $by, User $payee, $amount, Organization $org){
 
         $message = $this->mailService->getMessage();
         $message->setTo($payee->getEmail());
-        $message->setSubject("$amount credits transfered in your account from the '{$org->getName()}' organization'");
+        $message->setSubject("$amount credits transferred in your account from the '{$org->getName()}' organization'");
 
-        $this->mailService->setTemplate('mail/outgoing-credits-transfer.phtml', [
+        $this->mailService->setTemplate('mail/credits-added.phtml', [
             'recipient' => $payee,
             'by' => $by,
             'amount' => $amount,
