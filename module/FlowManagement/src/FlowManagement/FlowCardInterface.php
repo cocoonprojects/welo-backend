@@ -11,8 +11,8 @@ interface FlowCardInterface{
 	const ITEM_OWNER_CHANGED_CARD = 'ItemOwnerChanged';
 	const ITEM_MEMBER_REMOVED_CARD = 'ItemMemberRemoved';
 	const ORGANIZATION_MEMBER_ROLE_CHANGED_CARD = 'OrganizationMemberRoleChanged';
-	const CREDITS_ADDED_CARD = 'CreditsAddedCard';
-	const CREDITS_SUBTRACTED_CARD = 'CreditsSubtractedCard';
+	const CREDITS_ADDED_CARD = 'CreditsAdded';
+	const CREDITS_SUBTRACTED_CARD = 'CreditsSubtracted';
 
 	public function getId();
 	
