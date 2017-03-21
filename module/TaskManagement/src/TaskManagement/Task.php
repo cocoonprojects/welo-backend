@@ -495,8 +495,9 @@ class Task extends DomainEntity implements TaskInterface
 		}, ARRAY_FILTER_USE_BOTH);
 		*/
 
-		if(array_sum($membersShares) != 1) {
-			throw new InvalidArgumentException('The total amount of shares must be 100');
+		$total = round(array_sum($membersShares),3);
+		if($total != 1.0) {
+			throw new InvalidArgumentException('The total amount of shares must be 100, '.($total*100).' found');
 		}
 
 		$missing = array_diff_key($this->members, $membersShares);
@@ -567,11 +568,19 @@ class Task extends DomainEntity implements TaskInterface
 			)));
 		}
 	}
+
 	/**
 	 * @return array
 	 */
 	public function getMembers() {
 		return $this->members;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function countMembers() {
+		return count($this->members);
 	}
 
 	/**
@@ -950,6 +959,17 @@ class Task extends DomainEntity implements TaskInterface
 			});
 		}
 		return $rv;
+	}
+
+	public function countMembersShare() {
+		$rv = array();
+		$evaluators = 0;
+		foreach ($this->members as $evaluatorId => $info) {
+			if(isset($info['shares'][$evaluatorId])) {
+				$evaluators++;
+			}
+		}
+		return $evaluators;
 	}
 
 	/**

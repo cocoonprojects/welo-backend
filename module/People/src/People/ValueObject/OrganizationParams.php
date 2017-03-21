@@ -9,7 +9,7 @@ class OrganizationParams
     private function __construct()
     {
         $this->params = [
-            'assignment_of_shares_timebox' => new \DateInterval('P10D'),
+            'assignment_of_shares_timebox' => new \DateInterval('P0D'),
             'assignment_of_shares_remind_interval' => new \DateInterval('P7D'),
 
             'item_idea_voting_timebox' => new \DateInterval('P7D'),

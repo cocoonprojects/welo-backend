@@ -72,13 +72,12 @@ class SharesClosingController extends AbstractConsoleController {
 
         $this->write("timebox for shares assignment is {$timeboxForSharesAssignment->format('%d')}");
 
-        $itemIdeas = $this->taskService->findAcceptedTasksBefore(
+        $itemAccepted = $this->taskService->findAcceptedTasksBefore(
             $timeboxForSharesAssignment,
-            TaskInterface::STATUS_ACCEPTED,
             $org->getId()
         );
 
-        $totItemIdeas = count($itemIdeas);
+        $totItemIdeas = count($itemAccepted);
 
         $this->write("found $totItemIdeas accepted items to process");
 
@@ -86,26 +85,29 @@ class SharesClosingController extends AbstractConsoleController {
             return;
         }
 
-        array_walk($itemIdeas, function($idea) use($systemUser){
+        array_walk($itemAccepted, function($idea) use($systemUser){
             $itemId = $idea->getId();
-            $results = $this->taskService
-                ->countVotesForItem(TaskInterface::STATUS_IDEA, $itemId);
             $item = $this->taskService->getTask($itemId);
+
+            $membersCount = $item->countMembers();
+            $sharesCount = $item->countMembersShare();
+
+            $minimumSharesToAutoClose = min(2, $membersCount);
+
+            if ($sharesCount < $minimumSharesToAutoClose) {
+                $this->write("Not enough shares to close the task $itemId: [$sharesCount / $minimumSharesToAutoClose]");
+                return;
+            }
 
             $this->transaction()->begin();
 
             try {
-                if($results['votesFor'] > $results['votesAgainst']){
-                    $this->write("opening task $itemId: {$results['votesFor']} votes for, {$results['votesAgainst']} against");
-                    $item->open($systemUser);
-                }else{
-                    $this->write("archiving task $itemId: {$results['votesFor']} votes for, {$results['votesAgainst']} against");
-                    $item->archive($systemUser);
-                }
+                $this->write("closing task $itemId with $sharesCount shares");
+                $item->close($systemUser);
                 $this->transaction()->commit();
             }catch (\Exception $e) {
                 $this->transaction()->rollback();
-                $this->write("error: {$e->getMessage()}");
+                $this->write("error closing task $itemId: {$e->getMessage()}");
             }
         });
 

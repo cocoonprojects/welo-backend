@@ -88,7 +88,6 @@ class Organization extends DomainEntity
 	}
 
 	public function setParams($data, User $updatedBy) {
-
 		$settings = ValueObject\OrganizationParams::fromArray($data);
 
 		$this->setSettings(self::ORG_SETTINGS, $settings, $updatedBy);

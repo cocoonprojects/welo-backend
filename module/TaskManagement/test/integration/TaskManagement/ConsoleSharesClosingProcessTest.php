@@ -18,13 +18,17 @@ use TaskManagement\Entity\Vote;
 use TaskManagement\Service\TaskService;
 use Zend\Console\Request as ConsoleRequest;
 use TaskManagement\Service\MailService;
+use Zend\Form\Element\DateTime;
+
 
 class ConsoleSharesClosingProcessTest extends \PHPUnit_Framework_TestCase
 {
+    private $initialized = false;
 
 	private $controller;
 	private $owner;
-	private $member;
+	private $member01;
+	private $member02;
 	private $task;
 	private $transactionManager;
 	private $taskService;
@@ -34,44 +38,72 @@ class ConsoleSharesClosingProcessTest extends \PHPUnit_Framework_TestCase
 	{
         $serviceManager = Bootstrap::getServiceManager();
 
+        $this->transactionManager = $serviceManager->get('prooph.event_store');
+
         $this->userService = $serviceManager->get('Application\UserService');
         $this->taskService = $serviceManager->get('TaskManagement\TaskService');
-        $streamService = $serviceManager->get('TaskManagement\StreamService');
-        $transactionManager = $serviceManager->get('prooph.event_store');
 
-        $admin = $this->userService->create( [ 'given_name' => 'Admin', 'family_name' => 'Uber', 'email' => 'admin@foo.com' ], User::ROLE_ADMIN );
-        $this->owner = $this->userService->create( [ 'given_name' => 'John', 'family_name' => 'Doe', 'email' => 'john.doe@foo.com' ], User::ROLE_USER );
-        $this->member = $serviceManager->get('Application\UserService')->create( [ 'given_name' => 'Jane', 'family_name' => 'Doe', 'email' => 'jane.doe@foo.com' ], User::ROLE_USER );
+        $admin = $this->createUser(['given_name' => 'Admin', 'family_name' => 'Uber', 'email' => $this->generateRandomEmail()], User::ROLE_ADMIN);
+        $this->owner = $this->createUser([ 'given_name' => 'John', 'family_name' => 'Doe', 'email' => $this->generateRandomEmail() ], User::ROLE_USER );
+        $this->member01 = $this->createUser([ 'given_name' => 'Jane', 'family_name' => 'Doe', 'email' => $this->generateRandomEmail() ], User::ROLE_USER );
+        $this->member02 = $this->createUser([ 'given_name' => 'Jack', 'family_name' => 'Doe', 'email' => $this->generateRandomEmail() ], User::ROLE_USER );
 
-        $this->organization = $serviceManager->get('People\OrganizationService')->createOrganization('Organization Name', $admin);
-        $stream = $streamService->createStream($this->organization, "stream", $admin);
+        $this->organization = $this->createOrganization($this->generateRandomName(), $admin, $serviceManager);
+        $stream = $this->createStream($this->generateRandomName(), $admin, $this->organization, $serviceManager);
 
-        $transactionManager->beginTransaction();
+
+        $this->transactionManager->beginTransaction();
         try {
             $this->organization->addMember($this->owner, Organization::ROLE_MEMBER);
-            $this->organization->addMember($this->member, Organization::ROLE_MEMBER);
-            $this->task = Task::create($stream, 'Lorem Ipsum Sic Dolor Amit', $this->owner);
-            $this->taskService->addTask($this->task);
-            $transactionManager->commit();
-        }catch (\Exception $e) {
+            $this->organization->addMember($this->member01, Organization::ROLE_MEMBER);
+            $this->organization->addMember($this->member02, Organization::ROLE_MEMBER);
+            $this->transactionManager->commit();
+
+        } catch (\Exception $e) {
             var_dump($e->getMessage());
-            $transactionManager->rollback();
+            $this->transactionManager->rollback();
             throw $e;
         }
 
-        $this->task->addMember($this->owner, Task::ROLE_OWNER);
-        $this->task->addMember($this->member, Task::ROLE_MEMBER);
-        $this->task->open($this->owner);
-        $this->task->execute($this->owner);
-        $this->task->addEstimation(1500, $this->owner);
-        $this->task->addEstimation(3100, $this->member);
-        $this->task->complete($this->owner);
-        $this->task->accept($this->owner, new \DateInterval('P7D'));
+        // reload users to refresh memberships inside user entities
+        $this->userService->refreshEntity($this->owner);
+        $this->userService->refreshEntity($this->member01);
+        $this->userService->refreshEntity($this->member02);
 
-        $closeTimeboxDays = $this->organization->getParams()->get('assignment_of_shares_timebox')->format('%d') + 1;
-		$dateAfterTimebox = new \DateTime();
-        $dateAfterTimebox->modify('-'.$closeTimeboxDays.' day');
-//        $this->task->updateMembersShare(new \DateTime('today'));
+        $this->transactionManager->beginTransaction();
+        try {
+            $this->task = Task::create($stream, 'Lorem Ipsum Sic Dolor Amit', $this->owner);
+            $this->task->addMember($this->owner, Task::ROLE_OWNER);
+            $this->task->addMember($this->member01, Task::ROLE_MEMBER);
+            $this->task->addMember($this->member02, Task::ROLE_MEMBER);
+            $this->task->open($this->owner);
+            $this->task->execute($this->owner);
+            $this->task->addEstimation(1500, $this->owner);
+            $this->task->addEstimation(3100, $this->member01);
+            $this->task->addEstimation(2050, $this->member02);
+            $this->task->complete($this->owner);
+            $this->task->accept($this->owner);
+
+            $this->taskService->addTask($this->task);
+
+            $this->transactionManager->commit();
+        }catch (\Exception $e) {
+            var_dump($e->getMessage());
+            $this->transactionManager->rollback();
+            throw $e;
+        }
+
+        $orgData = $this->organization->getParams();
+        $orgData->params['assignment_of_shares_timebox'] = new \DateInterval("P0D");
+        $this->transactionManager->beginTransaction();
+        try {
+            $this->organization->setParams($orgData->params, $admin);
+            $this->transactionManager->commit();
+        }catch (\Exception $e) {
+            var_dump($e->getMessage());
+            $this->transactionManager->rollback();
+            throw $e;
+        }
 
 		$this->controller = $serviceManager->get("ControllerManager")->get('TaskManagement\Controller\Console\SharesClosing');
 
@@ -79,29 +111,111 @@ class ConsoleSharesClosingProcessTest extends \PHPUnit_Framework_TestCase
 	}
 
 
-	public function testCloseTaskWhereNotAllUsersAssignedShares()
+	public function tearDown()
+    {
+    }
+
+
+    public function testCloseTaskWhereNotAllUsersAssignedShares()
 	{
-        $members = $this->task->getMembers();
-        $owner = array_shift($members);
-        $member = array_shift($members);
-
-        $this->task->assignShares([
-            $this->owner->getId() => 0.33,
-            $this->member->getId() => 0.67
-        ], $this->owner);
-die;
-        ob_start();
-
-		$this->controller->dispatch($this->request);
-
-        $result = ob_get_clean();
-
-        var_dump($result);
+        $this->transactionManager->beginTransaction();
+        try {
+            $this->task->assignShares([
+                $this->owner->getId() => 0.33,
+                $this->member01->getId() => 0.57,
+                $this->member02->getId() => 0.10
+            ], $this->owner);
+            $this->task->assignShares([
+                $this->owner->getId() => 0.23,
+                $this->member01->getId() => 0.47,
+                $this->member02->getId() => 0.30
+            ], $this->member01);
+            $this->transactionManager->commit();
+        }catch (\Exception $e) {
+            var_dump($e->getMessage());
+            $this->transactionManager->rollback();
+            throw $e;
+        }
 
         $readModelTask = $this->taskService->findTask($this->task->getId());
 
+        ob_start();
+		$this->controller->dispatch($this->request);
+        $result = ob_get_clean();
+
+
         $this->assertEquals(Task::STATUS_CLOSED, $this->task->getStatus());
         $this->assertEquals(Task::STATUS_CLOSED, $readModelTask->getStatus());
-        $this->assertEquals(true, $this->task->isSharesAssignmentCompleted());
+        $this->assertContains('found 1 accepted items to process', $result);
+        $this->assertContains('closing task '.$this->task->getId(), $result);
 	}
+
+
+	public function testCannotCloseTaskWhereNotMinimumSharesReached()
+	{
+        $this->transactionManager->beginTransaction();
+        try {
+            $this->task->assignShares([
+                $this->owner->getId() => 0.33,
+                $this->member01->getId() => 0.57,
+                $this->member02->getId() => 0.10
+            ], $this->owner);
+            $this->transactionManager->commit();
+        }catch (\Exception $e) {
+            var_dump($e->getMessage());
+            $this->transactionManager->rollback();
+            throw $e;
+        }
+
+        $readModelTask = $this->taskService->findTask($this->task->getId());
+
+        ob_start();
+		$this->controller->dispatch($this->request);
+        $result = ob_get_clean();
+
+
+        $this->assertEquals(Task::STATUS_ACCEPTED, $this->task->getStatus());
+        $this->assertEquals(Task::STATUS_ACCEPTED, $readModelTask->getStatus());
+        $this->assertContains('found 1 accepted items to process', $result);
+        $this->assertContains('Not enough shares to close the task '.$this->task->getId(), $result);
+	}
+
+
+    protected function generateRandomName() {
+        return round(microtime(true) * 1000);
+    }
+
+    protected function generateRandomEmail() {
+        return round(microtime(true) * 1000).'@foo.com';
+    }
+
+    /**
+     * @return array
+     */
+    protected function createUser($data, $role)
+    {
+        return $this->userService->create($data, $role);
+    }
+
+    /**
+     * @param $serviceManager
+     * @param $admin
+     * @return mixed
+     */
+    protected function createOrganization($name, $admin, $serviceManager)
+    {
+        $org = null;
+        $orgService = $serviceManager->get('People\OrganizationService');
+
+        return $orgService->createOrganization($name, $admin);
+    }
+
+    private function createStream($name, $admin, $organization, $serviceManager)
+    {
+        $stream = null;
+        $streamService = $serviceManager->get('TaskManagement\StreamService');
+
+        return $streamService->createStream($organization, $name, $admin);
+    }
 }
+
