@@ -70,6 +70,8 @@ class SharesClosingController extends AbstractConsoleController {
         $timeboxForSharesAssignment = $org->getParams()
             ->get('assignment_of_shares_timebox');
 
+        var_dump($timeboxForSharesAssignment);
+
         $this->write("timebox for shares assignment is {$timeboxForSharesAssignment->format('%d')}");
 
         $itemAccepted = $this->taskService->findAcceptedTasksBefore(
@@ -79,7 +81,7 @@ class SharesClosingController extends AbstractConsoleController {
 
         $totItemIdeas = count($itemAccepted);
 
-        $this->write("found $totItemIdeas accepted items to process");
+        $this->write("found $totItemIdeas accepted items to process in ".$org->getId());
 
         if($totItemIdeas == 0) {
             return;

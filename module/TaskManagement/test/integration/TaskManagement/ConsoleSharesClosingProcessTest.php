@@ -26,6 +26,7 @@ class ConsoleSharesClosingProcessTest extends \PHPUnit_Framework_TestCase
     private $initialized = false;
 
 	private $controller;
+	private $admin;
 	private $owner;
 	private $member01;
 	private $member02;
@@ -33,6 +34,7 @@ class ConsoleSharesClosingProcessTest extends \PHPUnit_Framework_TestCase
 	private $transactionManager;
 	private $taskService;
 	private $userService;
+	private $orgService;
 
 	protected function setUp()
 	{
@@ -42,14 +44,15 @@ class ConsoleSharesClosingProcessTest extends \PHPUnit_Framework_TestCase
 
         $this->userService = $serviceManager->get('Application\UserService');
         $this->taskService = $serviceManager->get('TaskManagement\TaskService');
+        $this->orgService = $serviceManager->get('People\OrganizationService');
 
-        $admin = $this->createUser(['given_name' => 'Admin', 'family_name' => 'Uber', 'email' => $this->generateRandomEmail()], User::ROLE_ADMIN);
+        $this->admin = $this->createUser(['given_name' => 'Admin', 'family_name' => 'Uber', 'email' => $this->generateRandomEmail()], User::ROLE_ADMIN);
         $this->owner = $this->createUser([ 'given_name' => 'John', 'family_name' => 'Doe', 'email' => $this->generateRandomEmail() ], User::ROLE_USER );
         $this->member01 = $this->createUser([ 'given_name' => 'Jane', 'family_name' => 'Doe', 'email' => $this->generateRandomEmail() ], User::ROLE_USER );
         $this->member02 = $this->createUser([ 'given_name' => 'Jack', 'family_name' => 'Doe', 'email' => $this->generateRandomEmail() ], User::ROLE_USER );
 
-        $this->organization = $this->createOrganization($this->generateRandomName(), $admin, $serviceManager);
-        $stream = $this->createStream($this->generateRandomName(), $admin, $this->organization, $serviceManager);
+        $this->organization = $this->createOrganization($this->generateRandomName(), $serviceManager);
+        $stream = $this->createStream($this->generateRandomName(), $this->organization, $serviceManager);
 
 
         $this->transactionManager->beginTransaction();
@@ -93,17 +96,6 @@ class ConsoleSharesClosingProcessTest extends \PHPUnit_Framework_TestCase
             throw $e;
         }
 
-        $orgData = $this->organization->getParams();
-        $orgData->params['assignment_of_shares_timebox'] = new \DateInterval("P0D");
-        $this->transactionManager->beginTransaction();
-        try {
-            $this->organization->setParams($orgData->params, $admin);
-            $this->transactionManager->commit();
-        }catch (\Exception $e) {
-            var_dump($e->getMessage());
-            $this->transactionManager->rollback();
-            throw $e;
-        }
 
 		$this->controller = $serviceManager->get("ControllerManager")->get('TaskManagement\Controller\Console\SharesClosing');
 
@@ -111,13 +103,10 @@ class ConsoleSharesClosingProcessTest extends \PHPUnit_Framework_TestCase
 	}
 
 
-	public function tearDown()
-    {
-    }
-
-
     public function testCloseTaskWhereNotAllUsersAssignedShares()
 	{
+        $this->setSharesTimebox(0);
+
         $this->transactionManager->beginTransaction();
         try {
             $this->task->assignShares([
@@ -153,6 +142,10 @@ class ConsoleSharesClosingProcessTest extends \PHPUnit_Framework_TestCase
 
 	public function testCannotCloseTaskWhereNotMinimumSharesReached()
 	{
+        $this->setSharesTimebox(0);
+
+        $this->organization = $this->orgService->getAggregateRoot($this->organization->getId());
+
         $this->transactionManager->beginTransaction();
         try {
             $this->task->assignShares([
@@ -181,12 +174,43 @@ class ConsoleSharesClosingProcessTest extends \PHPUnit_Framework_TestCase
 	}
 
 
+	public function testCannotCloseTaskWhenNoTimeboxReached()
+	{
+        $this->setSharesTimebox(10);
+
+        $this->transactionManager->beginTransaction();
+        try {
+            $this->task->assignShares([
+                $this->owner->getId() => 0.33,
+                $this->member01->getId() => 0.57,
+                $this->member02->getId() => 0.10
+            ], $this->owner);
+            $this->transactionManager->commit();
+        }catch (\Exception $e) {
+            var_dump($e->getMessage());
+            $this->transactionManager->rollback();
+            throw $e;
+        }
+
+        $readModelTask = $this->taskService->findTask($this->task->getId());
+
+        ob_start();
+		$this->controller->dispatch($this->request);
+        $result = ob_get_clean();
+
+
+        $this->assertEquals(Task::STATUS_ACCEPTED, $this->task->getStatus());
+        $this->assertEquals(Task::STATUS_ACCEPTED, $readModelTask->getStatus());
+        $this->assertContains('found 0 accepted items to process in '.$this->organization->getId(), $result);
+	}
+
+
     protected function generateRandomName() {
-        return round(microtime(true) * 1000);
+        return round(microtime(true) * 1000).'_'.rand(0,10000);
     }
 
     protected function generateRandomEmail() {
-        return round(microtime(true) * 1000).'@foo.com';
+        return round(microtime(true) * 1000).'_'.rand(0,10000).'@foo.com';
     }
 
     /**
@@ -199,23 +223,40 @@ class ConsoleSharesClosingProcessTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @param $serviceManager
-     * @param $admin
+     * @param $this->admin
      * @return mixed
      */
-    protected function createOrganization($name, $admin, $serviceManager)
+    protected function createOrganization($name, $serviceManager)
     {
-        $org = null;
-        $orgService = $serviceManager->get('People\OrganizationService');
-
-        return $orgService->createOrganization($name, $admin);
+        return $this->orgService->createOrganization($name, $this->admin);
     }
 
-    private function createStream($name, $admin, $organization, $serviceManager)
+    private function createStream($name, $organization, $serviceManager)
     {
         $stream = null;
         $streamService = $serviceManager->get('TaskManagement\StreamService');
 
-        return $streamService->createStream($organization, $name, $admin);
+        return $streamService->createStream($organization, $name, $this->admin);
+    }
+
+    /**
+     * @param $this->admin
+     * @throws \Exception
+     */
+    protected function setSharesTimebox($days)
+    {
+        $orgData = $this->organization->getParams();
+        $orgData->params['assignment_of_shares_timebox'] = new \DateInterval("P{$days}D");
+
+        $this->transactionManager->beginTransaction();
+        try {
+            $this->organization->setParams($orgData->params, $this->admin);
+            $this->transactionManager->commit();
+        } catch (\Exception $e) {
+            var_dump($e->getMessage());
+            $this->transactionManager->rollback();
+            throw $e;
+        }
     }
 }
 

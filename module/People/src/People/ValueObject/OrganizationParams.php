@@ -9,7 +9,7 @@ class OrganizationParams
     private function __construct()
     {
         $this->params = [
-            'assignment_of_shares_timebox' => new \DateInterval('P0D'),
+            'assignment_of_shares_timebox' => new \DateInterval('P10D'),
             'assignment_of_shares_remind_interval' => new \DateInterval('P7D'),
 
             'item_idea_voting_timebox' => new \DateInterval('P7D'),
@@ -26,13 +26,17 @@ class OrganizationParams
 
     private function setInterval($data, $intervalName)
     {
-        if (!isset($data[$intervalName]) ||
-            !is_numeric($data[$intervalName])) {
-
+        if (!isset($data[$intervalName])) {
             return;
         }
 
-        $interval = new \DateInterval("P{$data[$intervalName]}D");
+        if ($data[$intervalName] instanceof \DateInterval) {
+            $interval = new \DateInterval("P{$data[$intervalName]->d}D");
+        }
+        if (is_numeric($data[$intervalName])) {
+            $interval = new \DateInterval("P{$data[$intervalName]}D");
+        }
+
         $this->params[$intervalName] = $interval;
     }
 
