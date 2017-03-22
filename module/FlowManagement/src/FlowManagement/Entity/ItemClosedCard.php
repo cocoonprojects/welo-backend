@@ -21,7 +21,10 @@ class ItemClosedCard extends FlowCard {
 		$rv["title"] = "Item '".$this->getItem()->getSubject()."' is closed";
 		$rv["content"] = [
 			"description" => $this->getItem()->getDescription(),
-            "extraData" => $this->getItem()->getSharesSummary(),
+            "extraData" => [
+                'shares' => $this->getItem()->getSharesSummary(),
+                'total' => $this->getItem()->getAverageEstimation()
+            ],
 			"actions" => [
 				"primary" => [
 					"text" => "See item details",
