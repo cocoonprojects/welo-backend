@@ -394,14 +394,18 @@ class Task extends EditableEntity implements TaskInterface
         $selfShare = [];
 
         foreach ($this->members as $taskMember) {
+
             foreach ($taskMember->getShares() as $index => $taskShares) {
 
-                if ($taskMember->getMember()->getId() == $taskShares->getValued()->getMember()->getId()) {
+                $memberId = $taskMember->getUser()->getId();
+                $valuedId = $index;
 
-                    $selfShare[$taskShares->getValued()->getMember()->getId()] = $taskShares->getValue();
+                if ($memberId === $valuedId) {
+
+                    $selfShare[$valuedId] = $taskShares->getValue();
                 }
 
-                $rv[$taskShares->getValued()->getMember()->getId()][] = $taskShares->getValue();
+                $rv[$valuedId][] = $taskShares->getValue();
             }
         }
 
