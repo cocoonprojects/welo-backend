@@ -1,9 +1,8 @@
 <?php
+
 use IntegrationTest\Bootstrap;
 use Zend\Http\Request;
-use Zend\Http\Response;
 use Zend\Mvc\MvcEvent;
-use Zend\Mvc\Router\Http\TreeRouteStack as HttpRouter;
 use Zend\Mvc\Router\RouteMatch;
 use Zend\Uri\Http;
 

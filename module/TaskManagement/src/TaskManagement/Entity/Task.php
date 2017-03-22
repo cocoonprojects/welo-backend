@@ -367,25 +367,85 @@ class Task extends EditableEntity implements TaskInterface
 		}
 	}
 
-	private function getMembersShare() {
+	public function getSharesSummary()
+    {
+        $summary = [];
+
+        $gap = $this->getGap();
+        $shares = $this->getMembersShare();
+
+        $avgCredits = $this->getAverageEstimation();
+
+        foreach ($shares as $uid => $share) {
+            $summary[$uid] = [
+                'name' => $this->getMember($uid)->getUser()->getFirstname(),
+                'share' => $share * 100,
+                'value' => $share * $avgCredits,
+                'gap' => $gap[$uid] * 100
+            ];
+        }
+
+        return $summary;
+    }
+
+	public function getGap() {
+
+	    $rv = [];
+        $selfShare = [];
+
+        foreach ($this->members as $taskMember) {
+            foreach ($taskMember->getShares() as $index => $taskShares) {
+
+                if ($taskMember->getMember()->getId() == $taskShares->getValued()->getMember()->getId()) {
+
+                    $selfShare[$taskShares->getValued()->getMember()->getId()] = $taskShares->getValue();
+                }
+
+                $rv[$taskShares->getValued()->getMember()->getId()][] = $taskShares->getValue();
+            }
+        }
+
+        $avgs = [];
+        $gaps = [];
+
+        foreach($rv as $uid => $singleShare) {
+            $avgs[$uid] = array_sum($singleShare) / count($singleShare);
+        }
+
+
+        foreach($avgs as $uid => $avg) {
+            $gaps[$uid] = ($selfShare[$uid] - $avg);
+        }
+
+        return $gaps;
+    }
+
+	public function getMembersShare() {
 		$rv = [];
+
 		foreach ($this->members as $member) {
 			$rv[$member->getMember()->getId()] = null;
 		}
+
 		$evaluators = 0;
+
 		foreach ($this->members as $evaluatorId => $info) {
 			if(count($info->getShares()) > 0 && $info->getShareValueOf($info) !== null) {
-				$evaluators++;
+
+			    $evaluators++;
+
 				foreach($info->getShares() as $valuedId => $share) {
 					$rv[$valuedId] = isset($rv[$valuedId]) ? $rv[$valuedId] + $share->getValue() : $share->getValue();
 				}
 			}
 		}
+
 		if($evaluators > 0) {
 			array_walk($rv, function(&$value) use ($evaluators) {
 				$value = round($value / $evaluators, 4);
 			});
 		}
+
 		return $rv;
 	}
 
