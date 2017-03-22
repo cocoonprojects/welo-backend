@@ -13,6 +13,7 @@ interface FlowCardInterface{
 	const ORGANIZATION_MEMBER_ROLE_CHANGED_CARD = 'OrganizationMemberRoleChanged';
 	const CREDITS_ADDED_CARD = 'CreditsAdded';
 	const CREDITS_SUBTRACTED_CARD = 'CreditsSubtracted';
+	const ITEM_CLOSED_CARD = 'ItemClosed';
 
 	public function getId();
 	

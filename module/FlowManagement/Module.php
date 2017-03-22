@@ -54,7 +54,16 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface{
 							$userService = $locator->get('Application\UserService');
 							$transactionManager = $locator->get('prooph.event_store');
 							$taskService = $locator->get('TaskManagement\TaskService');
-							return new ItemCommandsListener($flowService, $organizationService, $userService, $transactionManager, $taskService);
+                            $entityManager = $locator->get('doctrine.entitymanager.orm_default');
+
+                            return new ItemCommandsListener(
+							    $flowService,
+                                $organizationService,
+                                $userService,
+                                $transactionManager,
+                                $taskService,
+                                $entityManager
+                            );
 						},
 						'FlowManagement\OrganizationCommandsListener' => function ($locator) {
 							$flowService = $locator->get('FlowManagement\FlowService');
