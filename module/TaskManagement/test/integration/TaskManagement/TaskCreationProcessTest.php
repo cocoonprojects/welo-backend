@@ -40,7 +40,6 @@ class TaskCreationTaskProcessTest extends \BaseTaskProcessTest
 			$this->task = $this->taskService->addTask($task);
 			$transactionManager->commit();
 		} catch (\Exception $e) {
-			var_dump($e);
 			$transactionManager->rollback();
 			throw $e;
 		}

@@ -3,15 +3,13 @@
 namespace TaskManagement;
 
 use TaskManagement\Controller\Console\RemindersController;
-use PHPUnit_Framework_TestCase;
 use Guzzle\Http\Client;
 use IntegrationTest\Bootstrap;
-use Prooph\EventStore\EventStore;
 use Application\Entity\User;
 use People\Entity\Organization;
 use People\Service\OrganizationService;
 use TaskManagement\Entity\Task as EntityTask;
-use TaskManagement\Entity\Stream;
+use TaskManagement\Entity\Stream as EntityStream;
 use TaskManagement\Entity\TaskMember;
 use TaskManagement\Entity\Vote;
 use TaskManagement\Service\TaskService;
@@ -40,7 +38,7 @@ class ConsoleRemindersProcessTest extends \PHPUnit_Framework_TestCase
 		$this->organization = new Organization('1');
 		$this->organization->setName('Organization Name');
 
-		$this->stream = new Stream('1', $this->organization);
+		$this->stream = new EntityStream('1', $this->organization);
 		$this->stream->setSubject("Stream subject");
 
 		$this->owner = User::create();
@@ -114,12 +112,12 @@ class ConsoleRemindersProcessTest extends \PHPUnit_Framework_TestCase
 
 		$this->controller->sendAction();
 
-		$result = ob_clean();
+		$result = ob_get_clean();
 
 		$emails = $this->getEmailMessages();
 
 		$this->assertNotEmpty($emails);
-		$this->assertEquals(1, count($emails));
+		$this->assertCount(1, $emails);
 		$this->assertContains($this->task->getSubject(), $emails[0]->subject);
 		$this->assertEmailHtmlContains('approval', $emails[0]);
 		$this->assertNotEmpty($emails[0]->recipients);

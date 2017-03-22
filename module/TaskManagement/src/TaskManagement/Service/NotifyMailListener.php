@@ -289,27 +289,34 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
 	public function sendTaskClosedInfoMail(Task $task)
 	{
 		$rv = [];
+
+		$sharesSummary = $task->getSharesSummary();
+		$avgCredits = $task->getAverageEstimation();
+
 		$taskMembers = $task->getMembers();
 		foreach ($taskMembers as $taskMember) {
 			$member = $taskMember->getMember();
-	
+
 			$message = $this->mailService->getMessage();
 			$message->setTo($member->getEmail());
 			$message->setSubject('The "'.$task->getSubject().'" item has been closed');
-	
+
 			$this->mailService->setTemplate( 'mail/task-closed-info.phtml', [
 				'task' => $task,
 				'recipient'=> $member,
 				'host' => $this->host,
+                'sharesSummary' => $sharesSummary,
+                'avgCredits' => $avgCredits,
                 'router' => $this->feRouter
             ]);
-			
+
 			$this->mailService->send();
+
 			$rv[] = $member;
 		}
 		return $rv;
 	}
-	
+
 	/**
 	 * Send an email notification to the organization members to inform them that a new Work Item Idea has been created
 	 * @param Task $task

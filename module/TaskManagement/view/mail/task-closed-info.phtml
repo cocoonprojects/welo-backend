@@ -1,9 +1,28 @@
 <?php $link = $this->router->url($this->host, $this->task); ?>
 
 <p>Hi <?= $this->recipient->getFirstname() ?>,<br>
-the item you contributed to <a href="<?= $link ?>"><?= $this->task->getSubject()?>"</a> has been closed!</p>
+the item you contributed to <a href="<?= $link ?>">"<?= $this->task->getSubject()?>"</a> has been closed!</p>
 <p>The credits you gained have been transferred into your account.</p>
+<p> Here is a summary of shares assignment for this task:</p>
+
+<p> Total credits: <?= $this->avgCredits ?></p>
+<table class="summary">
+    <thead>
+        <tr><th>User</th><th>Share %</th><th>Value </th><th>Gap %</th></tr>
+    </thead>
+    <tbody>
+        <?php foreach($this->sharesSummary as $share): ?>
+            <tr>
+                <td><?= $share['name']; ?></td>
+                <td><?= $share['share']; ?></td>
+                <td><?= $share['value']; ?></td>
+                <td><?= $share['gap']; ?></td>
+            </tr>
+        <?php endforeach; ?>
+    </tbody>
+</table>
+
 <p>Thank you for contributing and keep on doing it!</p>
 <p>Welo</p>
 <hr>
-< style="font-size: 12px">You are receiving this e-mail because you are member of the  <a href="<?= $link ?>"<?= $this->task->getSubject() ?>"</a> item.</p>
+<p style="font-size: 12px">You are receiving this e-mail because you are member of the  <a href="<?= $link ?>">"<?= $this->task->getSubject() ?>"</a> item.</p>
