@@ -3,18 +3,22 @@
 namespace FlowManagement\Service;
 
 use Application\Service\UserService;
+use Doctrine\ORM\EntityManager;
 use People\Service\OrganizationService;
 use Prooph\EventStore\EventStore;
 use TaskManagement\TaskArchived;
+use TaskManagement\TaskClosed;
 use TaskManagement\TaskCreated;
 use TaskManagement\TaskCompleted;
 use TaskManagement\TaskOpened;
 use TaskManagement\TaskAccepted;
 use TaskManagement\TaskReopened;
 use TaskManagement\TaskOngoing;
-use TaskManagement\Task;
 use TaskManagement\OwnerAdded;
 use TaskManagement\TaskMemberRemoved;
+use FlowManagement\Entity\ItemClosedCard;
+use FlowManagement\FlowCardInterface;
+use Rhumsaa\Uuid\Uuid;
 use Zend\EventManager\Event;
 use Zend\EventManager\EventManagerInterface;
 use Zend\EventManager\ListenerAggregateInterface;
@@ -25,6 +29,7 @@ use People\Entity\OrganizationMembership;
 class ItemCommandsListener implements ListenerAggregateInterface {
 	
 	protected $listeners = [];
+
 	/**
 	 * @var FlowService
 	 */
@@ -45,17 +50,25 @@ class ItemCommandsListener implements ListenerAggregateInterface {
 	 * @var TaskService
 	 */
 	private $taskService;
-	
-	public function __construct(FlowService $flowService, 
-			OrganizationService $organizationService, 
-			UserService $userService, 
-			EventStore $transactionManager,
-			TaskService $taskService){
+
+
+	private $entityManager;
+
+	public function __construct(
+	    FlowService $flowService,
+        OrganizationService $organizationService,
+        UserService $userService,
+        EventStore $transactionManager,
+        TaskService $taskService,
+        EntityManager $entityManager)
+    {
 		$this->flowService = $flowService;
 		$this->organizationService = $organizationService;
 		$this->userService = $userService;
 		$this->transactionManager = $transactionManager;
 		$this->taskService = $taskService;
+		$this->entityManager = $entityManager;
+
 		$this->canVoteRoles = [OrganizationMembership::ROLE_ADMIN, OrganizationMembership::ROLE_MEMBER];
 	}
 	
@@ -69,6 +82,7 @@ class ItemCommandsListener implements ListenerAggregateInterface {
 		$this->listeners[] = $events->getSharedManager()->attach(Application::class, TaskReopened::class, array($this, 'processItemCompletedReopened'));
 		$this->listeners [] = $events->getSharedManager()->attach(Application::class, OwnerAdded::class, array($this, 'processItemOwnerChanged'));
 		$this->listeners [] = $events->getSharedManager()->attach(Application::class, TaskMemberRemoved::class, array($this, 'processItemMemberRemoved'));
+		$this->listeners [] = $events->getSharedManager()->attach(Application::class, TaskClosed::class, array($this, 'processItemClosed'));
 	}
 	
 	public function processItemCreated(Event $event){
@@ -268,7 +282,28 @@ class ItemCommandsListener implements ListenerAggregateInterface {
 			$flowService->createItemMemberRemovedCard($recipient, $itemId, $exMember, $organization->getId(), $changedBy);		
 		});		
 	}
-	
+
+	public function processItemClosed(Event $event) {
+        $streamEvent = $event->getTarget();
+        $itemId = $streamEvent->metadata()['aggregate_id'];
+        $item = $this->taskService->findTask($itemId);
+
+        $by = $this->userService->findUser($event->getParam('by'));
+
+        $data = [
+            'orgId' => $item->getOrganizationId(),
+        ];
+
+        $flowCard = new ItemClosedCard(Uuid::uuid4(), $by);
+        $flowCard->setContent(FlowCardInterface::ITEM_CLOSED_CARD, $data);
+        $flowCard->setItem($item);
+        $flowCard->setCreatedBy($by);
+
+        $this->entityManager->persist($flowCard);
+        $this->entityManager->flush();
+
+    }
+
 	public function detach(EventManagerInterface $events){
 		foreach ( $this->listeners as $index => $listener ) {
 			if ($events->detach ( $listener )) {
