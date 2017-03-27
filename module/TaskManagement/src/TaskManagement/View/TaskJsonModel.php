@@ -207,6 +207,7 @@ class TaskJsonModel extends JsonModel {
 
 		if ($task->getType() == 'kanbanizetask') {
 			$rv['lane'] = $task->getLaneName();
+			$rv['taskId'] = $task->getTaskId();
 		}
 
 		if ($task->getStatus () >= Task::STATUS_ONGOING) {

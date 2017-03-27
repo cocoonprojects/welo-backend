@@ -118,6 +118,10 @@ class KanbanizeTask extends Task {
 		return $this->lanename;
 	}
 
+	public function getTaskId() {
+	    return $this->taskid;
+    }
+    
 	/**
 	 * @return string
 	 */
