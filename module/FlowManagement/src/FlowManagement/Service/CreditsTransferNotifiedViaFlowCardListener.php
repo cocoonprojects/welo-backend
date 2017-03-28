@@ -76,7 +76,7 @@ class CreditsTransferNotifiedViaFlowCardListener implements ListenerAggregateInt
         $org = $payerAccount->getOrganization();
 
         $data = [
-            'userName' => $by->getFirstName(),
+            'userName' => $by->getFirstName() . ' ' . $by->getLastName(),
             'orgName'  => $org->getName(),
             'amount'   => abs($data['amount']),
         ];
@@ -106,7 +106,7 @@ class CreditsTransferNotifiedViaFlowCardListener implements ListenerAggregateInt
         $org = $payeeAccount->getOrganization();
 
         $data = [
-            'userName' => $by->getFirstName(),
+            'userName' => $by->getFirstName() . ' ' . $by->getLastName(),
             'orgName'  => $org->getName(),
             'amount'   => abs($data['amount']),
         ];

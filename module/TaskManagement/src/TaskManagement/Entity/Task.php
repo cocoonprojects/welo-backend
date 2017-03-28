@@ -377,8 +377,11 @@ class Task extends EditableEntity implements TaskInterface
         $avgCredits = $this->getAverageEstimation();
 
         foreach ($shares as $uid => $share) {
+
+            $member = $this->getMember($uid)->getUser();
+
             $summary[$uid] = [
-                'name' => $this->getMember($uid)->getUser()->getFirstname(),
+                'name' => $member->getFirstname(). ' ' . $member->getLastname(),
                 'share' => $share * 100,
                 'value' => $share * $avgCredits,
                 'gap' => $gap[$uid] * 100

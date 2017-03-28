@@ -157,7 +157,7 @@ class MailNotificationProcessTest extends \PHPUnit_Framework_TestCase
 		$this->assertContains($this->task->getSubject(), $email->subject);
 		$this->assertNotEmpty($email->recipients);
 		$this->assertEquals($email->recipients[0], '<mark.rogers@ora.local>');
-        $this->assertContains('<td>Mark</td>', $body);
+        $this->assertContains('<td>Mark Rogers</td>', $body);
 	}
 
 	public function testTaskAcceptedNotification()
