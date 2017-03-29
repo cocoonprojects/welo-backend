@@ -27,3 +27,5 @@ auth.json
 
 cache.properties
 build/
+
+.php_cs.cache
