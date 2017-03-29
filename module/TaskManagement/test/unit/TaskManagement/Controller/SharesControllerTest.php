@@ -33,6 +33,7 @@ class SharesControllerTest extends ControllerTest
 		$this->owner = $this->getMockBuilder(User::class)
 			->disableOriginalConstructor()
 			->getMock();
+
 		$this->owner->method('getId')
 			->willReturn('60000000-0000-0000-0000-000000000000');
 		$this->owner->method('isMemberOf')
@@ -41,8 +42,10 @@ class SharesControllerTest extends ControllerTest
 		$this->member = $this->getMockBuilder(User::class)
 			->disableOriginalConstructor()
 			->getMock();
+
 		$this->member->method('getId')
 			->willReturn('70000000-0000-0000-0000-000000000000');
+
 		$this->member->method('isMemberOf')
 			->willReturn(true);
 

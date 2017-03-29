@@ -9,6 +9,7 @@ use People\Entity\Organization;
 use Application\Entity\User;
 use People\Entity\OrganizationMembership;
 use Kanbanize\Service\KanbanizeApiException;
+use Rhumsaa\Uuid\Uuid;
 
 class SettingsControllerTest extends ControllerTest {
 
@@ -25,10 +26,7 @@ class SettingsControllerTest extends ControllerTest {
 	}
 
 	protected function setupMore() {
-		$this->user = User::create();
-		$this->user->setFirstname('Stephen');
-		$this->user->setLastname('Hero');
-		$this->user->setRole(User::ROLE_USER);
+		$this->user = User::createUser(Uuid::uuid4(), null, 'Stephen', 'Hero');
 		$this->organization = new Organization('00000');
 		$this->organization->setSettings(\People\Organization::KANBANIZE_SETTINGS, [
 			"apiKey" => "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",

@@ -4,11 +4,11 @@ namespace TaskManagement\Controller;
 use Application\Entity\User;
 use People\Entity\Organization;
 use People\Service\OrganizationService;
+use Rhumsaa\Uuid\Uuid;
 use TaskManagement\Entity\Stream;
 use TaskManagement\Entity\Task;
 use TaskManagement\Service\NotifyMailListener;
 use TaskManagement\Service\TaskService;
-use Zend\Mvc\Router\RouteMatch;
 use ZFX\Test\Controller\ControllerTest;
 
 class AssignmentOfSharesRemindersControllerTest extends ControllerTest
@@ -26,17 +26,18 @@ class AssignmentOfSharesRemindersControllerTest extends ControllerTest
 
 	public function setupMore()
 	{
-		$this->systemUser = User::create()->setRole(User::ROLE_SYSTEM);
+		$this->systemUser = User::createUser(Uuid::uuid4(), null, null, null, null, User::ROLE_SYSTEM);
 	}
 
 	protected function setupController()
 	{
 		$this->org = new Organization('1');
 		$this->task = new Task('1', new Stream('1', $this->org));
-		$this->owner = User::create()->setRole(User::ROLE_USER)->setEmail('taskowner@orateam.com');
-		$this->member = User::create()->setRole(User::ROLE_USER)->setEmail('taskmember@orateam.com');
+		$this->owner = User::createUser(Uuid::uuid4(), 'taskowner@orateam.com');
+		$this->member = User::createUser(Uuid::uuid4(), 'taskmember@orateam.com');
 
-		$this->task->addMember($this->owner, Task::ROLE_OWNER, $this->owner, new \DateTime())
+		$this->task
+            ->addMember($this->owner, Task::ROLE_OWNER, $this->owner, new \DateTime())
 			->addMember($this->member, Task::ROLE_MEMBER, $this->member, new \DateTime())
 			->setStatus(Task::STATUS_ACCEPTED);
 

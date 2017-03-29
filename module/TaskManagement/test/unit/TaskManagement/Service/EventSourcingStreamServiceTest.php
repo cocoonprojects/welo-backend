@@ -28,7 +28,7 @@ class EventSourcingStreamServiceTest extends TestCase {
 		$this->eventStore->create(new ProophStream(new StreamName('event_stream'), array()));
 		$this->eventStore->commit();
 		$this->streamService = new EventSourcingStreamService($this->eventStore, $entityManager);
-		$this->user = User::create();
+		$this->user = User::createUser(Uuid::uuid4());
 	}
 	
 	public function testCreate() {

@@ -2,31 +2,20 @@
 
 namespace Application\Controller;
 
-
 use Application\Authentication\AdapterResolver;
 use Application\Authentication\OAuth2\InvalidTokenException;
 use Application\Entity\User;
 use Namshi\JOSE\SimpleJWS;
 use Zend\Authentication\AuthenticationServiceInterface;
 use Zend\Authentication\Result;
-use ZFX\Authentication\JWTBuilder;
 use ZFX\Test\Controller\ControllerTest;
+use Rhumsaa\Uuid\Uuid;
 
-/**
- * Class AuthControllerTest
- * @package Application\Controller
- * @group auth
- */
 class AuthControllerTest extends ControllerTest
 {
-	/**
-	 * @var User
-	 */
 	private $user;
-	/**
-	 * @var string
-	 */
-	private $privateKey = "-----BEGIN RSA PRIVATE KEY-----
+
+	private $privateKey = '-----BEGIN RSA PRIVATE KEY-----
 MIIEpQIBAAKCAQEA8SJjXkniIeE6mEOvOuB940kni2v0E+UwqNrrmdJ49quZP48d
 55k7t+OI9OFgQYLV7DW6u0tMGrvnuC+MD7nrFrwbSk74mO95C0C7TuU0k5S3OXFh
 e72z34aibVXX+3oR0m1FU6qAuKqXkP8+Z5zJvSKy1i+EUD1zhkjdFhJ4z6ZsoHEp
@@ -52,11 +41,9 @@ yZYw6P1gPCiOs+Ml7BZ8jvGdQfwW3oVCaj0i/Otn9miQgCl9AQ4ZBAnWkaZ/68Lf
 +5CSRfkCgYEAngpwml1MunLUO1gFYk5PS0Elq6bjR7bEe8JegvqfqeM8IILpSyXo
 NIWpPWGtI3X48gQiw0BdbrQkDJI76Qa/xcn0yIt+Z1dw5Uhxf2PsKJEhBaLvToTz
 oGYZDHe7A05BzL5PD8vI3SeazAlpLidU6L40eZUeYj3+S7cthNr9MVU=
------END RSA PRIVATE KEY-----";
-	/**
-	 * @var string
-	 */
-	private $publicKey = "-----BEGIN PUBLIC KEY-----
+-----END RSA PRIVATE KEY-----';
+
+	private $publicKey = '-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA8SJjXkniIeE6mEOvOuB9
 40kni2v0E+UwqNrrmdJ49quZP48d55k7t+OI9OFgQYLV7DW6u0tMGrvnuC+MD7nr
 FrwbSk74mO95C0C7TuU0k5S3OXFhe72z34aibVXX+3oR0m1FU6qAuKqXkP8+Z5zJ
@@ -64,12 +51,12 @@ vSKy1i+EUD1zhkjdFhJ4z6ZsoHEpVrnkI0QrUnWkKancw+e5BcR4uFbi3hgXdkIL
 Hsf4L4YeW9Tds4MOUEymm/hAcc4JXn95cDbOO51/Z+C6YPyjkWdzUHQ7TDaaboQT
 WY2YYeEi31dEvdcFM+ASmDkvcnftAbZVmDi8oJzksztA1nmUoD8XQzTXxBOTSFGS
 nwIDAQAB
------END PUBLIC KEY-----";
+-----END PUBLIC KEY-----';
 
 	protected function setupController()
 	{
 		$authService = $this->getMockBuilder(AuthenticationServiceInterface::class)->getMock();
-		$this->user = User::create();
+		$this->user = User::createUser(Uuid::uuid4());
 		$result = new Result(Result::SUCCESS, $this->user);
 		$authService->method('authenticate')->willReturn($result);
 		$adapterResolver = $this->getMockBuilder(AdapterResolver::class)->getMock();

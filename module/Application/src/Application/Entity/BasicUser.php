@@ -10,18 +10,18 @@ use Doctrine\ORM\Mapping as ORM;
 class BasicUser
 {
 	/**
-	 * @ORM\Id @ORM\Column(type="string")
-	 * @var string
+	 * @ORM\Id
+     * @ORM\Column(type="string")
 	 */
 	protected $id;
+
 	/**
 	 * @ORM\Column(type="string", length=100, nullable=TRUE)
-	 * @var string
 	 */
 	protected $firstname;
+
 	/**
 	 * @ORM\Column(type="string", length=100, nullable=TRUE)
-	 * @var string
 	 */
 	protected $lastname;
 
@@ -43,37 +43,23 @@ class BasicUser
 		return $this->id;
 	}
 
-	/**
-	 * @param string $firstname
-	 * @return $this
-	 */
 	public function setFirstname($firstname)
 	{
 		$this->firstname = $firstname;
 		return $this;
 	}
 
-	/**
-	 * @return string
-	 */
 	public function getFirstname()
 	{
 		return $this->firstname;
 	}
 
-	/**
-	 * @param string $lastname
-	 * @return $this
-	 */
 	public function setLastname($lastname)
 	{
 		$this->lastname = $lastname;
 		return $this;
 	}
 
-	/**
-	 * @return string
-	 */
 	public function getLastname()
 	{
 		return $this->lastname;

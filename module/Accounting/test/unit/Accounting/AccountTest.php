@@ -3,6 +3,7 @@ namespace Accounting;
 
 use Application\Entity\User;
 use People\Organization;
+use Rhumsaa\Uuid\Uuid;
 
 class AccountTest extends \PHPUnit_Framework_TestCase {
 	
@@ -11,10 +12,8 @@ class AccountTest extends \PHPUnit_Framework_TestCase {
 	private $organization;
 	
 	protected function setUp() {
-		$this->holder = User::create();
-		$this->holder->setFirstname('John')
-					 ->setLastname('Doe');
-		$this->organization = Organization::create('Lorem Ipsum', User::create());
+		$this->holder = User::createUser(Uuid::uuid4(), null, 'John', 'Doe');
+		$this->organization = Organization::create('Lorem Ipsum', User::createUser(Uuid::uuid4()));
 	}
 	
 	public function testCreate() {
@@ -26,9 +25,7 @@ class AccountTest extends \PHPUnit_Framework_TestCase {
 	}
 	
 	public function testAddHolder() {
-		$holder = User::create();
-		$holder->setFirstname('Jane')
-			   ->setLastname('Smith');
+		$holder = User::createUser(Uuid::uuid4(), null, 'Jane', 'Smith');
 		$account = Account::create($this->organization, $this->holder);
 		$account->addHolder($holder, $this->holder);
 		$this->assertArrayHasKey($holder->getId(), $account->getHolders());
@@ -53,7 +50,7 @@ class AccountTest extends \PHPUnit_Framework_TestCase {
 	public function testTransferIn() {
 		$payee = Account::create($this->organization, $this->holder);
 		
-		$user = User::create();
+		$user = User::createUser(Uuid::uuid4());
 		$payer = Account::create($this->organization, $user);
 		
 		$payee->transferIn(100, $payer, 'Bonifico', $user);
@@ -66,7 +63,7 @@ class AccountTest extends \PHPUnit_Framework_TestCase {
 	public function testTransferInWithNegativeAmount() {
 		$payee = Account::create($this->organization, $this->holder);
 		
-		$user = User::create();
+		$user = User::createUser(Uuid::uuid4());
 		$payer = Account::create($this->organization, $user);
 		
 		$payee->transferIn(-100, $payer, 'Bonifico', $user);
@@ -76,7 +73,7 @@ class AccountTest extends \PHPUnit_Framework_TestCase {
 	public function testTransferOut() {
 		$payer = Account::create($this->organization, $this->holder);
 		
-		$user = User::create();
+		$user = User::createUser(Uuid::uuid4());
 		$payee = Account::create($this->organization, $user);
 		
 		$payer->transferOut(-100, $payee, 'Bonifico', $user);
@@ -89,7 +86,7 @@ class AccountTest extends \PHPUnit_Framework_TestCase {
 	public function testTransferOuWithNegativeAmount() {
 		$payer = Account::create($this->organization, $this->holder);
 		
-		$user = User::create();
+		$user = User::createUser(Uuid::uuid4());
 		$payee = Account::create($this->organization, $user);
 		
 		$payer->transferOut(100, $payee, 'Bonifico', $user);

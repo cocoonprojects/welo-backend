@@ -3,6 +3,7 @@ namespace Accounting;
 
 use Application\Entity\User;
 use People\Organization;
+use Rhumsaa\Uuid\Uuid;
 
 class OrganizationAccountTest extends \PHPUnit_Framework_TestCase {
 	
@@ -11,9 +12,7 @@ class OrganizationAccountTest extends \PHPUnit_Framework_TestCase {
 	private $organization;
 	
 	protected function setUp() {
-		$this->holder = User::create();
-		$this->holder->setFirstname('John')
-					 ->setLastname('Doe');
+		$this->holder = User::createUser(Uuid::uuid4(), null, 'John', 'Doe');
 		$this->organization = Organization::create('Lorem Ipsum', $this->holder);
 	}
 	

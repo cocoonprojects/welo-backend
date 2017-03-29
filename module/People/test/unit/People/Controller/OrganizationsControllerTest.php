@@ -5,7 +5,7 @@ use ZFX\Test\Controller\ControllerTest;
 use People\Organization;
 use Application\Entity\User;
 use People\Service\OrganizationService;
-use Accounting\OrganizationAccount;
+use Rhumsaa\Uuid\Uuid;
 
 class OrganizationsControllerTest extends ControllerTest
 {
@@ -13,7 +13,7 @@ class OrganizationsControllerTest extends ControllerTest
 
 	public function __construct()
 	{
-		$this->user = User::create();
+		$this->user = User::createUser(Uuid::uuid4());
 	}
 
 	protected function setupController()

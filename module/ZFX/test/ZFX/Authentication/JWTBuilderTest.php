@@ -5,6 +5,7 @@ namespace Application\Authentication;
 
 use Application\Entity\User;
 use Namshi\JOSE\SimpleJWS;
+use Rhumsaa\Uuid\Uuid;
 use ZFX\Authentication\JWTBuilder;
 
 /**
@@ -65,7 +66,7 @@ oGYZDHe7A05BzL5PD8vI3SeazAlpLidU6L40eZUeYj3+S7cthNr9MVU=
 
 	public function testBuildJWT()
 	{
-		$identity = User::create();
+		$identity = User::createUser(Uuid::uuid4());
 		$token = $this->builder->buildJWT($identity);
 
 		$jws = SimpleJWS::load($token);

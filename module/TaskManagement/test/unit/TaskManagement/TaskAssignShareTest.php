@@ -2,9 +2,9 @@
 
 namespace TaskManagement;
 
-
 use Application\Entity\User;
 use People\Organization;
+use Rhumsaa\Uuid\Uuid;
 
 class TaskAssignShareTest extends \PHPUnit_Framework_TestCase
 {
@@ -30,9 +30,9 @@ class TaskAssignShareTest extends \PHPUnit_Framework_TestCase
 	 */
 	protected function setUp()
 	{
-		$this->owner = User::create();
-		$this->user1 = User::create();
-		$this->user2 = User::create();
+		$this->owner = User::createUser(Uuid::uuid4());
+		$this->user1 = User::createUser(Uuid::uuid4());
+		$this->user2 = User::createUser(Uuid::uuid4());
 
 		$organization = Organization::create('Pellentesque lorem ligula, auctor ac', $this->owner);
 		$this->owner->addMembership($organization);

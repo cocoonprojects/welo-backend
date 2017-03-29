@@ -34,16 +34,8 @@ class MembersControllerTest extends ControllerTest
 			->with($this->organization->getId())
 			->willReturn($this->organization);
 
-		$this->user = User::create();
-		$this->user->setFirstname('John');
-		$this->user->setLastname('Doe');
-		$this->user->setRole(User::ROLE_USER);
-
-		$this->user2 = User::create();
-		$this->user2->setFirstname('Jane');
-		$this->user2->setLastname('Doe');
-		$this->user2->setEmail('jane.doe@foo.com');
-		$this->user2->setRole(User::ROLE_USER);
+		$this->user = User::createUser(Uuid::uuid4(), null, 'John', 'Doe');
+		$this->user2 = User::createUser(Uuid::uuid4(), 'jane.doe@foo.com', 'Jane', 'Doe');
 
 		return new MembersController(
 			$orgService,

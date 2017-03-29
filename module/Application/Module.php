@@ -131,9 +131,10 @@ class Module {
 							return new EventSourcingUserService ( $entityManager );
 						},
 						'Application\LoadLocalProfileListener' => function ($serviceLocator) {
-							$userService = $serviceLocator->get ( 'Application\UserService' );
-							$google = $serviceLocator->get ( 'Application\Service\GoogleAPIClient' );
-							return new LoadLocalProfileListener ( $userService, $google );
+
+						    return new LoadLocalProfileListener(
+                                $serviceLocator->get('Application\UserService')
+                            );
 						},
 						'Application\Service\GoogleAPIClient' => function ($serviceLocator) {
 							$config = $serviceLocator->get ( 'Config' );

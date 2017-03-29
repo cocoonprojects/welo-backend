@@ -36,7 +36,7 @@ class MemberStatsControllerTest extends ControllerTest
 			->with ( $this->organization->getId () )
 			->willReturn ( $this->organization );
 
-		$this->member = User::create();
+		$this->member = User::createUser(Uuid::uuid4());
 
 		return new MemberStatsController( $orgService,
 			$this->getMockBuilder ( TaskService::class )->getMock (),
@@ -63,7 +63,7 @@ class MemberStatsControllerTest extends ControllerTest
 	}
 
 	public function testGetAsUnauthorizedUser() {
-		$user = User::create();
+		$user = User::createUser(Uuid::uuid4());
 		$this->setupLoggedUser($user);
 
 		$this->routeMatch->setParam ( 'id', $this->member->getId() );
@@ -75,7 +75,7 @@ class MemberStatsControllerTest extends ControllerTest
 	}
 
 	public function testGetANotExistingMember() {
-		$user = User::create();
+		$user = User::createUser(Uuid::uuid4());
 		$user->addMembership($this->organization);
 		$this->setupLoggedUser($user);
 
@@ -88,7 +88,7 @@ class MemberStatsControllerTest extends ControllerTest
 	}
 
 	public function testGetUserTaskMetrics() {
-		$user = User::create();
+		$user = User::createUser(Uuid::uuid4());
 		$user->addMembership($this->organization);
 		$this->setupLoggedUser($user);
 

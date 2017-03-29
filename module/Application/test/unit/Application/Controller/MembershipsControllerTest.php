@@ -6,6 +6,7 @@ use People\Entity\Organization;
 use People\Entity\OrganizationMembership;
 use People\Service\OrganizationService;
 use ZFX\Test\Controller\ControllerTest;
+use Rhumsaa\Uuid\Uuid;
 
 class MembershipsControllerTest extends ControllerTest
 {
@@ -31,7 +32,7 @@ class MembershipsControllerTest extends ControllerTest
 	
 	public function testGetEmptyList()
 	{
-		$user = User::create();
+		$user = User::createUser(Uuid::uuid4());
 		$this->setupLoggedUser($user);
 		
 		$this->controller->getOrganizationService()
@@ -58,7 +59,7 @@ class MembershipsControllerTest extends ControllerTest
 		$org2 = new Organization('2');
 		$org2->setName('Pluto');
 		
-		$user = User::create();
+		$user = User::createUser(Uuid::uuid4());
 		$this->setupLoggedUser($user);
 		
 		$membership1 = new OrganizationMembership($user, $org1);
@@ -90,7 +91,7 @@ class MembershipsControllerTest extends ControllerTest
 	}
 	
 	public function testGetListAsNotMemberOfAnyOrg() {
-		$user = User::create();
+		$user = User::createUser(Uuid::uuid4());
 		$this->setupLoggedUser($user);
 		
 		$this->controller->getOrganizationService()

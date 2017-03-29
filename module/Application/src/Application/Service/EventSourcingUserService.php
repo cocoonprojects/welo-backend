@@ -1,6 +1,7 @@
 <?php
 namespace Application\Service;
 
+use Rhumsaa\Uuid\Uuid;
 use Zend\EventManager\EventManagerAwareInterface;
 use Zend\EventManager\EventManagerInterface;
 use Zend\EventManager\EventManager;
@@ -9,42 +10,32 @@ use Application\Entity\User;
 
 class EventSourcingUserService implements UserService, EventManagerAwareInterface
 {
-	/**
-	 * 
-	 * @var EventManagerInterface
-	 */
 	protected $events;
-	/**
-	 * 
-	 * @var EntityManager
-	 */
-	public $entityManager;
+
+    protected $entityManager;
 	
 	public function __construct(EntityManager $entityManager)
 	{
 		$this->entityManager = $entityManager;
 	}
 	
-	public function subscribeUser($userInfo)
+	public function subscribeUser($userInfo, $role = User::ROLE_USER)
 	{
-		$user = $this->create($userInfo, User::ROLE_USER);
-		return $user;
-	}
+        $user = User::createUser(
+            Uuid::uuid4(),
+            $userInfo['email'],
+            $userInfo['given_name'],
+            $userInfo['family_name'],
+            isset($userInfo['picture']) ? $userInfo['picture'] : null,
+            $role
+        );
 
-	public function create($userInfo, $role, User $createdBy = null)
-	{
-		$user = User::create($createdBy);
-		$user->setEmail($userInfo['email']);
-		$user->setLastname($userInfo['family_name']);
-		$user->setFirstname($userInfo['given_name']);
-		if(isset($userInfo['picture'])) {
-			$user->setPicture($userInfo['picture']);
-		}
-		$user->setRole($role);
-		$this->entityManager->persist($user);
-		$this->entityManager->flush($user);
-		$this->getEventManager()->trigger(User::EVENT_CREATED, $user);
-		return $user;
+        $this->entityManager->persist($user);
+        $this->entityManager->flush($user);
+
+        $this->getEventManager()->trigger(User::EVENT_CREATED, $user);
+
+        return $user;
 	}
 
 	public function findUser($id)
@@ -52,26 +43,36 @@ class EventSourcingUserService implements UserService, EventManagerAwareInterfac
 		$user = $this->entityManager
 					 ->getRepository(User::class)
 					 ->findOneBy(array("id" => $id));
+
 		return $user;
 	}
 	
 	public function findUserByEmail($email)
 	{
-		$user = $this->entityManager
-					->getRepository(User::class)
-					->findOneBy(array("email" => $email));
-		return $user;
+        $query = $this->entityManager
+                      ->createQueryBuilder()
+                      ->select('u')
+                      ->from(User::class, 'u')
+                      ->where('u.email = :email')
+                      ->orWhere("u.secondaryEmails LIKE '%:email%'")
+                      ->setParameter('email', $email)
+                      ->getQuery();
+
+		return $query->getOneOrNullResult();
 	}	
 
-	public function findUsers($filters){
+	public function findUsers($filters)
+    {
 		$builder = $this->entityManager->createQueryBuilder();
 		$query = $builder->select('u')
 			->from(User::class, 'u')
 			->orderBy('u.mostRecentEditAt', 'DESC');
-		if(isset($filters["kanbanizeusername"])){
+
+        if(isset($filters["kanbanizeusername"])) {
 			$query->andWhere('u. kanbanizeUsername = :username')
-				->setParameter('username', $filters["kanbanizeusername"]);
+				  ->setParameter('username', $filters["kanbanizeusername"]);
 		}
+
 		return $query->getQuery()->getResult();
 	}
 	

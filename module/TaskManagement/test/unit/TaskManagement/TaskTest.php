@@ -31,10 +31,10 @@ class TaskTest extends \PHPUnit_Framework_TestCase {
 	protected $stream;
 
 	protected function setUp() {
-		$this->owner = User::create();
-		$this->user1 = User::create();
-		$this->user2 = User::create();
-		$this->user3 = User::create();
+		$this->owner = User::createUser(Uuid::uuid4());
+		$this->user1 = User::createUser(Uuid::uuid4());
+		$this->user2 = User::createUser(Uuid::uuid4());
+		$this->user3 = User::createUser(Uuid::uuid4());
 
 		$organization = Organization::create('Pellentesque lorem ligula, auctor ac', $this->owner);
 		$this->owner->addMembership($organization);
@@ -141,7 +141,7 @@ class TaskTest extends \PHPUnit_Framework_TestCase {
 	 */
 	public function testAddMemberNotInOrganization() {
 		$task = Task::create($this->stream, null, $this->owner);
-		$user = User::create();
+		$user = User::createUser(Uuid::uuid4());
 		$task->addMember($user);
 	}
 

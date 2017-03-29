@@ -3,13 +3,14 @@ namespace People;
 
 use Application\Entity\User;
 use Accounting\OrganizationAccount;
+use Rhumsaa\Uuid\Uuid;
 
 class OrganizationTest extends \PHPUnit_Framework_TestCase {
 	
 	private $user;
 	
 	protected function setUp() {
-		$this->user = User::create();
+		$this->user = User::createUser(Uuid::uuid4());
 	}
 	
 	public function testCreate() {
@@ -48,7 +49,7 @@ class OrganizationTest extends \PHPUnit_Framework_TestCase {
 	
 	public function testAddContributor() {
 		$organization = Organization::create(null, $this->user);
-		$u = User::create();
+		$u = User::createUser(Uuid::uuid4());
 		$organization->addMember($u);
 		
 		$this->assertArrayHasKey($u->getId(), $organization->getMembers());
@@ -57,7 +58,7 @@ class OrganizationTest extends \PHPUnit_Framework_TestCase {
 	
 	public function testAddMember() {
 		$organization = Organization::create(null, $this->user);
-		$u = User::create();
+		$u = User::createUser(Uuid::uuid4());
 		$organization->addMember($u, Organization::ROLE_MEMBER);
 		
 		$this->assertArrayHasKey($u->getId(), $organization->getMembers());
@@ -66,7 +67,7 @@ class OrganizationTest extends \PHPUnit_Framework_TestCase {
 	
 	public function testAddMemberAsAdmin() {
 		$organization = Organization::create(null, $this->user);
-		$u = User::create();
+		$u = User::createUser(Uuid::uuid4());
 		$organization->addMember($u, Organization::ROLE_ADMIN);
 		
 		$this->assertArrayHasKey($u->getId(), $organization->getMembers());
@@ -75,7 +76,7 @@ class OrganizationTest extends \PHPUnit_Framework_TestCase {
 	
 	public function testPromoteContributorToMember() {
 		$organization = Organization::create(null, $this->user);
-		$u = User::create();
+		$u = User::createUser(Uuid::uuid4());
 		$organization->addMember($u, Organization::ROLE_CONTRIBUTOR);
 		$organization->changeMemberRole($u, Organization::ROLE_MEMBER);
 
@@ -93,7 +94,7 @@ class OrganizationTest extends \PHPUnit_Framework_TestCase {
 	
 	public function testRemoveMember() {
 		$organization = Organization::create(null, $this->user);
-		$u = User::create();
+		$u = User::createUser(Uuid::uuid4());
 		$organization->addMember($u);
 		$organization->removeMember($u);
 
@@ -105,7 +106,7 @@ class OrganizationTest extends \PHPUnit_Framework_TestCase {
 	 */
 	public function testRemoveANonMember() {
 		$organization = Organization::create(null, $this->user);
-		$u = User::create();
+		$u = User::createUser(Uuid::uuid4());
 		$organization->removeMember($u);
 	}
 
@@ -116,7 +117,7 @@ class OrganizationTest extends \PHPUnit_Framework_TestCase {
 
 	public function testGetAdminsAfterMemberAdded() {
 		$organization = Organization::create(null, $this->user);
-		$u = User::create();
+		$u = User::createUser(Uuid::uuid4());
 		$organization->addMember($u, $this->user);
 		$this->assertCount(1, $organization->getAdmins());
 		$this->assertArrayHasKey($this->user->getId(), $organization->getAdmins());
@@ -124,7 +125,7 @@ class OrganizationTest extends \PHPUnit_Framework_TestCase {
 
 	public function testGetAdminsAfterAdminAdded() {
 		$organization = Organization::create(null, $this->user);
-		$u = User::create();
+		$u = User::createUser(Uuid::uuid4());
 		$organization->addMember($u, Organization::ROLE_ADMIN);
 		$this->assertCount(2, $organization->getAdmins());
 		$this->assertArrayHasKey($u->getId(), $organization->getAdmins());

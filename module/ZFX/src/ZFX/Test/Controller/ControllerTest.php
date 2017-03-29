@@ -75,12 +75,15 @@ abstract class ControllerTest extends \PHPUnit_Framework_TestCase
 	protected function setupMore() {}
 	
 	protected function setupAnonymous() {
-		$identity = $this->getMockBuilder('Zend\Mvc\Controller\Plugin\Identity')
+
+	    $identity = $this->getMockBuilder('Zend\Mvc\Controller\Plugin\Identity')
 			->disableOriginalConstructor()
 			->getMock();
-		$identity->method('__invoke')->willReturn(null);
+
+        $identity->method('__invoke')->willReturn(null);
 		$this->controller->getPluginManager()->setService('identity', $identity);
 	}
+
 	protected function setupLoggedUser(User $user) {
 		$identity = $this->getMockBuilder('Zend\Mvc\Controller\Plugin\Identity')
 			->disableOriginalConstructor()

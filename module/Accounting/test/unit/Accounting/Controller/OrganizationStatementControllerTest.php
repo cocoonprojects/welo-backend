@@ -8,7 +8,7 @@ use People\Entity\Organization;
 use People\Service\OrganizationService;
 use ZFX\Test\Controller\ControllerTest;
 use Accounting\Entity\Deposit;
-use Accounting\Entity\Accounting\Entity;
+use Rhumsaa\Uuid\Uuid;
 
 /**
  * Class OrganizationStatementControllerTest
@@ -32,7 +32,7 @@ class OrganizationStatementControllerTest extends ControllerTest
 	
 	protected function setupController()
 	{
-		$this->user = User::create();
+		$this->user = User::createUser(Uuid::uuid4());
 
 		$this->organization = new Organization('1');
 		$this->organization->setName('Lorem ipsum dolor sit amet');
