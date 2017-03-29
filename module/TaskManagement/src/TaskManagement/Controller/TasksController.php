@@ -319,7 +319,7 @@ class TasksController extends OrganizationAwareController
 				}
 
 				if (isset($data['lane'])) {
-					$options['lanename'] = $data['lane'];
+					$options['lane'] = $data['lane'];
 				}
 
 				$kanbanizeTask = KanbanizeTask::create ( $aggStream, $subject, $this->identity (), $options );
@@ -356,7 +356,7 @@ class TasksController extends OrganizationAwareController
 				}
 
 				if (isset($data['lane'])) {
-					$options['lanename'] = $data['lane'];
+					$options['lane'] = $data['lane'];
 				}
 
 				$task = Task::create($aggStream, $subject, $this->identity(), $options);
@@ -449,13 +449,7 @@ class TasksController extends OrganizationAwareController
 
 		$this->transaction ()->begin ();
 		try {
-
-			$task->setSubject ( $data ['subject'], $this->identity () );
-			$task->setDescription ( $data ['description'], $this->identity () );
-
-			if (isset($data['lane'])) {
-				$task->setLane($data['lane'], $this->identity());
-			}
+            $task->update($data, $this->identity());
 
 			$this->transaction ()->commit ();
 			// HTTP STATUS CODE 202: Element Accepted

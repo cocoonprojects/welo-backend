@@ -10,7 +10,6 @@ use Application\IllegalStateException;
 use Application\InvalidArgumentException;
 use People\MissingOrganizationMembershipException;
 use Rhumsaa\Uuid\Uuid;
-use TaskManagement\Entity\ItemIdeaApproval;
 use TaskManagement\Entity\TaskMember;
 
 class Task extends DomainEntity implements TaskInterface
@@ -100,7 +99,7 @@ class Task extends DomainEntity implements TaskInterface
 			'streamId' => $stream->getId(),
 			'by' => $createdBy->getId(),
 			'decision' => $decision,
-			'lanename' => is_array($options) && isset($options['lane']) ? $options['lane'] : ''
+			'lane' => is_array($options) && isset($options['lane']) ? $options['lane'] : ''
 		]));
 
 		$rv->setSubject($subject, $createdBy);
@@ -162,7 +161,7 @@ class Task extends DomainEntity implements TaskInterface
 	public function setLane($lane, BasicUser $updatedBy)
 	{
 		$this->recordThat(TaskUpdated::occur($this->id->toString(), array(
-				'lanename' => $lane,
+				'lane' => $lane,
 				'by' => $updatedBy->getId(),
 		)));
 		return $this;
@@ -172,6 +171,20 @@ class Task extends DomainEntity implements TaskInterface
 	{
 		return $this->lane;
 	}
+
+	public function update(array $data, BasicUser $updatedBy)
+    {
+        $eventData = [];
+        $eventData['subject'] = $data['subject'];
+        $eventData['description'] = $data['description'];
+        $eventData['by'] = $updatedBy->getId();
+
+        if (isset($data['lane'])) {
+            $eventData['lane'] = $data['lane'];
+        }
+
+        $this->recordThat(TaskUpdated::occur($this->id->toString(), $eventData));
+    }
 
 	/**
 	 * Set the position for the given tasks.
@@ -803,11 +816,11 @@ class Task extends DomainEntity implements TaskInterface
 		if(array_key_exists('attachments', $pl)) {
 			$this->attachments = $pl['attachments'];
 		}
-		if(array_key_exists('lanename', $pl)) {
-			$this->lane = $pl['lanename'];
+		if(array_key_exists('lane', $pl)) {
+			$this->lane = $pl['lane'];
 		}
 		if(array_key_exists('position', $pl)) {
-			$this->lane = $pl['position'];
+			$this->position = $pl['position'];
 		}
 
 		$this->mostRecentEditAt = $event->occurredOn();

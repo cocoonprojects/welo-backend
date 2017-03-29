@@ -7,10 +7,10 @@ use TaskManagement\TaskAccepted;
 use TaskManagement\TaskClosed;
 use TaskManagement\TaskCompleted;
 use TaskManagement\TaskOngoing;
+use TaskManagement\TaskUpdated;
 use Zend\EventManager\ListenerAggregateInterface;
 use Zend\EventManager\EventManagerInterface;
 use Zend\EventManager\Event;
-use TaskManagement\Task;
 use Kanbanize\KanbanizeTask;
 use Zend\Mvc\Application;
 
@@ -72,7 +72,7 @@ class SyncTaskListener implements ListenerAggregateInterface
     public function detach(EventManagerInterface $events)
     {
     	foreach ($this->listeners as $index => $listener) {
-			if($events->getSharedManager()->detach('TaskManagement\TaskService', $listeners[$index])) {
+			if($events->getSharedManager()->detach('TaskManagement\TaskService', $listener[$index])) {
 				unset($this->listeners[$index]);
 			}
     	}
