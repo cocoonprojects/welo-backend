@@ -39,8 +39,8 @@ class TaskApprovalTaskProcessTest extends \BaseTaskProcessTest
 	    parent::setupController('TaskManagement\Controller\Approvals', 'invoke');
 
 
-	    $this->admin = $this->userService->create( [ 'given_name' => 'Admin', 'family_name' => 'Uber', 'email' => 'admin@foo.com' ], User::ROLE_ADMIN );
-        $this->author = $this->userService->create( [ 'given_name' => 'John', 'family_name' => 'Doe', 'email' => 'nobody@foo.com' ], User::ROLE_USER );
+	    $this->admin = $this->userService->create( [ 'given_name' => 'Admin', 'family_name' => 'Uber', 'email' => $this->generateRandomEmail() ], User::ROLE_ADMIN );
+        $this->author = $this->userService->create( [ 'given_name' => 'John', 'family_name' => 'Doe', 'email' => $this->generateRandomEmail() ], User::ROLE_USER );
 
         $this->organization = $this->organizationService->createOrganization('approval', $this->admin);
         $this->organization->addMember($this->author, Organization::ROLE_MEMBER);

@@ -70,9 +70,7 @@ class SharesClosingController extends AbstractConsoleController {
         $timeboxForSharesAssignment = $org->getParams()
             ->get('assignment_of_shares_timebox');
 
-        var_dump($timeboxForSharesAssignment);
-
-        $this->write("timebox for shares assignment is {$timeboxForSharesAssignment->format('%d')}");
+        $this->write("timebox for shares assignment is {$timeboxForSharesAssignment->format('%d')} days");
 
         $itemAccepted = $this->taskService->findAcceptedTasksBefore(
             $timeboxForSharesAssignment,
@@ -91,21 +89,17 @@ class SharesClosingController extends AbstractConsoleController {
             $itemId = $idea->getId();
             $item = $this->taskService->getTask($itemId);
 
-            $membersCount = $item->countMembers();
-            $sharesCount = $item->countMembersShare();
-
-            $minimumSharesToAutoClose = min(2, $membersCount);
-
-            if ($sharesCount < $minimumSharesToAutoClose) {
-                $this->write("Not enough shares to close the task $itemId: [$sharesCount / $minimumSharesToAutoClose]");
-                return;
-            }
-
             $this->transaction()->begin();
 
             try {
-                $this->write("closing task $itemId with $sharesCount shares");
-                $item->close($systemUser);
+
+                $this->write("automatically closing task $itemId with enough shares");
+                $item->closeIfEnoughShares(2, $systemUser);
+
+                if ($item->getStatus() !== TaskInterface::STATUS_CLOSED) {
+                    $this->write("Not enough shares to close the task $itemId");
+                }
+
                 $this->transaction()->commit();
             }catch (\Exception $e) {
                 $this->transaction()->rollback();

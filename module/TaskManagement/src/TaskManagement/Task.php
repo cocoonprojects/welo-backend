@@ -262,7 +262,29 @@ class Task extends DomainEntity implements TaskInterface
 		return $this;
 	}
 
-	public function open(BasicUser $executedBy) {
+    public function closeIfEnoughShares($minimumShares, BasicUser $closedBy) {
+        $membersCount = $this->countMembers();
+        $sharesCount = $this->countMembersShare();
+
+        $minimumSharesToAutoClose = min($minimumShares, $membersCount);
+
+        if ($sharesCount < $minimumSharesToAutoClose) {
+            $this->recordThat(TaskNotClosedByTimebox::occur($this->id->toString(), array(
+                    'by' => $closedBy->getId(),
+            )));
+            return $this;
+        }
+
+        $this->close($closedBy);
+
+		$this->recordThat(TaskClosedByTimebox::occur($this->id->toString(), array(
+			'by' => $closedBy->getId(),
+		)));
+
+        return $this;
+    }
+
+    public function open(BasicUser $executedBy) {
 		if(!in_array($this->status, [self::STATUS_IDEA, self::STATUS_ONGOING])) {
 			throw new IllegalStateException('Cannot open a task in '.$this->status.' state');
 		}
@@ -784,6 +806,12 @@ class Task extends DomainEntity implements TaskInterface
 	protected function whenTaskClosed(TaskClosed $event) {
 		$this->status = self::STATUS_CLOSED;
 		$this->mostRecentEditAt = $event->occurredOn();
+	}
+
+	protected function whenTaskClosedByTimebox(TaskClosedByTimebox $event) {
+	}
+
+	protected function whenTaskNotClosedByTimebox(TaskNotClosedByTimebox $event) {
 	}
 
 	protected function whenTaskDeleted(TaskDeleted $event) {

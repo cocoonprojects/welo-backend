@@ -291,6 +291,13 @@ class Task extends EditableEntity implements TaskInterface
 	}
 
 	/**
+	 * @return int
+	 */
+	public function countMembers() {
+		return count($this->members->toArray());
+	}
+
+	/**
 	 * @return Approval[]
 	 */
 	public function getApprovals(){
@@ -388,6 +395,16 @@ class Task extends EditableEntity implements TaskInterface
 		}
 		return $rv;
 	}
+
+    public function countMembersShare() {
+        $evaluators = 0;
+        foreach ($this->members as $evaluatorId => $info) {
+            if(count($info->getShares()) > 0 && $info->getShareValueOf($info) !== null) {
+                $evaluators++;
+            }
+        }
+        return $evaluators;
+    }
 
 	public function getResourceId(){
 		return 'Ora\Task';

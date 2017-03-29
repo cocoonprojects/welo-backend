@@ -16,6 +16,8 @@ use TaskManagement\EstimationAdded;
 use TaskManagement\SharesAssigned;
 use TaskManagement\SharesSkipped;
 use TaskManagement\TaskClosed;
+use TaskManagement\TaskClosedByTimebox;
+use TaskManagement\TaskNotClosedByTimebox;
 use TaskManagement\TaskCreated;
 use TaskManagement\TaskAccepted;
 use TaskManagement\WorkItemIdeaCreated;
@@ -69,6 +71,8 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
 		$this->listeners [] = $events->getSharedManager ()->attach (Application::class, SharesAssigned::class, array($this, 'processSharesAssigned'));
 		$this->listeners [] = $events->getSharedManager ()->attach (Application::class, SharesSkipped::class, array($this, 'processSharesAssigned'));
 		$this->listeners [] = $events->getSharedManager ()->attach (Application::class, TaskClosed::class, array($this, 'processTaskClosed'));
+		$this->listeners [] = $events->getSharedManager ()->attach (Application::class, TaskClosedByTimebox::class, array($this, 'processTaskClosedByTimebox'));
+		$this->listeners [] = $events->getSharedManager ()->attach (Application::class, TaskNotClosedByTimebox::class, array($this, 'processTaskNotClosedByTimebox'));
 		$this->listeners [] = $events->getSharedManager ()->attach (Application::class, TaskCreated::class, array($this, 'processWorkItemIdeaCreated'));
 		$this->listeners [] = $events->getSharedManager ()->attach (Application::class, TaskAccepted::class, array($this, 'processTaskAccepted'));
 		$this->listeners [] = $events->getSharedManager ()->attach (Application::class, TaskOpened::class, array($this, 'processTaskOpened'));
@@ -107,7 +111,21 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
 		$task = $this->taskService->findTask($taskId);
 		$this->sendTaskClosedInfoMail($task);
 	}
-	
+
+	public function processTaskClosedByTimebox(Event $event){
+		$streamEvent = $event->getTarget();
+		$taskId = $streamEvent->metadata()['aggregate_id'];
+		$task = $this->taskService->findTask($taskId);
+		$this->sendTaskClosedByTimeboxInfoMail($task);
+	}
+
+	public function processTaskNotClosedByTimebox(Event $event){
+		$streamEvent = $event->getTarget();
+		$taskId = $streamEvent->metadata()['aggregate_id'];
+		$task = $this->taskService->findTask($taskId);
+		$this->sendTaskNotClosedByTimeboxInfoMail($task);
+	}
+
 	public function processWorkItemIdeaCreated(Event $event) {
 		$streamEvent = $event->getTarget ();
 		$taskId = $streamEvent->metadata ()['aggregate_id'];
@@ -309,7 +327,63 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
 		}
 		return $rv;
 	}
-	
+
+	/**
+	 * Send an email notification to the owner of $taskToNotify to inform that it has been closed
+	 * @param Task $task
+	 * @return BasicUser[] receivers
+	 */
+	public function sendTaskClosedByTimeboxInfoMail(Task $task)
+	{
+		$rv = [];
+
+        $owner = $task->getOwner()->getMember();
+
+        $message = $this->mailService->getMessage();
+        $message->setTo($owner->getEmail());
+        $message->setSubject('The "'.$task->getSubject().'" item has been automatically closed');
+
+        $this->mailService->setTemplate( 'mail/task-closed-timebox-info.phtml', [
+            'task' => $task,
+            'recipient'=> $owner,
+            'host' => $this->host,
+            'router' => $this->feRouter
+        ]);
+
+        $this->mailService->send();
+        $rv[] = $owner;
+
+        return $rv;
+	}
+
+	/**
+	 * Send an email notification to the owner of $taskToNotify to inform that it has not been closed
+	 * @param Task $task
+	 * @return BasicUser[] receivers
+	 */
+	public function sendTaskNotClosedByTimeboxInfoMail(Task $task)
+	{
+		$rv = [];
+
+        $owner = $task->getOwner()->getMember();
+
+        $message = $this->mailService->getMessage();
+        $message->setTo($owner->getEmail());
+        $message->setSubject('The "'.$task->getSubject().'" item cannot be automatically closed');
+
+        $this->mailService->setTemplate( 'mail/task-not-closed-timebox-info.phtml', [
+            'task' => $task,
+            'recipient'=> $owner,
+            'host' => $this->host,
+            'router' => $this->feRouter
+        ]);
+
+        $this->mailService->send();
+        $rv[] = $owner;
+
+		return $rv;
+	}
+
 	/**
 	 * Send an email notification to the organization members to inform them that a new Work Item Idea has been created
 	 * @param Task $task

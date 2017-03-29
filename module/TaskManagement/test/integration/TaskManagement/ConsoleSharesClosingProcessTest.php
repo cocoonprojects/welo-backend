@@ -2,6 +2,7 @@
 
 namespace TaskManagement;
 
+use BaseTaskProcessTest;
 use TaskManagement\Controller\Console\SharesRemindersController;
 use PHPUnit_Framework_TestCase;
 use Guzzle\Http\Client;
@@ -12,47 +13,36 @@ use People\Organization;
 use People\Entity\OrganizationEntity;
 use People\Service\OrganizationService;
 use TaskManagement\Entity\Task as EntityTask;
-use TaskManagement\Entity\Stream;
 use TaskManagement\Entity\TaskMember;
 use TaskManagement\Entity\Vote;
 use TaskManagement\Service\TaskService;
+use Test\Mailbox;
 use Zend\Console\Request as ConsoleRequest;
 use TaskManagement\Service\MailService;
 use Zend\Form\Element\DateTime;
 
 
-class ConsoleSharesClosingProcessTest extends \PHPUnit_Framework_TestCase
+class ConsoleSharesClosingProcessTest extends BaseTaskProcessTest
 {
-    private $initialized = false;
-
-	private $controller;
-	private $admin;
-	private $owner;
-	private $member01;
-	private $member02;
-	private $task;
-	private $transactionManager;
-	private $taskService;
-	private $userService;
-	private $orgService;
+	protected $admin;
+	protected $organization;
+	protected $owner;
+	protected $member01;
+	protected $member02;
+	protected $task;
+	protected $mailbox;
 
 	protected function setUp()
 	{
-        $serviceManager = Bootstrap::getServiceManager();
 
-        $this->transactionManager = $serviceManager->get('prooph.event_store');
-
-        $this->userService = $serviceManager->get('Application\UserService');
-        $this->taskService = $serviceManager->get('TaskManagement\TaskService');
-        $this->orgService = $serviceManager->get('People\OrganizationService');
 
         $this->admin = $this->createUser(['given_name' => 'Admin', 'family_name' => 'Uber', 'email' => $this->generateRandomEmail()], User::ROLE_ADMIN);
         $this->owner = $this->createUser([ 'given_name' => 'John', 'family_name' => 'Doe', 'email' => $this->generateRandomEmail() ], User::ROLE_USER );
         $this->member01 = $this->createUser([ 'given_name' => 'Jane', 'family_name' => 'Doe', 'email' => $this->generateRandomEmail() ], User::ROLE_USER );
         $this->member02 = $this->createUser([ 'given_name' => 'Jack', 'family_name' => 'Doe', 'email' => $this->generateRandomEmail() ], User::ROLE_USER );
 
-        $this->organization = $this->createOrganization($this->generateRandomName(), $serviceManager);
-        $stream = $this->createStream($this->generateRandomName(), $this->organization, $serviceManager);
+        $this->organization = $this->createOrganization($this->generateRandomName(), $this->admin);
+        $stream = $this->createStream($this->generateRandomName(), $this->organization, $this->admin, $this->serviceManager);
 
 
         $this->transactionManager->beginTransaction();
@@ -97,15 +87,19 @@ class ConsoleSharesClosingProcessTest extends \PHPUnit_Framework_TestCase
         }
 
 
-		$this->controller = $serviceManager->get("ControllerManager")->get('TaskManagement\Controller\Console\SharesClosing');
+		$this->controller = $this->serviceManager->get("ControllerManager")->get('TaskManagement\Controller\Console\SharesClosing');
 
 		$this->request = new ConsoleRequest();
-	}
+
+        $this->mailbox = Mailbox::create();
+    }
 
 
     public function testCloseTaskWhereNotAllUsersAssignedShares()
 	{
         $this->setSharesTimebox(0);
+
+        $this->mailbox->clean();
 
         $this->transactionManager->beginTransaction();
         try {
@@ -132,11 +126,22 @@ class ConsoleSharesClosingProcessTest extends \PHPUnit_Framework_TestCase
 		$this->controller->dispatch($this->request);
         $result = ob_get_clean();
 
+        $mail = $this->mailbox->getLastMessage();
 
         $this->assertEquals(Task::STATUS_CLOSED, $this->task->getStatus());
         $this->assertEquals(Task::STATUS_CLOSED, $readModelTask->getStatus());
         $this->assertContains('found 1 accepted items to process', $result);
         $this->assertContains('closing task '.$this->task->getId(), $result);
+
+        $this->assertContains(
+            $this->task->getId(),
+            $mail
+        );
+        $this->assertContains(
+            "in which you are the owner has been closed, 2 members on 3 assigned shares for it",
+            $mail
+        );
+
 	}
 
 
@@ -144,7 +149,9 @@ class ConsoleSharesClosingProcessTest extends \PHPUnit_Framework_TestCase
 	{
         $this->setSharesTimebox(0);
 
-        $this->organization = $this->orgService->getAggregateRoot($this->organization->getId());
+        $this->mailbox->clean();
+
+        $this->organization = $this->organizationService->getAggregateRoot($this->organization->getId());
 
         $this->transactionManager->beginTransaction();
         try {
@@ -166,11 +173,22 @@ class ConsoleSharesClosingProcessTest extends \PHPUnit_Framework_TestCase
 		$this->controller->dispatch($this->request);
         $result = ob_get_clean();
 
+        $mail = $this->mailbox->getLastMessage();
 
         $this->assertEquals(Task::STATUS_ACCEPTED, $this->task->getStatus());
         $this->assertEquals(Task::STATUS_ACCEPTED, $readModelTask->getStatus());
         $this->assertContains('found 1 accepted items to process', $result);
         $this->assertContains('Not enough shares to close the task '.$this->task->getId(), $result);
+
+        $this->assertContains(
+            $this->task->getId(),
+            $mail
+        );
+        $this->assertContains(
+            "in which you are the owner has NOT been closed automatically, only 1 members on 3 assigned shares for it",
+            $mail
+        );
+
 	}
 
 
@@ -203,41 +221,6 @@ class ConsoleSharesClosingProcessTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(Task::STATUS_ACCEPTED, $readModelTask->getStatus());
         $this->assertContains('found 0 accepted items to process in '.$this->organization->getId(), $result);
 	}
-
-
-    protected function generateRandomName() {
-        return round(microtime(true) * 1000).'_'.rand(0,10000);
-    }
-
-    protected function generateRandomEmail() {
-        return round(microtime(true) * 1000).'_'.rand(0,10000).'@foo.com';
-    }
-
-    /**
-     * @return array
-     */
-    protected function createUser($data, $role)
-    {
-        return $this->userService->create($data, $role);
-    }
-
-    /**
-     * @param $serviceManager
-     * @param $this->admin
-     * @return mixed
-     */
-    protected function createOrganization($name, $serviceManager)
-    {
-        return $this->orgService->createOrganization($name, $this->admin);
-    }
-
-    private function createStream($name, $organization, $serviceManager)
-    {
-        $stream = null;
-        $streamService = $serviceManager->get('TaskManagement\StreamService');
-
-        return $streamService->createStream($organization, $name, $this->admin);
-    }
 
     /**
      * @param $this->admin

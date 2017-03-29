@@ -11,7 +11,7 @@ use Application\Entity\User;
 use People\Entity\Organization;
 use People\Service\OrganizationService;
 use TaskManagement\Entity\Task as EntityTask;
-use TaskManagement\Entity\Stream;
+use TaskManagement\Entity\Stream as EntityStream;
 use TaskManagement\Entity\TaskMember;
 use TaskManagement\Entity\Vote;
 use TaskManagement\Service\TaskService;
@@ -40,7 +40,7 @@ class ConsoleRemindersProcessTest extends \PHPUnit_Framework_TestCase
 		$this->organization = new Organization('1');
 		$this->organization->setName('Organization Name');
 
-		$this->stream = new Stream('1', $this->organization);
+		$this->stream = new EntityStream('1', $this->organization);
 		$this->stream->setSubject("Stream subject");
 
 		$this->owner = User::create();
