@@ -43,10 +43,7 @@ class TasksControllerTest extends ControllerTest {
 	}
 
 	protected function setupMore() {
-		$this->user = User::create();
-		$this->user->setFirstname('John');
-		$this->user->setLastname('Doe');
-		$this->user->setRole(User::ROLE_USER);
+		$this->user = User::createUser(Uuid::uuid4(), null, 'John', 'Doe');
 		$this->organization = new Organization('11111111-1000-0000-0000-000000000000');
 		$this->stream = new Stream('00000', $this->organization);
 	}

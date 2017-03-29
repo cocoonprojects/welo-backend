@@ -12,15 +12,6 @@ interface UserService
 	public function subscribeUser($userInfo);
 
 	/**
-	 * Create a User
-	 *
-	 * @param array [email, family_name, given_name, picture]
-	 * @param string $role
-	 * @return User
-	 */
-	public function create($infoOfUser, $role);
-
-	/**
 	 * Find a User by id
 	 *
 	 * @param mixed $id

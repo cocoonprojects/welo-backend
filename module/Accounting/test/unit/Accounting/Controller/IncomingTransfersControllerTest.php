@@ -11,6 +11,7 @@ use Application\Service\UserService;
 use People\Entity\Organization as ReadModelOrganization;
 use People\Organization;
 use People\Service\OrganizationService;
+use Rhumsaa\Uuid\Uuid;
 use ZFX\Test\Controller\ControllerTest;
 
 /**
@@ -43,9 +44,9 @@ class IncomingTransfersControllerTest extends ControllerTest
 
 	protected function setupController()
 	{
-		$this->user = User::create();
+		$this->user = User::createUser(Uuid::uuid4());
 
-		$creator = User::create();
+		$creator = User::createUser(Uuid::uuid4());
 		$organization = Organization::create('Lorem Ipsum', $creator);
 		$this->organization = new ReadModelOrganization($organization->getId());
 		$organizationService = $this->getMockBuilder(OrganizationService::class)->getMock();
@@ -55,13 +56,12 @@ class IncomingTransfersControllerTest extends ControllerTest
 
 		$this->account = OrganizationAccount::create($organization, $creator);
 
-		$this->payer = User::create();
-		$this->payer->setEmail('john.doe@foo.com');
+		$this->payer = User::createUser(Uuid::uuid4(), 'john.doe@foo.com');
 		$userServiceStub = $this->getMockBuilder(UserService::class)->getMock();
 		$userServiceStub
 			->expects($this->any())
 			->method('findUserByEmail')
-			->with($this->payer->getEmail())
+			->with('john.doe@foo.com')
 			->willReturn($this->payer);
 
 		$this->payerAccount = Account::create($organization, $this->payer);

@@ -7,6 +7,7 @@ use Accounting\Service\AccountService;
 use Application\Entity\User;
 use People\Organization;
 use ZFX\Test\Controller\ControllerTest;
+use Rhumsaa\Uuid\Uuid;
 
 /**
  * Class DepositsControllerTest
@@ -30,8 +31,8 @@ class WithdrawalControllerTest extends ControllerTest
 	
 	protected function setupController()
 	{
-		$this->user = User::create();
-		$this->creator = User::create();
+		$this->user = User::createUser(Uuid::uuid4());
+		$this->creator = User::createUser(Uuid::uuid4());
 		$organization = Organization::create('Lorem Ipsum', $this->creator);
 		$this->account = OrganizationAccount::create($organization, $this->creator);
 		$accountService = $this->getMockBuilder(AccountService::class)->getMock();

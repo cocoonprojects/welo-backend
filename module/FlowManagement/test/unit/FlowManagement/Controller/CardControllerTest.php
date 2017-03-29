@@ -10,6 +10,7 @@ use FlowManagement\FlowCardInterface;
 use People\Entity\Organization;
 use TaskManagement\Entity\Task;
 use TaskManagement\Entity\Stream;
+use Rhumsaa\Uuid\Uuid;
 
 class CardControllerTest extends ControllerTest {
 	
@@ -27,7 +28,7 @@ class CardControllerTest extends ControllerTest {
 	}
 	
 	protected function setupMore() {
-		$this->user = User::create();
+		$this->user = User::createUser(Uuid::uuid4());
 		$this->user->setFirstname('Stephen');
 		$this->user->setLastname('Hero');
 		$this->user->setRole(User::ROLE_USER);

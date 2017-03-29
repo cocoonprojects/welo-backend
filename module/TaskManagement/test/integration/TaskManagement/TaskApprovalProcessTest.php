@@ -7,7 +7,6 @@ use People\Entity\OrganizationMembership;
 use PHPUnit_Framework_TestCase;
 use TaskManagement\Controller\SharesController;
 use TaskManagement\Entity\Vote;
-use Test\TestFixturesHelper;
 use Zend\Http\Request;
 use Zend\Http\Response;
 use Zend\Mvc\MvcEvent;

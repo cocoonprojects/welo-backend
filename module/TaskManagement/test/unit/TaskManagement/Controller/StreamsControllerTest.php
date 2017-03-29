@@ -8,6 +8,7 @@ use People\Service\OrganizationService;
 use TaskManagement\Service\StreamService;
 use TaskManagement\Stream;
 use ZFX\Test\Controller\ControllerTest;
+use Rhumsaa\Uuid\Uuid;
 
 class StreamsControllerTest extends ControllerTest
 {
@@ -31,9 +32,8 @@ class StreamsControllerTest extends ControllerTest
 	protected function setUp()
 	{
 		parent::setUp();
-		$user = User::create();
-		$user->setRole(User::ROLE_USER);
-		
+		$user = User::createUser(Uuid::uuid4());
+
 		$this->organization = new ReadModelOrganization('00000000');
 		$user->addMembership($this->organization);
 		

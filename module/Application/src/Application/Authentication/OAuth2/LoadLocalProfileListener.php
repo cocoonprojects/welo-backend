@@ -15,19 +15,12 @@ use ZFX\Authentication\JWTAdapter;
 class LoadLocalProfileListener implements ListenerAggregateInterface {
 
 	protected $listeners = array();
-	/**
-	 *
-	 * @var UserService
-	 */
-	private $userService;
-	/**
-	 * @var \Google_Client
-	 */
-	private $google;
 
-	public function __construct(UserService $userService, \Google_Client $google) {
+    protected $userService;
+
+	public function __construct(UserService $userService)
+    {
 		$this->userService = $userService;
-		$this->google = $google;
 	}
 
 	/**
@@ -67,6 +60,7 @@ class LoadLocalProfileListener implements ListenerAggregateInterface {
 		$info = $args['info'];
 
 		$user = $this->userService->findUserByEmail($info['email']);
+
 		if(is_null($user)) {
 			$args['code'] = Result::FAILURE_IDENTITY_NOT_FOUND;
 			$args['info'] = null;
@@ -81,6 +75,7 @@ class LoadLocalProfileListener implements ListenerAggregateInterface {
 		$info = $args['info'];
 
 		$user = $this->userService->findUser($info['uid']);
+
 		if(is_null($user)) {
 			$args['code'] = Result::FAILURE_IDENTITY_NOT_FOUND;
 			$args['info'] = null;
@@ -94,20 +89,12 @@ class LoadLocalProfileListener implements ListenerAggregateInterface {
 		$args = $event->getParams();
 		$info = $args['info'];
 
-//		$user = $this->userService->findUserByGoogleId($info['sub']);
 		$user = $this->userService->findUserByEmail($info['email']);
+
 		if(is_null($user)) {
 			$user = $this->userService->subscribeUser($info);
 		}
 
 		$args['info'] = $user;
-	}
-
-	/**
-	 * @return UserService
-	 */
-	public function getUserService()
-	{
-		return $this->userService;
 	}
 }

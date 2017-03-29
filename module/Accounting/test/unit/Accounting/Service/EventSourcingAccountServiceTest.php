@@ -27,7 +27,7 @@ class EventSourcingAccountServiceTest extends TestCase
 		$this->eventStore->create(new Stream(new StreamName('event_stream'), array()));
 		$this->eventStore->commit();
 		$this->accountService = new EventSourcingAccountService($this->eventStore, $entityManager);
-		$this->user = User::create();
+		$this->user = User::createUser(Uuid::uuid4());
 		$this->organization = Organization::create('Test', $this->user);
 	}
 

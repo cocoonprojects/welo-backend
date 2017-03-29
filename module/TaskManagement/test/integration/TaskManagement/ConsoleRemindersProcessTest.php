@@ -2,6 +2,7 @@
 
 namespace TaskManagement;
 
+use Rhumsaa\Uuid\Uuid;
 use TaskManagement\Controller\Console\RemindersController;
 use Guzzle\Http\Client;
 use IntegrationTest\Bootstrap;
@@ -23,7 +24,6 @@ class ConsoleRemindersProcessTest extends \PHPUnit_Framework_TestCase
 	private $owner;
 	private $member;
 	private $task;
-	private $transactionManager;
 	private $taskService;
 	private $orgService;
 	private $mailService;
@@ -41,16 +41,10 @@ class ConsoleRemindersProcessTest extends \PHPUnit_Framework_TestCase
 		$this->stream = new EntityStream('1', $this->organization);
 		$this->stream->setSubject("Stream subject");
 
-		$this->owner = User::create();
-		$this->owner->setFirstname('John');
-		$this->owner->setLastname('Doe');
-		$this->owner->setEmail('john.doe@foo.com');
+		$this->owner = User::createUser(Uuid::uuid4(), 'john.doe@foo.com', 'John', 'Doe');
 		$this->owner->addMembership($this->organization);
 
-		$this->member = User::create();
-		$this->member->setFirstname('Jane');
-		$this->member->setLastname('Doe');
-		$this->member->setEmail('jane.doe@foo.com');
+		$this->member = User::createUser(Uuid::uuid4(), 'jane.doe@foo.com', 'Jane', 'Doe');
 		$this->member->addMembership($this->organization);
 
 		$this->task = new EntityTask('1', $this->stream);

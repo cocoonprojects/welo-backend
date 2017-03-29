@@ -4,6 +4,7 @@ namespace TaskManagement\Controller;
 use Application\Entity\User;
 use People\Entity\Organization;
 use People\Service\OrganizationService;
+use Rhumsaa\Uuid\Uuid;
 use TaskManagement\Entity\Stream;
 use TaskManagement\Entity\Task;
 use TaskManagement\Service\NotifyMailListener;
@@ -29,13 +30,14 @@ class AddEstimationRemindersControllerTest extends ControllerTest
 		$this->systemUser = $this->getMockBuilder(User::class)
 			->disableOriginalConstructor()
 			->getMock();
+
 		$this->systemUser->method('getRoleId')->willReturn(User::ROLE_SYSTEM);
 	}
 
 	protected function setupController()
 	{
-		$this->owner = User::create()->setRole(User::ROLE_USER);
-		$this->member = User::create()->setRole(User::ROLE_USER);
+		$this->owner = User::createUser(Uuid::uuid4());
+		$this->member = User::createUser(Uuid::uuid4());
 
 		$this->org = new Organization('1');
 		$this->task = new Task('1', new Stream('1', $this->org));

@@ -52,10 +52,8 @@ class AccountsControllerTest extends ControllerTest
 			->with($this->organization->getId())
 			->willReturn($this->organization);
 
-		$this->user1 = User::create();
-
-		$this->user2 = User::create();
-		$this->user2->setEmail('john.doe@foo.com');
+		$this->user1 = User::createUser(Uuid::uuid4());
+		$this->user2 = User::createUser(Uuid::uuid4(), 'john.doe@foo.com');
 
 		$this->account1 = new PersonalAccount(Uuid::uuid4()->toString(), $this->organization);
 		$this->account1->addHolder($this->user1);
@@ -111,7 +109,7 @@ class AccountsControllerTest extends ControllerTest
 		$this->controller->getUserService()
 			->expects($this->once())
 			->method('findUserByEmail')
-			->with($this->user2->getEmail())
+			->with('john.doe@foo.com')
 			->willReturn($this->user2);
 
 		$this->controller->getAccountService()

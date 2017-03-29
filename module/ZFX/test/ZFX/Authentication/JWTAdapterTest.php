@@ -2,11 +2,11 @@
 
 namespace ZFX\Authentication;
 
-
 use Application\Authentication\OAuth2\LoadLocalProfileListener;
 use Application\Entity\User;
 use Application\Service\UserService;
 use Namshi\JOSE\SimpleJWS;
+use Rhumsaa\Uuid\Uuid;
 use Zend\Authentication\Result;
 
 /**
@@ -16,10 +16,9 @@ use Zend\Authentication\Result;
  */
 class JWTAdapterTest extends \PHPUnit_Framework_TestCase
 {
-	/**
-	 * @var string
-	 */
-	private $publicKey = "-----BEGIN PUBLIC KEY-----
+
+	private $publicKey = <<< 'EOT'
+-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA8SJjXkniIeE6mEOvOuB9
 40kni2v0E+UwqNrrmdJ49quZP48d55k7t+OI9OFgQYLV7DW6u0tMGrvnuC+MD7nr
 FrwbSk74mO95C0C7TuU0k5S3OXFhe72z34aibVXX+3oR0m1FU6qAuKqXkP8+Z5zJ
@@ -27,24 +26,11 @@ vSKy1i+EUD1zhkjdFhJ4z6ZsoHEpVrnkI0QrUnWkKancw+e5BcR4uFbi3hgXdkIL
 Hsf4L4YeW9Tds4MOUEymm/hAcc4JXn95cDbOO51/Z+C6YPyjkWdzUHQ7TDaaboQT
 WY2YYeEi31dEvdcFM+ASmDkvcnftAbZVmDi8oJzksztA1nmUoD8XQzTXxBOTSFGS
 nwIDAQAB
------END PUBLIC KEY-----";
-	/**
-	 * @var JWTAdapter
-	 */
-	private $adapter;
-	/**
-	 * @var LoadLocalProfileListener
-	 */
-	private $listener;
-	/**
-	 * @var JWTBuilder
-	 */
-	private $builder;
+-----END PUBLIC KEY-----
+EOT;
 
-	protected function setUp()
-	{
-		$this->builder = new JWTBuilder(
-			"-----BEGIN RSA PRIVATE KEY-----
+	private $privateKey = <<< 'EOT'
+-----BEGIN RSA PRIVATE KEY-----
 MIIEpQIBAAKCAQEA8SJjXkniIeE6mEOvOuB940kni2v0E+UwqNrrmdJ49quZP48d
 55k7t+OI9OFgQYLV7DW6u0tMGrvnuC+MD7nrFrwbSk74mO95C0C7TuU0k5S3OXFh
 e72z34aibVXX+3oR0m1FU6qAuKqXkP8+Z5zJvSKy1i+EUD1zhkjdFhJ4z6ZsoHEp
@@ -70,21 +56,35 @@ yZYw6P1gPCiOs+Ml7BZ8jvGdQfwW3oVCaj0i/Otn9miQgCl9AQ4ZBAnWkaZ/68Lf
 +5CSRfkCgYEAngpwml1MunLUO1gFYk5PS0Elq6bjR7bEe8JegvqfqeM8IILpSyXo
 NIWpPWGtI3X48gQiw0BdbrQkDJI76Qa/xcn0yIt+Z1dw5Uhxf2PsKJEhBaLvToTz
 oGYZDHe7A05BzL5PD8vI3SeazAlpLidU6L40eZUeYj3+S7cthNr9MVU=
------END RSA PRIVATE KEY-----");
+-----END RSA PRIVATE KEY-----
+EOT;
+
+	private $adapter;
+
+	private $listener;
+
+	private $builder;
+
+	private $userService;
+
+	protected function setUp()
+	{
+		$this->builder = new JWTBuilder($this->privateKey);
 		$this->adapter = new JWTAdapter($this->publicKey);
-		$googleClient = new \Google_Client();
-		$userService = $this->getMockBuilder(UserService::class)->getMock();
-		$this->listener = new LoadLocalProfileListener($userService, $googleClient);
+		$this->userService = $this->getMockBuilder(UserService::class)->getMock();
+
+		$this->listener = new LoadLocalProfileListener($this->userService);
+
 		$this->listener->attach($this->adapter->getEventManager());
 	}
 
 	public function testAuthenticate()
 	{
-		$user = User::create();
+		$user = User::createUser(Uuid::uuid4());
 
-		$this->listener->getUserService()
-			->method('findUser')
-			->willReturn($user);
+		$this->userService
+			 ->method('findUser')
+			 ->willReturn($user);
 
 		$token = $this->builder->buildJWT($user);
 
@@ -120,11 +120,11 @@ oGYZDHe7A05BzL5PD8vI3SeazAlpLidU6L40eZUeYj3+S7cthNr9MVU=
 
 	public function testAuthenticateWithNotExistingIdentity()
 	{
-		$this->listener->getUserService()
-			->method('findUser')
-			->willReturn(null);
+        $this->userService
+            ->method('findUser')
+            ->willReturn(null);
 
-		$user = User::create();
+		$user = User::createUser(Uuid::uuid4());
 		$token = $this->builder->buildJWT($user);
 
 		$this->adapter->setToken($token);

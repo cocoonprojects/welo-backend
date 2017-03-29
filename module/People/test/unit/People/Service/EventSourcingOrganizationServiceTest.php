@@ -5,6 +5,7 @@ use Prooph\EventStoreTest\TestCase;
 use Prooph\EventStore\Stream\Stream;
 use Prooph\EventStore\Stream\StreamName;
 use Application\Entity\User;
+use Rhumsaa\Uuid\Uuid;
 
 class EventSourcingOrganizationServiceTest extends TestCase {
 	
@@ -26,7 +27,7 @@ class EventSourcingOrganizationServiceTest extends TestCase {
 		$this->eventStore->create(new Stream(new StreamName('event_stream'), array()));
 		$this->eventStore->commit();
 		$this->organizationService = new EventSourcingOrganizationService($this->eventStore, $entityManager);
-		$this->user = User::create();
+		$this->user = User::createUser(Uuid::uuid4());
 	}
 	
 	public function testCreateOrganization() {

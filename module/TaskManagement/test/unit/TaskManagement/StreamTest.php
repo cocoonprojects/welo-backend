@@ -3,6 +3,7 @@ namespace TaskManagement;
 
 use Application\Entity\User;
 use People\Organization;
+use Rhumsaa\Uuid\Uuid;
 
 class StreamTest extends \PHPUnit_Framework_TestCase {
 	
@@ -11,7 +12,7 @@ class StreamTest extends \PHPUnit_Framework_TestCase {
 	private $user;
 	
 	protected function setUp() {
-		$this->user = User::create();
+		$this->user = User::createUser(Uuid::uuid4());
 		$this->organization = Organization::create('Pellentesque consequat lacinia arcu vitae', $this->user);
 	}
 	
