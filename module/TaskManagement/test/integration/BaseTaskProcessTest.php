@@ -1,4 +1,5 @@
 <?php
+
 use IntegrationTest\Bootstrap;
 use Zend\Http\Request;
 use Zend\Http\Response;
@@ -61,15 +62,6 @@ class BaseTaskProcessTest extends \PHPUnit_Framework_TestCase
         $pluginManager = $this->serviceManager->get('ControllerPluginManager');
         $this->controller->setPluginManager($pluginManager);
     }
-
-    protected function generateRandomName() {
-        return round(microtime(true) * 1000).'_'.rand(0,10000);
-    }
-
-    protected function generateRandomEmail() {
-        return round(microtime(true) * 1000).'_'.rand(0,10000).'@foo.com';
-    }
-
 
     /**
      * @param array $data

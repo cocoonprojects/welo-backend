@@ -7,6 +7,7 @@ use People\Entity\OrganizationMembership;
 use PHPUnit_Framework_TestCase;
 use TaskManagement\Controller\SharesController;
 use TaskManagement\Entity\Vote;
+use Test\TestFixturesHelper;
 use Zend\Http\Request;
 use Zend\Http\Response;
 use Zend\Mvc\MvcEvent;
@@ -39,8 +40,8 @@ class TaskApprovalTaskProcessTest extends \BaseTaskProcessTest
 	    parent::setupController('TaskManagement\Controller\Approvals', 'invoke');
 
 
-	    $this->admin = $this->userService->create( [ 'given_name' => 'Admin', 'family_name' => 'Uber', 'email' => $this->generateRandomEmail() ], User::ROLE_ADMIN );
-        $this->author = $this->userService->create( [ 'given_name' => 'John', 'family_name' => 'Doe', 'email' => $this->generateRandomEmail() ], User::ROLE_USER );
+	    $this->admin = $this->userService->create( [ 'given_name' => 'Admin', 'family_name' => 'Uber', 'email' => TestFixturesHelper::generateRandomEmail() ], User::ROLE_ADMIN );
+        $this->author = $this->userService->create( [ 'given_name' => 'John', 'family_name' => 'Doe', 'email' => TestFixturesHelper::generateRandomEmail() ], User::ROLE_USER );
 
         $this->organization = $this->organizationService->createOrganization('approval', $this->admin);
         $this->organization->addMember($this->author, Organization::ROLE_MEMBER);

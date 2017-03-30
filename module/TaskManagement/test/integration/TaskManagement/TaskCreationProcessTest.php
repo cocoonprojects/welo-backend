@@ -2,6 +2,7 @@
 namespace TaskManagement;
 
 use Application\Entity\User;
+use Test\TestFixturesHelper;
 use ZFX\Test\Authentication\AdapterMock;
 use ZFX\Test\Authentication\OAuth2AdapterMock;
 
@@ -22,10 +23,10 @@ class TaskCreationProcessTest extends \BaseTaskProcessTest
 
         $this->transactionManager = $this->serviceManager->get('prooph.event_store');
 
-        $this->admin = $this->createUser(['given_name' => 'Admin', 'family_name' => 'Uber', 'email' => $this->generateRandomEmail()], User::ROLE_ADMIN);
+        $this->admin = $this->createUser(['given_name' => 'Admin', 'family_name' => 'Uber', 'email' => TestFixturesHelper::generateRandomEmail()], User::ROLE_ADMIN);
 
-        $this->organization = $this->createOrganization($this->generateRandomName(), $this->admin);
-        $stream = $this->createStream($this->generateRandomName(), $this->organization, $this->admin, $this->serviceManager);
+        $this->organization = $this->createOrganization(TestFixturesHelper::generateRandomName(), $this->admin);
+        $stream = $this->createStream(TestFixturesHelper::generateRandomName(), $this->organization, $this->admin, $this->serviceManager);
 
         $this->transactionManager->beginTransaction();
 

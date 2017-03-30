@@ -17,6 +17,7 @@ use TaskManagement\Entity\TaskMember;
 use TaskManagement\Entity\Vote;
 use TaskManagement\Service\TaskService;
 use Test\Mailbox;
+use Test\TestFixturesHelper;
 use Zend\Console\Request as ConsoleRequest;
 use TaskManagement\Service\MailService;
 use Zend\Form\Element\DateTime;
@@ -36,13 +37,13 @@ class ConsoleSharesClosingProcessTest extends BaseTaskProcessTest
 	{
 
 
-        $this->admin = $this->createUser(['given_name' => 'Admin', 'family_name' => 'Uber', 'email' => $this->generateRandomEmail()], User::ROLE_ADMIN);
-        $this->owner = $this->createUser([ 'given_name' => 'John', 'family_name' => 'Doe', 'email' => $this->generateRandomEmail() ], User::ROLE_USER );
-        $this->member01 = $this->createUser([ 'given_name' => 'Jane', 'family_name' => 'Doe', 'email' => $this->generateRandomEmail() ], User::ROLE_USER );
-        $this->member02 = $this->createUser([ 'given_name' => 'Jack', 'family_name' => 'Doe', 'email' => $this->generateRandomEmail() ], User::ROLE_USER );
+        $this->admin = $this->createUser(['given_name' => 'Admin', 'family_name' => 'Uber', 'email' => TestFixturesHelper::generateRandomEmail()], User::ROLE_ADMIN);
+        $this->owner = $this->createUser([ 'given_name' => 'John', 'family_name' => 'Doe', 'email' => TestFixturesHelper::generateRandomEmail() ], User::ROLE_USER );
+        $this->member01 = $this->createUser([ 'given_name' => 'Jane', 'family_name' => 'Doe', 'email' => TestFixturesHelper::generateRandomEmail() ], User::ROLE_USER );
+        $this->member02 = $this->createUser([ 'given_name' => 'Jack', 'family_name' => 'Doe', 'email' => TestFixturesHelper::generateRandomEmail() ], User::ROLE_USER );
 
-        $this->organization = $this->createOrganization($this->generateRandomName(), $this->admin);
-        $stream = $this->createStream($this->generateRandomName(), $this->organization, $this->admin, $this->serviceManager);
+        $this->organization = $this->createOrganization(TestFixturesHelper::generateRandomName(), $this->admin);
+        $stream = $this->createStream(TestFixturesHelper::generateRandomName(), $this->organization, $this->admin, $this->serviceManager);
 
 
         $this->transactionManager->beginTransaction();
