@@ -90,6 +90,9 @@ class ConsoleSharesClosingProcessTest extends BaseTaskProcessTest
 
 		$this->controller = $this->serviceManager->get("ControllerManager")->get('TaskManagement\Controller\Console\SharesClosing');
 
+        $task = $this->taskService->findTask($this->task->getId());
+        $this->taskService->refreshEntity($task);
+
 		$this->request = new ConsoleRequest();
 
         $this->mailbox = Mailbox::create();
@@ -124,7 +127,7 @@ class ConsoleSharesClosingProcessTest extends BaseTaskProcessTest
         $readModelTask = $this->taskService->findTask($this->task->getId());
 
         ob_start();
-		$this->controller->dispatch($this->request);
+		$this->controller->closeAction();
         $result = ob_get_clean();
 
         $mail = $this->mailbox->getLastMessage();
@@ -171,7 +174,7 @@ class ConsoleSharesClosingProcessTest extends BaseTaskProcessTest
         $readModelTask = $this->taskService->findTask($this->task->getId());
 
         ob_start();
-		$this->controller->dispatch($this->request);
+		$this->controller->closeAction();
         $result = ob_get_clean();
 
         $mail = $this->mailbox->getLastMessage();
@@ -214,7 +217,7 @@ class ConsoleSharesClosingProcessTest extends BaseTaskProcessTest
         $readModelTask = $this->taskService->findTask($this->task->getId());
 
         ob_start();
-		$this->controller->dispatch($this->request);
+		$this->controller->closeAction();
         $result = ob_get_clean();
 
 

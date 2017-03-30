@@ -391,7 +391,7 @@ class Task extends EditableEntity implements TaskInterface
                 'name' => $member->getFirstname(). ' ' . $member->getLastname(),
                 'share' => $share * 100,
                 'value' => $share * $avgCredits,
-                'gap' => $gap[$uid] * 100
+                'gap' => isset($gap[$uid]) ? $gap[$uid] * 100 : 'n/a'
             ];
         }
 
@@ -406,7 +406,6 @@ class Task extends EditableEntity implements TaskInterface
         foreach ($this->members as $taskMember) {
 
             foreach ($taskMember->getShares() as $index => $taskShares) {
-
                 $memberId = $taskMember->getUser()->getId();
                 $valuedId = $index;
 
@@ -428,6 +427,9 @@ class Task extends EditableEntity implements TaskInterface
 
 
         foreach($avgs as $uid => $avg) {
+            if (!isset($selfShare[$uid])) {
+                continue;
+            }
             $gaps[$uid] = ($selfShare[$uid] - $avg);
         }
 

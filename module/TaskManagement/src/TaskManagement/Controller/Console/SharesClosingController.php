@@ -30,10 +30,8 @@ class SharesClosingController extends AbstractConsoleController {
 		$this->userService = $userService;
 	}
 
-    public function dispatch(RequestInterface $request, ResponseInterface $response = null)
+    public function closeAction()
 	{
-		$request = $this->getRequest();
-
 		$systemUser = $this->userService
 						   ->findUser(User::SYSTEM_USER);
 
@@ -89,9 +87,8 @@ class SharesClosingController extends AbstractConsoleController {
             $itemId = $idea->getId();
             $item = $this->taskService->getTask($itemId);
 
-            $this->transaction()->begin();
-
             try {
+                $this->transaction()->begin();
 
                 $this->write("automatically closing task $itemId with enough shares");
                 $item->closeIfEnoughShares(2, $systemUser);
@@ -102,6 +99,8 @@ class SharesClosingController extends AbstractConsoleController {
 
                 $this->transaction()->commit();
             }catch (\Exception $e) {
+                var_dump($e->getTraceAsString());
+                die('UODDAFAX');
                 $this->transaction()->rollback();
                 $this->write("error closing task $itemId: {$e->getMessage()}");
             }
