@@ -99,8 +99,7 @@ class SharesClosingController extends AbstractConsoleController {
 
                 $this->transaction()->commit();
             }catch (\Exception $e) {
-                var_dump($e->getTraceAsString());
-                die('UODDAFAX');
+                var_dump($e->getMessage());
                 $this->transaction()->rollback();
                 $this->write("error closing task $itemId: {$e->getMessage()}");
             }

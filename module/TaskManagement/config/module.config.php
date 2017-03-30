@@ -65,6 +65,15 @@ return array(
 							'action' => 'closePolls'
                         ]
                     ]
+                ],
+                'close_shares' => [
+                    'options' => [
+                        'route'    => 'closeshares [--verbose|-v]',
+                        'defaults' => [
+							'controller' => 'TaskManagement\Controller\Console\SharesClosing',
+							'action' => 'close'
+                        ]
+                    ]
                 ]
             ]
         ]
