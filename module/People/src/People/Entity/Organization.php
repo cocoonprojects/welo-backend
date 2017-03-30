@@ -60,9 +60,13 @@ class Organization extends EditableEntity implements ResourceInterface
 
 		$settings = $this->getSettings(OrganizationAggregate::ORG_SETTINGS);
 
-		if ($settings) {
+		if (is_array($settings)) {
 			return OrganizationParams::fromArray($settings);
 		}
+
+		if ($settings instanceof OrganizationParams) {
+		    return $settings;
+        }
 
 		return OrganizationParams::createWithDefaults();
 	}

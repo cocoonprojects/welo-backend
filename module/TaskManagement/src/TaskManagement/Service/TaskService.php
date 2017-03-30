@@ -46,7 +46,14 @@ interface TaskService
 	 * @param \DateInterval $interval
 	 * @return array
 	 */
-	public function findAcceptedTasksBefore(\DateInterval $interval);
+	public function findAcceptedTasksBefore(\DateInterval $interval, $orgId = null);
+
+	/**
+	 * Find accepted tasks with accepted date before $interval days from now
+	 * @param \DateInterval $interval
+	 * @return array
+	 */
+	public function findAcceptedTasksBetween(\DateInterval $after, \DateInterval $before);
 
 	/**
 	 * Find accepted tasks with accepted date before $before days from now

@@ -1,14 +1,16 @@
 <?php
 namespace TaskManagement;
 
+use Application\Entity\User;
+use Test\TestFixturesHelper;
 use ZFX\Test\Authentication\AdapterMock;
 use ZFX\Test\Authentication\OAuth2AdapterMock;
 
-class TaskCreationTaskProcessTest extends \BaseTaskProcessTest
+class TaskCreationProcessTest extends \BaseTaskProcessTest
 {	
 
 	protected $task;
-	protected $author;
+	protected $admin;
 	protected $organization;
 	
 	/**
@@ -19,31 +21,26 @@ class TaskCreationTaskProcessTest extends \BaseTaskProcessTest
 	protected function setUp()
 	{
 
-	    parent::setupController('TaskManagement\Controller\Tasks', '');
+        $this->transactionManager = $this->serviceManager->get('prooph.event_store');
 
-        $stream = $this->streamService->getStream('00000000-1000-0000-0000-000000000000');
+        $this->admin = $this->createUser(['given_name' => 'Admin', 'family_name' => 'Uber', 'email' => TestFixturesHelper::generateRandomEmail()], User::ROLE_ADMIN);
 
-        $this->author = $this->userService->findUser('60000000-0000-0000-0000-000000000000');
+        $this->organization = $this->createOrganization(TestFixturesHelper::generateRandomName(), $this->admin);
+        $stream = $this->createStream(TestFixturesHelper::generateRandomName(), $this->organization, $this->admin, $this->serviceManager);
 
-        $adapter = new AdapterMock();
-        $adapter->setEmail($this->author->getEmail());
-        $this->authService = $this->serviceManager->get('Zend\Authentication\AuthenticationService');
-        $this->authService->authenticate($adapter);
+        $this->transactionManager->beginTransaction();
 
-		$this->intervalForCloseTasks = new \DateInterval('P7D');
 
-		$transactionManager = $this->serviceManager->get('prooph.event_store');
+        try {
+            $task = Task::create($stream, 'Cras placerat libero non tempor', $this->admin);
+            $this->task = $this->taskService->addTask($task);
 
-		$transactionManager->beginTransaction();
-		try {
-			$task = Task::create($stream, 'Cras placerat libero non tempor', $this->author);
-			$this->task = $this->taskService->addTask($task);
-			$transactionManager->commit();
-		} catch (\Exception $e) {
-			$transactionManager->rollback();
-			throw $e;
-		}
-
+            $this->transactionManager->commit();
+        }catch (\Exception $e) {
+            var_dump($e->getMessage());
+            $this->transactionManager->rollback();
+            throw $e;
+        }
 	}
 
 	public function testCheckAuthor() {
@@ -51,7 +48,7 @@ class TaskCreationTaskProcessTest extends \BaseTaskProcessTest
 
         $this->assertNotNull($readModelTask->getAuthor());
         $this->assertNull($readModelTask->getOwner());
-        $this->assertEquals($this->author, $readModelTask->getAuthor());
+        $this->assertEquals($this->admin, $readModelTask->getAuthor());
         $this->assertEmpty($readModelTask->getMembers());
 	}
 

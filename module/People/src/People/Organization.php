@@ -68,6 +68,7 @@ class Organization extends DomainEntity
 		if(is_null($settingKey)){
 			throw new InvalidArgumentException('Cannot address setting without a setting key');
 		}
+
 		$this->recordThat(OrganizationUpdated::occur($this->id->toString(), array(
 			'settingKey' => trim($settingKey),
 			'settingValue' => $settingValue,
@@ -88,9 +89,7 @@ class Organization extends DomainEntity
 	}
 
 	public function setParams($data, User $updatedBy) {
-
 		$settings = ValueObject\OrganizationParams::fromArray($data);
-
 		$this->setSettings(self::ORG_SETTINGS, $settings, $updatedBy);
 
 		return $this;

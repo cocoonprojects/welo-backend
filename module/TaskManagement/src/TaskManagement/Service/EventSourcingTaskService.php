@@ -186,7 +186,7 @@ class EventSourcingTaskService extends AggregateRepository implements TaskServic
 	 * @param \DateInterval $interval
 	 * @return ReadModelTask[]
 	 */
-	public function findAcceptedTasksBefore(\DateInterval $interval){
+	public function findAcceptedTasksBefore(\DateInterval $interval, $orgId = null){
 
 		$referenceDate = new \DateTime('now');
 
@@ -196,10 +196,42 @@ class EventSourcingTaskService extends AggregateRepository implements TaskServic
 			->where("DATE_ADD(t.acceptedAt,".$interval->format('%d').", 'DAY') <= :referenceDate")
 			->andWhere('t.status = :taskStatus')
 			->setParameter('taskStatus', Task::STATUS_ACCEPTED)
-			->setParameter('referenceDate', $referenceDate->format('Y-m-d H:i:s'))
-			->getQuery();
+			->setParameter('referenceDate', $referenceDate->format('Y-m-d H:i:s'));
 
-		return $query->getResult();
+        if(!is_null($orgId)) {
+            $query->innerjoin('t.stream', 's', 'WITH', 's.organization = :organization')
+                ->setParameter('organization', $orgId);
+        }
+
+		return $query->getQuery()->getResult();
+	}
+
+	/**
+	 * @see \TaskManagement\Service\TaskService::findAcceptedTasksBetween()
+	 * @param \DateInterval $after
+	 * @param \DateInterval $before
+	 * @return ReadModelTask[]
+	 */
+	public function findAcceptedTasksBetween(\DateInterval $after, \DateInterval $before, $orgId = null){
+
+		$referenceDate = new \DateTime('now');
+
+		$builder = $this->entityManager->createQueryBuilder();
+		$query = $builder->select('t')
+			->from(ReadModelTask::class, 't')
+			->where("DATE_ADD(t.acceptedAt,".$before->format('%d').", 'DAY') >= :referenceDate")
+			->andWhere("DATE_ADD(t.acceptedAt,".$after->format('%d').", 'DAY') <= :referenceDate")
+			->andWhere('t.status = :taskStatus')
+			->setParameter('taskStatus', Task::STATUS_ACCEPTED)
+			->setParameter('referenceDate', $referenceDate->format('Y-m-d H:i:s'))
+        ;
+
+		if(!is_null($orgId)) {
+			$query->innerjoin('t.stream', 's', 'WITH', 's.organization = :organization')
+				  ->setParameter('organization', $orgId);
+		}
+
+		return $query->getQuery()->getResult();
 	}
 
 	/**

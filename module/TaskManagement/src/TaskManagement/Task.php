@@ -275,7 +275,29 @@ class Task extends DomainEntity implements TaskInterface
 		return $this;
 	}
 
-	public function open(BasicUser $executedBy) {
+    public function closeIfEnoughShares($minimumShares, BasicUser $closedBy) {
+        $membersCount = $this->countMembers();
+        $sharesCount = $this->countMembersShare();
+
+        $minimumSharesToAutoClose = min($minimumShares, $membersCount);
+
+        if ($sharesCount < $minimumSharesToAutoClose) {
+            $this->recordThat(TaskNotClosedByTimebox::occur($this->id->toString(), array(
+                    'by' => $closedBy->getId(),
+            )));
+            return $this;
+        }
+
+        $this->close($closedBy);
+
+		$this->recordThat(TaskClosedByTimebox::occur($this->id->toString(), array(
+			'by' => $closedBy->getId(),
+		)));
+
+        return $this;
+    }
+
+    public function open(BasicUser $executedBy) {
 		if(!in_array($this->status, [self::STATUS_IDEA, self::STATUS_ONGOING])) {
 			throw new IllegalStateException('Cannot open a task in '.$this->status.' state');
 		}
@@ -508,8 +530,9 @@ class Task extends DomainEntity implements TaskInterface
 		}, ARRAY_FILTER_USE_BOTH);
 		*/
 
-		if(array_sum($membersShares) != 1) {
-			throw new InvalidArgumentException('The total amount of shares must be 100');
+		$total = round(array_sum($membersShares),3);
+		if($total != 1.0) {
+			throw new InvalidArgumentException('The total amount of shares must be 100, '.($total*100).' found');
 		}
 
 		$missing = array_diff_key($this->members, $membersShares);
@@ -580,11 +603,19 @@ class Task extends DomainEntity implements TaskInterface
 			)));
 		}
 	}
+
 	/**
 	 * @return array
 	 */
 	public function getMembers() {
 		return $this->members;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function countMembers() {
+		return count($this->members);
 	}
 
 	/**
@@ -790,6 +821,12 @@ class Task extends DomainEntity implements TaskInterface
 		$this->mostRecentEditAt = $event->occurredOn();
 	}
 
+	protected function whenTaskClosedByTimebox(TaskClosedByTimebox $event) {
+	}
+
+	protected function whenTaskNotClosedByTimebox(TaskNotClosedByTimebox $event) {
+	}
+
 	protected function whenTaskDeleted(TaskDeleted $event) {
 		$this->status = self::STATUS_DELETED;
 		$this->mostRecentEditAt = $event->occurredOn();
@@ -963,6 +1000,17 @@ class Task extends DomainEntity implements TaskInterface
 			});
 		}
 		return $rv;
+	}
+
+	public function countMembersShare() {
+		$rv = array();
+		$evaluators = 0;
+		foreach ($this->members as $evaluatorId => $info) {
+			if(isset($info['shares'][$evaluatorId])) {
+				$evaluators++;
+			}
+		}
+		return $evaluators;
 	}
 
 	/**
