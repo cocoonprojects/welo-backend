@@ -4,6 +4,7 @@ namespace TaskManagement;
 use TaskManagement\Controller\AcceptancesController;
 use TaskManagement\Controller\ApprovalsController;
 use TaskManagement\Controller\AttachmentsController;
+use TaskManagement\Controller\Console\SharesRemindersController;
 use TaskManagement\Controller\Console\SharesClosingController;
 use TaskManagement\Controller\EstimationsController;
 use TaskManagement\Controller\MembersController;
@@ -185,6 +186,20 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
 
 					return $controller;
 				},
+                'TaskManagement\Controller\Console\SharesReminders' => function ($sm) {
+                    $locator = $sm->getServiceLocator();
+                    $taskService = $locator->get('TaskManagement\TaskService');
+                    $mailService = $locator->get('AcMailer\Service\MailService');
+                    $orgService = $locator->get('People\OrganizationService');
+
+                    $controller = new SharesRemindersController(
+                        $taskService,
+                        $mailService,
+                        $orgService
+                    );
+
+                    return $controller;
+                },
                 'TaskManagement\Controller\Console\SharesClosing' => function ($sm) {
                     $locator = $sm->getServiceLocator();
                     $taskService = $locator->get('TaskManagement\TaskService');

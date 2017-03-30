@@ -17,6 +17,7 @@ use TaskManagement\Entity\Vote;
 use TaskManagement\Service\TaskService;
 use Zend\Console\Request as ConsoleRequest;
 use TaskManagement\Service\MailService;
+use Test\Mailbox;
 
 class ConsoleSharesRemindersProcessTest extends \PHPUnit_Framework_TestCase
 {
@@ -28,50 +29,48 @@ class ConsoleSharesRemindersProcessTest extends \PHPUnit_Framework_TestCase
 	private $transactionManager;
 	private $taskService;
 	private $orgService;
-	private $mailService;
+	private $mailbox;
 
 	protected function setUp()
 	{
-		$serviceManager = Bootstrap::getServiceManager();
-		$this->mailService = $serviceManager->get('AcMailer\Service\MailService');
+        $serviceManager = Bootstrap::getServiceManager();
 
-		$this->mailcatcher = new Client('http://127.0.0.1:1080');
+        $this->organization = new Organization('1');
+        $this->organization->setName('Organization Name');
 
-		$this->organization = new Organization('1');
-		$this->organization->setName('Organization Name');
+        $this->stream = new EntityStream('1', $this->organization);
+        $this->stream->setSubject("Stream subject");
 
-		$this->stream = new EntityStream('1', $this->organization);
-		$this->stream->setSubject("Stream subject");
+        $this->owner = User::create();
+        $this->owner->setFirstname('John');
+        $this->owner->setLastname('Doe');
+        $this->owner->setEmail('john.doe@foo.com');
+        $this->owner->addMembership($this->organization);
 
-		$this->owner = User::create();
-		$this->owner->setFirstname('John');
-		$this->owner->setLastname('Doe');
-		$this->owner->setEmail('john.doe@foo.com');
-		$this->owner->addMembership($this->organization);
+        $this->member = User::create();
+        $this->member->setFirstname('Jane');
+        $this->member->setLastname('Doe');
+        $this->member->setEmail('jane.doe@foo.com');
+        $this->member->addMembership($this->organization);
 
-		$this->member = User::create();
-		$this->member->setFirstname('Jane');
-		$this->member->setLastname('Doe');
-		$this->member->setEmail('jane.doe@foo.com');
-		$this->member->addMembership($this->organization);
+        $this->task = new EntityTask('1', $this->stream);
+        $this->task->setSubject('Lorem Ipsum Sic Dolor Amit');
+        $this->task->addMember($this->owner, TaskMember::ROLE_OWNER, $this->owner, new \DateTime());
+        $this->task->addMember($this->member, TaskMember::ROLE_MEMBER, $this->member, new \DateTime());
 
-		$this->task = new EntityTask('1', $this->stream);
-		$this->task->setSubject('Lorem Ipsum Sic Dolor Amit');
-		$this->task->addMember($this->owner, TaskMember::ROLE_OWNER, $this->owner, new \DateTime());
-		$this->task->addMember($this->member, TaskMember::ROLE_MEMBER, $this->member, new \DateTime());
+        $this->task->setStatus(Task::STATUS_COMPLETED);
 
-		$this->task->setStatus(Task::STATUS_COMPLETED);
-
-		$members = $this->task->getMembers();
-		$owner = array_shift($members);
-		$member = array_shift($members);
-        $owner->assignShare($owner, 100, new \DateTime('today'));
-        $owner->assignShare($member, 80, new \DateTime('today'));
+        $members = $this->task->getMembers();
+        $ownerMember = array_shift($members);
+        $memberMember = array_shift($members);
+        $ownerMember->assignShare($ownerMember, 100, new \DateTime('today'));
+        $ownerMember->assignShare($memberMember, 80, new \DateTime('today'));
 
         $this->task->updateMembersShare(new \DateTime('today'));
 
-		$this->taskService = $this->getMockBuilder(TaskService::class)->getMock();
-		$this->orgService = $this->getMockBuilder(OrganizationService::class)->getMock();
+        $this->taskService = $this->getMockBuilder(TaskService::class)->getMock();
+        $this->orgService = $this->getMockBuilder(OrganizationService::class)->getMock();
+        $this->mailService = $serviceManager->get('AcMailer\Service\MailService');
 
 		$this->controller = new SharesRemindersController(
 			$this->taskService,
@@ -79,35 +78,16 @@ class ConsoleSharesRemindersProcessTest extends \PHPUnit_Framework_TestCase
 			$this->orgService
 		);
 
-		$this->request = new ConsoleRequest();
+        $this->request = new ConsoleRequest();
 
-		$this->cleanEmailMessages();
-	}
+        $this->mailbox = Mailbox::create();
+    }
 
-
-	protected function cleanEmailMessages()
-	{
-		$request = $this->mailcatcher->delete('/messages');
-		$response = $request->send();
-	}
-
-	protected function getEmailMessages()
-	{
-		$request = $this->mailcatcher->get('/messages');
-		$response = $request->send();
-		$json = json_decode($response->getBody());
-		return $json;
-	}
-
-	public function assertEmailHtmlContains($needle, $email, $description = '')
-	{
-		$request = $this->mailcatcher->get("/messages/{$email->id}.html");
-		$response = $request->send();
-		$this->assertContains($needle, (string)$response->getBody(), $description);
-	}
 
 	public function testSendNotificationToUserWhoDidntAssignShares()
 	{
+        $this->mailbox->clean();
+
 		$this->taskService
 			->method('findAcceptedTasksBetween')
 			->willReturn([$this->task]);
@@ -122,12 +102,12 @@ class ConsoleSharesRemindersProcessTest extends \PHPUnit_Framework_TestCase
 
 		$result = ob_get_clean();
 
-		$emails = $this->getEmailMessages();
+		$emails = $this->mailbox->getMessages();
 
 		$this->assertNotEmpty($emails);
 		$this->assertEquals(1, count($emails));
 		$this->assertContains($this->task->getSubject(), $emails[0]->subject);
-		$this->assertEmailHtmlContains('shares', $emails[0]);
+		$this->assertContains('Assign shares', $emails[0]->subject);
 		$this->assertNotEmpty($emails[0]->recipients);
 		$this->assertEquals($emails[0]->recipients[0], '<jane.doe@foo.com>');
 	}

@@ -98,7 +98,7 @@ class ConsoleSharesClosingProcessTest extends BaseTaskProcessTest
 
     public function testCloseTaskWhereNotAllUsersAssignedShares()
 	{
-        $this->setSharesTimebox(0);
+        $this->setSharesTimebox($this->organization, 0);
 
         $this->mailbox->clean();
 
@@ -148,7 +148,7 @@ class ConsoleSharesClosingProcessTest extends BaseTaskProcessTest
 
 	public function testCannotCloseTaskWhereNotMinimumSharesReached()
 	{
-        $this->setSharesTimebox(0);
+        $this->setSharesTimebox($this->organization, 0);
 
         $this->mailbox->clean();
 
@@ -195,7 +195,7 @@ class ConsoleSharesClosingProcessTest extends BaseTaskProcessTest
 
 	public function testCannotCloseTaskWhenNoTimeboxReached()
 	{
-        $this->setSharesTimebox(10);
+        $this->setSharesTimebox($this->organization, 10);
 
         $this->transactionManager->beginTransaction();
         try {
@@ -227,14 +227,14 @@ class ConsoleSharesClosingProcessTest extends BaseTaskProcessTest
      * @param $this->admin
      * @throws \Exception
      */
-    protected function setSharesTimebox($days)
+    protected function setSharesTimebox($organization, $days)
     {
-        $orgData = $this->organization->getParams();
+        $orgData = $organization->getParams();
         $orgData->params['assignment_of_shares_timebox'] = new \DateInterval("P{$days}D");
 
         $this->transactionManager->beginTransaction();
         try {
-            $this->organization->setParams($orgData->params, $this->admin);
+            $organization->setParams($orgData->params, $this->admin);
             $this->transactionManager->commit();
         } catch (\Exception $e) {
             var_dump($e->getMessage());
