@@ -14,147 +14,135 @@ use TaksManagement\TaskMoved;
 use Rhumsaa\Uuid\Uuid;
 use TaskManagement\Stream;
 
-class KanbanizeTask extends Task {
+class KanbanizeTask extends Task
+{
+    const EMPTY_ASSIGNEE = 'None';
 
-	CONST EMPTY_ASSIGNEE = 'None';
+    private $taskid;
 
-	/**
-	 * @var String
-	 */
-	private $taskid;
-	/**
-	 * @var String
-	 */
-	private $assignee = self::EMPTY_ASSIGNEE;
+    private $assignee = self::EMPTY_ASSIGNEE;
 
-	/**
-	 * @var String
-	 */
-	private $columnname;
+    private $columnname;
 
-	/**
-	 * @var String
-	 */
-	private $lanename;
+    public function getColumnName()
+    {
+        return $this->columnname;
+    }
 
-	public static function create(Stream $stream, $subject, BasicUser $createdBy, array $options = null) {
-		if(!isset($options['taskid'])) {
-			throw InvalidArgumentException('Cannot create a KanbanizeTask without a taskid option');
-		}
-		if(!isset($options['columnname'])) {
-			throw InvalidArgumentException('Cannot create a KanbanizeTask without a columnname option');
-		}
+    public function getTaskId()
+    {
+        return $this->taskid;
+    }
 
-		$decision = false;
+    public function getType()
+    {
+        return 'kanbanizetask';
+    }
 
-		if (is_array($options) &&
-			isset($options['decision']) &&
-			$options['decision'] == 'true') {
-			$decision = true;
-		}
+    public function getAssignee()
+    {
+        return $this->assignee;
+    }
 
-		$rv = new self();
-		$rv->id = Uuid::uuid4();
-		$rv->status = self::STATUS_IDEA;
-		$rv->recordThat(TaskCreated::occur($rv->id->toString(), [
-			'status' => $rv->status,
-			'taskid' => $options['taskid'],
-			'organizationId' => $stream->getOrganizationId(),
-			'streamId' => $stream->getId(),
-			'by' => $createdBy->getId(),
-			'columnname' => $options["columnname"],
-			'lanename' => isset($options["lanename"]) ? $options["lanename"] : null,
-			'subject' => $subject,
-			'description' =>$options["description"],
-			'decision' => $decision
-		]));
-		return $rv;
-	}
+    public function getKanbanizeTaskId()
+    {
+        return $this->taskId;
+    }
 
-	public function getKanbanizeTaskId() {
-		return $this->taskId;
-	}
+    public function getResourceId()
+    {
+        return 'Ora\KanbanizeTask';
+    }
 
-	public function setAssignee($assignee, BasicUser $updatedBy){
-		$assignee = is_null($assignee) ? self::EMPTY_ASSIGNEE : trim($assignee);
-		$this->recordThat(TaskUpdated::occur($this->id->toString(), array(
-			'assignee' => $assignee,
-			'by' => $updatedBy->getId(),
-		)));
-		return $this;
-	}
+    public static function create(Stream $stream, $subject, BasicUser $createdBy, array $options = null)
+    {
+        if (!isset($options['taskid'])) {
+            throw InvalidArgumentException('Cannot create a KanbanizeTask without a taskid option');
+        }
+        if (!isset($options['columnname'])) {
+            throw InvalidArgumentException('Cannot create a KanbanizeTask without a columnname option');
+        }
 
-	public function getAssignee(){
-		return $this->assignee;
-	}
+        $decision = false;
 
-	public function setColumnName($name, BasicUser $updatedBy){
-		if(empty($name)) {
-			throw new InvalidArgumentException("Column name cannot be empty");
-		};
-		$this->recordThat(TaskUpdated::occur($this->id->toString(), array(
-			'columnname' => trim($name),
-			'by' => $updatedBy->getId(),
-		)));
-		return $this;
-	}
+        if (is_array($options) &&
+            isset($options['decision']) &&
+            $options['decision'] == 'true') {
+            $decision = true;
+        }
 
-	public function getColumnName(){
-		return $this->columnname;
-	}
+        $rv = new self();
+        $rv->id = Uuid::uuid4();
+        $rv->status = self::STATUS_IDEA;
+        $rv->recordThat(TaskCreated::occur($rv->id->toString(), [
+            'status' => $rv->status,
+            'taskid' => $options['taskid'],
+            'organizationId' => $stream->getOrganizationId(),
+            'streamId' => $stream->getId(),
+            'by' => $createdBy->getId(),
+            'columnname' => $options['columnname'],
+            'lane' => isset($options['lane']) ? $options['lane'] : null,
+            'subject' => $subject,
+            'description' =>$options['description'],
+            'decision' => $decision
+        ]));
+        return $rv;
+    }
 
-	public function setLaneName($name, BasicUser $updatedBy){
-		if(empty($name)) {
-			throw new InvalidArgumentException("Lane name cannot be empty");
-		};
-		$this->recordThat(TaskUpdated::occur($this->id->toString(), array(
-			'lanename' => trim($name),
-			'by' => $updatedBy->getId(),
-		)));
-		return $this;
-	}
+    public function setAssignee($assignee, BasicUser $updatedBy)
+    {
+        $assignee = is_null($assignee) ? self::EMPTY_ASSIGNEE : trim($assignee);
+        $this->recordThat(TaskUpdated::occur($this->id->toString(), array(
+            'assignee' => $assignee,
+            'by' => $updatedBy->getId(),
+        )));
+        return $this;
+    }
 
-	public function getLaneName(){
-		return $this->lanename;
-	}
+    public function setColumnName($name, BasicUser $updatedBy)
+    {
+        if (empty($name)) {
+            throw new InvalidArgumentException('Column name cannot be empty');
+        }
 
-	/**
-	 * @return string
-	 */
-	public function getType()
-	{
-		return 'kanbanizetask';
-	}
+        $this->recordThat(TaskUpdated::occur($this->id->toString(), array(
+            'columnname' => trim($name),
+            'by' => $updatedBy->getId(),
+        )));
 
-	protected function whenTaskCreated(TaskCreated $event) {
-		parent::whenTaskCreated($event);
+        return $this;
+    }
 
-		$this->taskid = $event->payload()['taskid'];
-		$this->columnname = $event->payload()['columnname'];
+    protected function whenTaskCreated(TaskCreated $event)
+    {
+        parent::whenTaskCreated($event);
 
-		if (isset($event->payload()['lanename'])) {
-			$this->lanename = $event->payload()['lanename'];
-		}
+        $this->taskid = $event->payload()['taskid'];
+        $this->columnname = $event->payload()['columnname'];
 
-		$this->subject = $event->payload()['subject'];
-	}
+        if (isset($event->payload()['lane'])) {
+            $this->lane = $event->payload()['lane'];
+        }
 
-	protected function whenTaskUpdated(TaskUpdated $event) {
-		parent::whenTaskUpdated($event);
+        $this->subject = $event->payload()['subject'];
+    }
 
-		$pl = $event->payload();
-		if(isset($pl['columnname'])) {
-			$this->columnname = $pl['columnname'];
-		}
-		if(isset($pl['lanename'])) {
-			$this->lanename = $pl['lanename'];
-		}
-		if(isset($pl['assignee'])) {
-			$this->assignee = $pl['assignee'];
-		}
-	}
+    protected function whenTaskUpdated(TaskUpdated $event)
+    {
+        parent::whenTaskUpdated($event);
 
-	public function getResourceId(){
-		return 'Ora\KanbanizeTask';
-	}
+        $pl = $event->payload();
+
+        if (isset($pl['columnname'])) {
+            $this->columnname = $pl['columnname'];
+        }
+
+        if (isset($pl['lane'])) {
+            $this->lane = $pl['lane'];
+        }
+
+        if (isset($pl['assignee'])) {
+            $this->assignee = $pl['assignee'];
+        }
+    }
 }

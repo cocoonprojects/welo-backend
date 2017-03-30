@@ -8,27 +8,22 @@ use FlowManagement\FlowCardInterface;
 /**
  * @ORM\Entity
  */
-class ItemMemberRemovedCard extends FlowCard {
+class CreditsAddedCard extends FlowCard {
 
 	public function serialize() {
 
-		$type = FlowCardInterface::ITEM_MEMBER_REMOVED_CARD;
+		$type = FlowCardInterface::CREDITS_ADDED_CARD;
 		$content = $this->getContent();
-		$item = $this->getItem();
 
 		$rv = [];
 		$rv['type'] = $type;
 		$rv['createdAt'] = date_format($this->getCreatedAt(), 'c');
 		$rv['id'] = $this->getId();
-		$rv['title'] = "Member removed from \"{$item->getSubject()}\"";
+		$rv['title'] = "{$content[$type]['amount']} credits added to your account";
 		$rv['content'] = [
-			'description' => "The user {$content[$type]['userName']} is no more a member of this item",
+			'description' => "The user {$content[$type]['userName']} took these credits from '{$content[$type]['orgName']}' account",
 			'actions' => [
-				'primary' => [
-					'text' => '',
-					'orgId' => $content[$type]['orgId'],
-					'itemId' => $item->getId()
-				],
+				'primary' => [],
 				'secondary' => []
 			],
 		];

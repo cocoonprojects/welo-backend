@@ -160,28 +160,6 @@ class NotifyMailListenerTest extends \PHPUnit_Framework_TestCase {
 		$this->service->remindEstimation($this->task);
 	}
 
-	public function testSendTaskClosedInfoMail() {
-		$this->service->getMailService()
-			->expects($this->at(1))
-			->method('setTemplate')
-			->with('mail/task-closed-info.phtml', [
-				'task' => $this->task,
-				'recipient'=> $this->owner,
-				'host' => 'http://example.com',
-                'router' => $this->feRouter
-			]);
-		$this->service->getMailService()
-			->expects($this->at(4))
-			->method('setTemplate')
-			->with('mail/task-closed-info.phtml', [
-				'task' => $this->task,
-				'recipient'=> $this->member,
-				'host' => 'http://example.com',
-                'router' => $this->feRouter
-			]);
-		$this->service->sendTaskClosedInfoMail($this->task);
-	}
-	
 	public function testSendWorkItemIdeaCreatedMail(){
 		$this->orgService->method('findOrganization')->with($this->task->getOrganizationId())->willReturn($this->organization);
 		
@@ -201,6 +179,7 @@ class NotifyMailListenerTest extends \PHPUnit_Framework_TestCase {
 			'host' => 'http://example.com',
             'router' => $this->feRouter
 		]);
+
 		$this->service->getMailService()
 		->expects($this->at(4))
 		->method('setTemplate')

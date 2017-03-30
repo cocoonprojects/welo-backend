@@ -42,5 +42,6 @@ return array(
 			'FlowManagement\CardCommandsListener',
 			'FlowManagement\ItemCommandsListener',
 			'FlowManagement\OrganizationCommandsListener',
+			'FlowManagement\CreditsTransferNotifiedViaFlowCardListener',
 		],
 );

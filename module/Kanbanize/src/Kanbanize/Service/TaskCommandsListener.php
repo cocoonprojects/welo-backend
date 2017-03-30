@@ -58,7 +58,7 @@ class TaskCommandsListener extends ReadModelProjector {
 					$entity->setTaskId($streamEvent->payload()['taskid'])
 						->setSubject($streamEvent->payload()['subject'])
 						->setColumnName($streamEvent->payload()['columnname'])
-						->setLaneName($streamEvent->payload()['lanename'])
+						->setLane($streamEvent->payload()['lane'])
 						->setStatus($streamEvent->payload()['status'])
 						->setCreatedAt($streamEvent->occurredOn())
 						->setCreatedBy($createdBy)
@@ -110,8 +110,8 @@ class TaskCommandsListener extends ReadModelProjector {
 		if (isset ( $streamEvent->payload ()['assignee'] )) {
 			$task->setAssignee ( $streamEvent->payload ()['assignee'] );
 		}
-		if(isset($streamEvent->payload()['lanename'])) {
-			$task->setLaneName($streamEvent->payload()['lanename']);
+		if(isset($streamEvent->payload()['lane'])) {
+			$task->setLane($streamEvent->payload()['lane']);
 		}
 		if(isset($streamEvent->payload()['position'])) {
 			$task->setPosition($streamEvent->payload()['position']);
@@ -127,16 +127,18 @@ class TaskCommandsListener extends ReadModelProjector {
 		}
 		$task->setMostRecentEditAt ( $streamEvent->occurredOn () );
 		$task->setMostRecentEditBy ( $updatedBy );
+
 		return $task;
 	}
 	protected function getPackage() {
 		return 'Kanbanize';
 	}
+
 	public function detach(EventManagerInterface $events) {
 		parent::detach ( $events );
 		foreach ( $this->listeners as $index => $listener ) {
-			if ($events->getSharedManager ()->detach ( Application::class, $listeners [$index] )) {
-				unset ( $this->listeners [$index] );
+			if ($events->getSharedManager()->detach(Application::class, $listener[$index])) {
+				unset($this->listeners[$index]);
 			}
 		}
 	}

@@ -3,14 +3,9 @@ namespace TaskManagement;
 
 use Guzzle\Http\Client;
 use IntegrationTest\Bootstrap;
-use PHPUnit_Framework_TestCase;
-use Prooph\EventStore\EventStore;
 use TaskManagement\Controller\SharesController;
 use Zend\Http\Request;
-use Zend\Http\Response;
-use Zend\Uri\Http;
 use Zend\Mvc\MvcEvent;
-use Zend\Mvc\Router\Http\TreeRouteStack as HttpRouter;
 use Zend\Mvc\Router\RouteMatch;
 use ZFX\Test\Authentication\AdapterMock;
 use ZFX\Test\Authentication\OAuth2AdapterMock;
@@ -29,17 +24,10 @@ class MailNotificationProcessTest extends \PHPUnit_Framework_TestCase
 	protected $member;
 	protected $organization;
 
-	/**
-	 * @var Client
-	 */
 	private $mailcatcher;
-	/**
-	 * @var EventStore
-	 */
+
 	private $transactionManager;
-	/**
-	 * @var \DateInterval
-	 */
+
 	protected $intervalForCloseTasks;
 
 	protected function setUp()
@@ -90,9 +78,14 @@ class MailNotificationProcessTest extends \PHPUnit_Framework_TestCase
 		$this->transactionManager->commit();
 	}
 
-	public function testEstimationAddedNotification() {
-		//Clean Messages
-		$this->cleanEmailMessages();
+	public function tearDown()
+    {
+        $this->cleanEmailMessages();
+    }
+
+    public function testEstimationAddedNotification()
+    {
+        $this->cleanEmailMessages();
 
 		$this->transactionManager->beginTransaction();
 		$this->task->addEstimation(1500, $this->owner);//Owner addEstimation (No-Mail)
@@ -112,7 +105,8 @@ class MailNotificationProcessTest extends \PHPUnit_Framework_TestCase
         $this->assertEmailHtmlContains($expected, $emails[0]);
 	}
 
-	public function testSharesAssignedNotification(){
+	public function testSharesAssignedNotification()
+    {
 		$this->transactionManager->beginTransaction();
 		$this->task->addEstimation(1500, $this->owner);
 		$this->task->addEstimation(3100, $this->member);
@@ -132,11 +126,10 @@ class MailNotificationProcessTest extends \PHPUnit_Framework_TestCase
 		$this->assertEmailHtmlContains('shares', $email);
 		$this->assertNotEmpty($email->recipients);
 		$this->assertEquals($email->recipients[0], '<mark.rogers@ora.local>');
-		$this->cleanEmailMessages();
 	}
 
-	public function testTaskClosedNotification(){
-
+	public function testTaskClosedNotification()
+    {
 		$this->transactionManager->beginTransaction();
 		$this->task->addEstimation(1500, $this->owner);
 		$this->task->addEstimation(3100, $this->member);
@@ -146,22 +139,29 @@ class MailNotificationProcessTest extends \PHPUnit_Framework_TestCase
 		$this->cleanEmailMessages();
 
 		$this->transactionManager->beginTransaction();
-		$this->task->close($this->owner);
-		$this->transactionManager->commit();
+        $this->task->assignShares([ $this->owner->getId() => 0.7, $this->member->getId() => 0.3 ], $this->member);
+        $this->task->assignShares([ $this->owner->getId() => 0.1, $this->member->getId() => 0.9 ], $this->owner);
+        $this->transactionManager->commit();
 
-		$email = $this->getLastEmailMessage();
+        $this->transactionManager->beginTransaction();
+        $this->task->close($this->owner);
+        $this->transactionManager->commit();
+
+		$emails = $this->getEmailMessages();
+		$email = $emails[1];
+
+		$body = $this->getEmailBody($email)->getBody(true);
 
 		$this->assertEquals($this->task->getStatus(), Task::STATUS_CLOSED);
 		$this->assertNotNull($email);
 		$this->assertContains($this->task->getSubject(), $email->subject);
 		$this->assertNotEmpty($email->recipients);
 		$this->assertEquals($email->recipients[0], '<mark.rogers@ora.local>');
-
-		$this->cleanEmailMessages();
-
+        $this->assertContains('<td>Mark Rogers</td>', $body);
 	}
-	public function testTaskAcceptedNotification(){
 
+	public function testTaskAcceptedNotification()
+    {
 		$this->transactionManager->beginTransaction();
 		$this->task->addEstimation(1500, $this->owner);
 		$this->task->addEstimation(3100, $this->member);
@@ -180,10 +180,8 @@ class MailNotificationProcessTest extends \PHPUnit_Framework_TestCase
 		$this->assertContains($this->task->getSubject(), $email->subject);
 		$this->assertNotEmpty($email->recipients);
 		$this->assertEquals($email->recipients[0], '<mark.rogers@ora.local>');
-
-		$this->cleanEmailMessages();
-
 	}
+
 	protected function cleanEmailMessages()
 	{
 		$request = $this->mailcatcher->delete('/messages');

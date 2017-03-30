@@ -29,6 +29,7 @@ class TaskCommandsListener extends ReadModelProjector {
 	 * @var OrganizationService
 	 */
 	private $orgService;
+
 	public function __construct($entityManager, $kanbanizeService, $orgService) {
 		$this->entityManager = $entityManager;
 		$this->kanbanizeService = $kanbanizeService;
@@ -52,7 +53,7 @@ class TaskCommandsListener extends ReadModelProjector {
 			$decision = $event->payload()['decision'];
 
 			$entity = new Task($id, $stream, $decision);
-			$entity->setLane($event->payload()['lanename']);
+			$entity->setLane($event->payload()['lane']);
 
 			$entity->setStatus($event->payload()['status'])
 				->setCreatedAt($event->occurredOn())
@@ -83,9 +84,31 @@ class TaskCommandsListener extends ReadModelProjector {
 		if(isset($event->payload()['attachments'])) {
 			$entity->setAttachments($event->payload()['attachments']);
 		}
-		if(isset($event->payload()['lanename'])) {
-			$entity->setLane($event->payload()['lanename']);
+		if(isset($event->payload()['lane']) && $entity->getLane() !== $event->payload()['lane']) {
+
+            $entity->setLane($event->payload()['lane']);
+
+            if ($entity->getType() == "kanbanizetask") {
+
+                $kanbanizeStream = $entity->getStream();
+                $kanbanizeBoardId = $kanbanizeStream->getBoardId();
+
+                $org = $this->orgService->findOrganization($entity->getOrganizationId());
+                $kanbanizeSettings = $org->getSettings($this::KANBANIZE_SETTINGS);
+
+                if (is_null ( $kanbanizeSettings ) || empty ( $kanbanizeSettings )) {
+                    return;
+                }
+
+                $mapping = $kanbanizeSettings ['boards'] [$kanbanizeBoardId] ['columnMapping'];
+                $status = array_search($entity->getStatus(), $mapping);
+
+                $this->kanbanizeService->initApi ( $kanbanizeSettings ['apiKey'], $kanbanizeSettings ['accountSubdomain'] );
+                $this->kanbanizeService->moveTaskonKanbanize($entity, null, $kanbanizeBoardId);
+            }
+
 		}
+
 		if(isset($event->payload()['position'])) {
 			$entity->setPosition($event->payload()['position']);
 		}
@@ -451,7 +474,7 @@ class TaskCommandsListener extends ReadModelProjector {
 
 	private function updateOnKanbanize($task) {
 		$kanbanizeStream = $task->getStream();
-		$KanbanizeBoardId = $kanbanizeStream->getBoardId();
+		$kanbanizeBoardId = $kanbanizeStream->getBoardId();
 
 		// getting organization
 		$org = $this->orgService->findOrganization($task->getOrganizationId());
@@ -464,11 +487,11 @@ class TaskCommandsListener extends ReadModelProjector {
 		// Init KanbanizeAPI on kanbanizeService
 		$this->kanbanizeService->initApi ( $kanbanizeSettings ['apiKey'], $kanbanizeSettings ['accountSubdomain'] );
 
-		$mapping = $kanbanizeSettings ['boards'] [$KanbanizeBoardId] ['columnMapping'];
+		$mapping = $kanbanizeSettings ['boards'] [$kanbanizeBoardId] ['columnMapping'];
 
 		$key = array_search($task->getStatus(), $mapping);
 
 		$this->kanbanizeService
-			 ->moveTaskonKanbanize($task, $key, $KanbanizeBoardId);
+			 ->moveTaskonKanbanize($task, $key, $kanbanizeBoardId);
 	}
 }

@@ -1,7 +1,7 @@
 <?php
 namespace Kanbanize\Entity;
 
-use Doctrine\ORM\Mapping AS ORM;
+use Doctrine\ORM\Mapping as ORM;
 use TaskManagement\Entity\Task;
 
 /**
@@ -10,112 +10,81 @@ use TaskManagement\Entity\Task;
  */
 class KanbanizeTask extends Task
 {
-	/**
-	 * @ORM\Column(type="string", nullable=true)
-	 * @var string
-	 */
-	private $taskId;
+    /**
+     * @ORM\Column(type="string", nullable=true)
+     * @var string
+     */
+    private $taskId;
 
-	/**
-	 *  @ORM\Column(type="string", nullable=true)
-	 * @var string
-	 */
-	private $columnName;
+    /**
+     * @ORM\Column(type="string", nullable=true)
+     * @var string
+     */
+    private $columnName;
 
-	/**
-	 *  @ORM\Column(type="string", nullable=true)
-	 * @var string
-	 */
-	private $laneName;
+    /**
+     * @ORM\Column(type="string", nullable=true)
+     * @var string
+     */
+    private $assignee;
 
-	/**
-	 *  @ORM\Column(type="string", nullable=true)
-	 * @var string
-	 */
-	private $assignee;
-	/**
-	 * @param string $taskId
-	 */
-	public function setTaskId($taskId){
-		$this->taskId = $taskId;
-		return $this;
-	}
+    public function setTaskId($taskId)
+    {
+        $this->taskId = $taskId;
 
-	/**
-	 * @return string
-	 */
-	public function getTaskId() {
-		return $this->taskId;
-	}
+        return $this;
+    }
 
-	/**
-	 * @param string $columnName
-	 */
-	public function setColumnName($columnName){
-		$this->columnName = $columnName;
-		return $this;
-	}
+    public function getTaskId()
+    {
+        return $this->taskId;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getColumnName() {
-		return $this->columnName;
-	}
+    public function setColumnName($columnName)
+    {
+        $this->columnName = $columnName;
+        return $this;
+    }
 
-	/**
-	 * @param string $laneName
-	 */
-	public function setLaneName($laneName){
-		$this->laneName = $laneName;
-		return $this;
-	}
+    public function getColumnName()
+    {
+        return $this->columnName;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getLaneName() {
-		return $this->laneName;
-	}
+    public function setAssignee($assignee)
+    {
+        $this->assignee = $assignee;
+        return $this;
+    }
 
-	/**
-	 * @param string $assignee
-	 */
-	public function setAssignee($assignee){
-		$this->assignee = $assignee;
-		return $this;
-	}
+    public function getAssignee()
+    {
+        return $this->assignee;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getAssignee() {
-		return $this->assignee;
-	}
+    public function getAssigneeName()
+    {
+        $owner = $this->getOwner();
 
-	public function getAssigneeName() {
-		$owner = $this->getOwner();
+        if (!$owner) {
+            return;
+        }
 
-		if (!$owner) {
-			return;
-		}
+        return $owner->getUser()->getDislayedName();
+    }
 
-		return $owner->getUser()->getDislayedName();
-	}
+    public function isUpdatedBefore(\DateTime $when)
+    {
+        return $this->getMostRecentEditAt()->format('U') <= $when->format('U');
+    }
 
-	public function isUpdatedBefore(\DateTime $when)
-	{
-		return $this->getMostRecentEditAt()->format('U') <= $when->format('U');
-	}
+    public function getType()
+    {
+        return 'kanbanizetask';
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getType(){
-		return 'kanbanizetask';
-	}
-
-	public function getResourceId(){
-		return 'Ora\KanbanizeTask';
-	}
+    public function getResourceId()
+    {
+        return 'Ora\KanbanizeTask';
+    }
 }

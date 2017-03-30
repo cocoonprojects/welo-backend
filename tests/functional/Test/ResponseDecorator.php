@@ -11,7 +11,7 @@ class ResponseDecorator
         $this->response = $response;
     }
 
-    public function asJson()
+    public function decodeJson()
     {
         $res = json_decode($this->response->getContent(), true);
 

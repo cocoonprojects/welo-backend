@@ -3,10 +3,8 @@
 namespace TaskManagement;
 
 use TaskManagement\Controller\Console\RemindersController;
-use PHPUnit_Framework_TestCase;
 use Guzzle\Http\Client;
 use IntegrationTest\Bootstrap;
-use Prooph\EventStore\EventStore;
 use Application\Entity\User;
 use People\Entity\Organization;
 use People\Service\OrganizationService;
@@ -119,7 +117,7 @@ class ConsoleRemindersProcessTest extends \PHPUnit_Framework_TestCase
 		$emails = $this->getEmailMessages();
 
 		$this->assertNotEmpty($emails);
-		$this->assertEquals(1, count($emails));
+		$this->assertCount(1, $emails);
 		$this->assertContains($this->task->getSubject(), $emails[0]->subject);
 		$this->assertEmailHtmlContains('approval', $emails[0]);
 		$this->assertNotEmpty($emails[0]->recipients);

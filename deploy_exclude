@@ -24,3 +24,5 @@ deploy_exclude
 idxfile.php
 travis.php.ini
 data/seed.sql
+*Test.php
+config/application.test.config.php

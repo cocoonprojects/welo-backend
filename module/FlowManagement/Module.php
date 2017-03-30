@@ -8,6 +8,7 @@ use FlowManagement\Service\EventSourcingFlowService;
 use FlowManagement\Service\CardCommandsListener;
 use FlowManagement\Service\ItemCommandsListener;
 use FlowManagement\Service\OrganizationCommandsListener;
+use FlowManagement\Service\CreditsTransferNotifiedViaFlowCardListener;
 
 
 class Module implements AutoloaderProviderInterface, ConfigProviderInterface{
@@ -39,13 +40,30 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface{
 							$entityManager = $locator->get('doctrine.entitymanager.orm_default');
 							return new CardCommandsListener($entityManager);
 						},
+						'FlowManagement\CreditsTransferNotifiedViaFlowCardListener' => function ($locator) {
+
+							return new CreditsTransferNotifiedViaFlowCardListener(
+                                $locator->get('Application\UserService'),
+                                $locator->get('Accounting\CreditsAccountsService'),
+                                $locator->get('doctrine.entitymanager.orm_default')
+                            );
+						},
 						'FlowManagement\ItemCommandsListener' => function ($locator) {
 							$flowService = $locator->get('FlowManagement\FlowService');
 							$organizationService = $locator->get('People\OrganizationService');
 							$userService = $locator->get('Application\UserService');
 							$transactionManager = $locator->get('prooph.event_store');
 							$taskService = $locator->get('TaskManagement\TaskService');
-							return new ItemCommandsListener($flowService, $organizationService, $userService, $transactionManager, $taskService);
+                            $entityManager = $locator->get('doctrine.entitymanager.orm_default');
+
+                            return new ItemCommandsListener(
+							    $flowService,
+                                $organizationService,
+                                $userService,
+                                $transactionManager,
+                                $taskService,
+                                $entityManager
+                            );
 						},
 						'FlowManagement\OrganizationCommandsListener' => function ($locator) {
 							$flowService = $locator->get('FlowManagement\FlowService');

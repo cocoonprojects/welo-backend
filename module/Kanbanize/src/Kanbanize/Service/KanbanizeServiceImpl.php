@@ -78,15 +78,15 @@ class KanbanizeServiceImpl implements KanbanizeService
 	{
 		$changeData = [];
 
-		if ($task->getAssigneeName() != $kanbanizeTask['assignee']) {
+		if (isset($kanbanizeTask['assignee']) && $task->getAssigneeName() != $kanbanizeTask['assignee']) {
 			$changeData['assignee'] = $task->getAssigneeName();
 		}
 
-		if ($task->getSubject() != $kanbanizeTask['title']) {
+		if (isset($kanbanizeTask['title']) && $task->getSubject() != $kanbanizeTask['title']) {
 			$changeData['title'] = $task->getSubject();
 		}
 
-		if ($task->getDescription() != $kanbanizeTask['description']) {
+		if (isset($kanbanizeTask['description']) && $task->getDescription() != $kanbanizeTask['description']) {
 			$changeData['description'] = $task->getDescription();
 		}
 
@@ -105,8 +105,8 @@ class KanbanizeServiceImpl implements KanbanizeService
 		$taskId = $task->getKanbanizeTaskId();
 		$options = [];
 
-		if ($task->getLaneName()) {
-			$options['lane'] = $task->getLaneName();
+		if ($task->getLane()) {
+			$options['lane'] = $task->getLane();
 		}
 
 		$response = $this->kanbanize
@@ -124,14 +124,12 @@ class KanbanizeServiceImpl implements KanbanizeService
 		$taskId = $kanbanizeTask->getTaskId();
 		$options = [];
 
-		if ($kanbanizeTask->getLaneName()) {
-			$options['lane'] = $kanbanizeTask->getLaneName();
+		if ($kanbanizeTask->getLane()) {
+			$options['lane'] = $kanbanizeTask->getLane();
 		}
 
 		$response = $this->kanbanize
 						 ->moveTask($boardId, $taskId, $status, $options);
-
-		// error_log(print_r($response, true));
 
 		if($response != 1) {
 			throw new OperationFailedException('Unable to move the task ' + $taskId + ' in board ' + $boardId + 'to the column ' + $status + ' because of ' + $response);
@@ -191,7 +189,7 @@ class KanbanizeServiceImpl implements KanbanizeService
 			return;
 		}
 		if($info['columnname'] == KanbanizeTask::COLUMN_COMPLETED){
-			$this::moveTask($task, KanbanizeTask::COLUMN_ACCEPTED);
+			$this->moveTask($task, KanbanizeTask::COLUMN_ACCEPTED);
 		}else{
 			throw new IllegalRemoteStateException("Cannot accpet a task which is " + $info["columnname"]);
 		}
@@ -206,7 +204,7 @@ class KanbanizeServiceImpl implements KanbanizeService
 		}
 
 		if($info['columnname'] == KanbanizeTask::COLUMN_COMPLETED || $info['columnname'] == KanbanizeTask::COLUMN_OPEN){
-			$this::moveTask($task, KanbanizeTask::COLUMN_ONGOING);
+			$this->moveTask($task, KanbanizeTask::COLUMN_ONGOING);
 		}else{
 			throw new IllegalRemoteStateException("Cannot move task in ongoing from "+$info["columnname"]);
 		}
@@ -289,17 +287,21 @@ class KanbanizeServiceImpl implements KanbanizeService
 
 	public function findStreamByOrganization($organization){
 
-		switch (get_class($organization)){
-			case Organization::class :
-			case WriteModelOrganization::class:
-				$organizationId = $organization->getId();
-				break;
-			case Uuid::class:
-				$organizationId = $organization->toString();
-				break;
-			default :
-				$organizationId = $organization;
-		}
+	    if (is_string($organization)) {
+            $organizationId = $organization;
+        } else {
+            switch (get_class($organization)) {
+                case Organization::class :
+                case WriteModelOrganization::class:
+                    $organizationId = $organization->getId();
+                    break;
+                case Uuid::class:
+                    $organizationId = $organization->toString();
+                    break;
+                default :
+                    $organizationId = $organization;
+            }
+        }
 
 		$builder = $this->entityManager->createQueryBuilder();
 

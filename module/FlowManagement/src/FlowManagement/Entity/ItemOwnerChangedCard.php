@@ -7,17 +7,18 @@ use FlowManagement\FlowCardInterface;
 
 /**
  * @ORM\Entity
- *
  */
 class ItemOwnerChangedCard extends FlowCard {
 	
 	public function serialize(){
-		$rv = [];
-		$type = FlowCardInterface::ITEM_OWNER_CHANGED_CARD;
-		$content = $this->getContent();
-		$item = $this->getItem();
-		$owner = $item->getOwner()->getMember();
-		$rv["type"] = $type;
+
+        $type = FlowCardInterface::ITEM_OWNER_CHANGED_CARD;
+        $content = $this->getContent();
+        $item = $this->getItem();
+        $owner = $item->getOwner()->getMember();
+
+        $rv = [];
+        $rv["type"] = $type;
 		$rv["createdAt"] = date_format($this->getCreatedAt(), 'c');
 		$rv["id"] = $this->getId();
 		$rv["title"] = "Owner changed for '".$item->getSubject()."'";
