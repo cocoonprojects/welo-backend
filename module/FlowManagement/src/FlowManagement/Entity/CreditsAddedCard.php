@@ -2,33 +2,55 @@
 
 namespace FlowManagement\Entity;
 
+use Application\Entity\User;
 use Doctrine\ORM\Mapping AS ORM;
 use FlowManagement\FlowCardInterface;
 use Application\Service\FrontendRouter;
+use People\Entity\Organization;
+use Rhumsaa\Uuid\Uuid;
 
 /**
  * @ORM\Entity
  */
 class CreditsAddedCard extends FlowCard {
 
-	public function serialize(FrontendRouter $feRouter) {
-
+	public function serialize(FrontendRouter $feRouter)
+    {
 		$type = FlowCardInterface::CREDITS_ADDED_CARD;
-		$content = $this->getContent();
+		$content = $this->getContent()[$type];
 
 		$rv = [];
 		$rv['type'] = $type;
 		$rv['createdAt'] = date_format($this->getCreatedAt(), 'c');
 		$rv['id'] = $this->getId();
-		$rv['title'] = "{$content[$type]['amount']} credits added to your account";
+		$rv['title'] = "{$content['amount']} credits added to your account";
 		$rv['content'] = [
-			'description' => "The user {$content[$type]['userName']} took these credits from '{$content[$type]['orgName']}' account",
+			'description' => "The user {$content['userName']} took these credits from '{$content['orgName']}' account",
 			'actions' => [
 				'primary' => [],
 				'secondary' => []
 			],
 		];
 
+		$rv['_links']['details']['href'] = $feRouter->member($content['orgId'], $content['userId']);
+
 		return $rv;
 	}
+
+	public static function create(Uuid $uuid, $amount, User $payee, Organization $org, User $by)
+    {
+        $data = [
+            'userName'  => $by->getDislayedName(),
+            'userId'    => $payee->getId(),
+            'orgName'   => $org->getName(),
+            'orgId'     => $org->getId(),
+            'amount'    => abs($amount),
+        ];
+
+        $flowCard = new static($uuid, $payee);
+        $flowCard->setContent(FlowCardInterface::CREDITS_ADDED_CARD, $data);
+        $flowCard->setCreatedBy($by);
+
+        return $flowCard;
+    }
 }
