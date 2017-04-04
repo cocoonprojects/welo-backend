@@ -1,6 +1,7 @@
 <?php
 namespace FlowManagement\Controller;
 
+use Application\Service\FrontendRouter;
 use ZFX\Rest\Controller\HATEOASRestfulController;
 use FlowManagement\Service\FlowService;
 use FlowManagement\FlowCardInterface;
@@ -12,29 +13,29 @@ use Zend\View\Model\JsonModel;
 class CardsController extends HATEOASRestfulController {
 
 	const DEFAULT_FLOW_ITEMS_LIMIT = 10;
+
 	protected static $collectionOptions = ['GET'];
 	protected static $resourceOptions = [];
 
-	/**
-	 * 
-	 * @var FlowService
-	 */
 	private $flowService;
-	/**
-	 * @var integer
-	 */
+
+	private $feRouter;
+
 	protected $listLimit = self::DEFAULT_FLOW_ITEMS_LIMIT;
 
-	public function __construct(FlowService $flowService){
+	public function __construct(FlowService $flowService, FrontendRouter $feRouter){
 		$this->flowService = $flowService;
+		$this->feRouter = $feRouter;
 	}
 
-	public function getList(){
-
-		if(is_null($this->identity())){
+	public function getList()
+    {
+		if (is_null($this->identity())) {
 			$this->response->setStatusCode(401);
+
 			return $this->response;
 		}
+
 		$filters = [];
 		$integerValidator = new ValidatorChain();
 		$integerValidator
@@ -48,16 +49,20 @@ class CardsController extends HATEOASRestfulController {
 		$flowCards = $this->flowService->findFlowCards($this->identity(), $offset, $limit, $filters);
 		$totalCards = $this->flowService->countCards($this->identity(), $filters);
 		$count = count($flowCards);
+        $feRouter = $this->feRouter;
+
+		$serializer = function($flowCard) use ($feRouter) {
+            return $flowCard->serialize($feRouter);
+        };
+
 		$hal['count'] = $count;
 		$hal['total'] = $totalCards;
+
 		if($hal['count'] < $hal['total']){
 			$hal['_links']['next']['href'] = $this->url()->fromRoute('flow');
 		}
 		$hal['_links']['self']['href'] = $this->url()->fromRoute('flow');
-		$hal['_embedded']['ora:flowcard'] = $count ? array_column(array_map(
-				function($flowCard) {
-					return $flowCard->serialize();
-				}, $flowCards), null, 'id') : new \stdClass();
+		$hal['_embedded']['ora:flowcard'] = $count ? array_column(array_map($serializer, $flowCards), null, 'id') : new \stdClass();
 
 		return new JsonModel($hal);
 	}

@@ -2,6 +2,7 @@
 
 namespace FlowManagement\Controller;
 
+use Application\Service\FrontendRouter;
 use FlowManagement\Service\FlowService;
 use ZFX\Test\Controller\ControllerTest;
 use Application\Entity\User;
@@ -20,7 +21,9 @@ class CardControllerTest extends ControllerTest
     protected function setupController()
     {
         $flowServiceStub = $this->getMockBuilder(FlowService::class)->getMock();
-        return new CardsController($flowServiceStub);
+        $feRouter = $this->getMockBuilder(FrontendRouter::class)->getMock();
+
+        return new CardsController($flowServiceStub, $feRouter);
     }
     
     protected function setupRouteMatch()

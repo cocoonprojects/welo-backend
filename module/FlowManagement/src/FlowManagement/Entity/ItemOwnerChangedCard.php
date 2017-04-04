@@ -4,13 +4,14 @@ namespace FlowManagement\Entity;
 
 use Doctrine\ORM\Mapping AS ORM;
 use FlowManagement\FlowCardInterface;
+use Application\Service\FrontendRouter;
 
 /**
  * @ORM\Entity
  */
 class ItemOwnerChangedCard extends FlowCard {
 	
-	public function serialize(){
+	public function serialize(FrontendRouter $feRouter){
 
         $type = FlowCardInterface::ITEM_OWNER_CHANGED_CARD;
         $content = $this->getContent();
