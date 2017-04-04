@@ -7,6 +7,7 @@ use TaskManagement\Controller\Console\RemindersController;
 use Guzzle\Http\Client;
 use IntegrationTest\Bootstrap;
 use Application\Entity\User;
+use Application\Service\FrontendRouter;
 use People\Entity\Organization;
 use People\Service\OrganizationService;
 use TaskManagement\Entity\Task as EntityTask;
@@ -57,11 +58,13 @@ class ConsoleRemindersProcessTest extends \PHPUnit_Framework_TestCase
 
         $this->taskService = $this->getMockBuilder(TaskService::class)->getMock();
         $this->orgService = $this->getMockBuilder(OrganizationService::class)->getMock();
+        $this->feRouter = $this->getMockBuilder(FrontendRouter::class)->getMock();
 
         $this->controller = new RemindersController(
             $this->taskService,
             $this->mailService,
-            $this->orgService
+            $this->orgService,
+            $this->feRouter
         );
 
         $this->request = new ConsoleRequest();

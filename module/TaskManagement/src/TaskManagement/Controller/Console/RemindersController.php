@@ -15,17 +15,18 @@ class RemindersController extends AbstractConsoleController {
     protected $organizationService;
     protected $host;
     protected $feRouter;
+    protected $mailService;
 
     public function __construct(
         TaskService $taskService,
         MailService $mailService,
-        OrganizationService $organizationService)
+        OrganizationService $organizationService,
+        FrontendRouter $feRouter)
     {
         $this->taskService = $taskService;
         $this->organizationService = $organizationService;
         $this->mailService = $mailService;
-
-        $this->feRouter = new FrontendRouter();
+        $this->feRouter = $feRouter;
     }
 
     public function setHost($host) {

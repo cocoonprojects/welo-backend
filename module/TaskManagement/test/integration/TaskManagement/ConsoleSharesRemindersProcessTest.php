@@ -2,18 +2,15 @@
 
 namespace TaskManagement;
 
+use Application\Service\FrontendRouter;
 use TaskManagement\Controller\Console\SharesRemindersController;
-use PHPUnit_Framework_TestCase;
-use Guzzle\Http\Client;
 use IntegrationTest\Bootstrap;
-use Prooph\EventStore\EventStore;
 use Application\Entity\User;
 use People\Entity\Organization;
 use People\Service\OrganizationService;
 use TaskManagement\Entity\Task as EntityTask;
 use TaskManagement\Entity\Stream as EntityStream;
 use TaskManagement\Entity\TaskMember;
-use TaskManagement\Entity\Vote;
 use TaskManagement\Service\TaskService;
 use Zend\Console\Request as ConsoleRequest;
 use TaskManagement\Service\MailService;
@@ -26,10 +23,11 @@ class ConsoleSharesRemindersProcessTest extends \PHPUnit_Framework_TestCase
 	private $owner;
 	private $member;
 	private $task;
-	private $transactionManager;
 	private $taskService;
 	private $orgService;
 	private $mailbox;
+	private $feRouter;
+	private $mailService;
 
 	protected function setUp()
 	{
@@ -71,11 +69,13 @@ class ConsoleSharesRemindersProcessTest extends \PHPUnit_Framework_TestCase
         $this->taskService = $this->getMockBuilder(TaskService::class)->getMock();
         $this->orgService = $this->getMockBuilder(OrganizationService::class)->getMock();
         $this->mailService = $serviceManager->get('AcMailer\Service\MailService');
+        $this->feRouter = $this->getMockBuilder(FrontendRouter::class)->getMock();
 
 		$this->controller = new SharesRemindersController(
 			$this->taskService,
 			$this->mailService,
-			$this->orgService
+			$this->orgService,
+            $this->feRouter
 		);
 
         $this->request = new ConsoleRequest();

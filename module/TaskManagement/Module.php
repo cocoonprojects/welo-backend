@@ -111,7 +111,9 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
 					$controller = new RemindersController(
 						$notificationService,
 						$taskService,
-						$orgService);
+						$orgService,
+                        $locator->get('Application\FrontendRouter')
+                    );
 
 					return $controller;
 				},
@@ -195,7 +197,8 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
                     $controller = new SharesRemindersController(
                         $taskService,
                         $mailService,
-                        $orgService
+                        $orgService,
+                        $locator->get('Application\FrontendRouter')
                     );
 
                     return $controller;
@@ -238,11 +241,21 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
 					$userService = $locator->get('Application\UserService');
 					$taskService = $locator->get('TaskManagement\TaskService');
 					$orgService = $locator->get('People\OrganizationService');
-					$rv = new NotifyMailListener($mailService, $userService, $taskService, $orgService);
+
+					$rv = new NotifyMailListener(
+					    $mailService,
+                        $userService,
+                        $taskService,
+                        $orgService,
+                        $locator->get('Application\FrontendRouter')
+                    );
+
 					$config = $locator->get('Config');
+
 					if(isset($config['mail_domain'])) {
 						$rv->setHost($config['mail_domain']);
 					}
+
 					return $rv;
 				},
 				'TaskManagement\TaskService' => function ($locator) {

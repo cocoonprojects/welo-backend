@@ -8,6 +8,7 @@ use Application\Controller\MembershipsController;
 use Application\Controller\UsersSecondaryEmailsController;
 use Application\Service\DomainEventDispatcher;
 use Application\Service\EventSourcingUserService;
+use Application\Service\FrontendRouter;
 use Zend\Authentication\AuthenticationService;
 use Zend\Authentication\Storage\NonPersistent;
 use Zend\Http\Request;
@@ -19,7 +20,6 @@ use ZFX\Authentication\GoogleJWTAdapter;
 use ZFX\Authentication\JWTAdapter;
 use ZFX\EventStore\Controller\Plugin\EventStoreTransactionPlugin;
 use Zend\Console\Request as ConsoleRequest;
-use FlowManagement\Service\CardCommandsListener;
 
 class Module
 {
@@ -62,6 +62,7 @@ class Module
             }
         }, 100);
     }
+
     public function getControllerConfig()
     {
         return [
@@ -106,6 +107,7 @@ class Module
                 )
         ];
     }
+
     public function getControllerPluginConfig()
     {
         return array(
@@ -123,6 +125,7 @@ class Module
                 )
         );
     }
+
     public function getServiceConfig()
     {
         return array(
@@ -130,6 +133,12 @@ class Module
                         'Application\DomainEventDispatcher' => DomainEventDispatcher::class
                 ),
                 'factories' => array(
+                        'Application\FrontendRouter' => function($serviceLocator) {
+
+                            $config = $serviceLocator->get('Config');
+
+                            return new FrontendRouter($config['mail_domain']);
+                        },
                         'Zend\Authentication\AuthenticationService' => function () {
                             $rv = new AuthenticationService();
                             $rv->setStorage(new NonPersistent());
@@ -187,10 +196,12 @@ class Module
                 )
         );
     }
+
     public function getConfig()
     {
         return include __DIR__ . '/config/module.config.php';
     }
+
     public function getAutoloaderConfig()
     {
         return array(
@@ -201,6 +212,7 @@ class Module
                 )
         );
     }
+
     public function onRenderError($e)
     {
         if (! $e->isError()) {
