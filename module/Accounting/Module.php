@@ -135,7 +135,8 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
                         $locator->get('AcMailer\Service\MailService'),
                         $locator->get('Application\UserService'),
                         $locator->get('People\OrganizationService'),
-                        $locator->get('Accounting\CreditsAccountsService')
+                        $locator->get('Accounting\CreditsAccountsService'),
+                        $locator->get('Application\FrontendRouter')
                     );
 
                     $config = $locator->get('Config');

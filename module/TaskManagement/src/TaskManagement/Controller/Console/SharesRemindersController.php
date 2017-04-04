@@ -8,24 +8,24 @@ use TaskManagement\Service\TaskService;
 use People\Service\OrganizationService;
 use AcMailer\Service\MailService;
 
-
 class SharesRemindersController extends AbstractConsoleController {
 
     protected $taskService;
     protected $organizationService;
     protected $host;
+    protected $mailService;
     protected $feRouter;
 
     public function __construct(
         TaskService $taskService,
         MailService $mailService,
-        OrganizationService $organizationService)
+        OrganizationService $organizationService,
+        FrontendRouter $frontendRouter)
     {
         $this->taskService = $taskService;
         $this->organizationService = $organizationService;
         $this->mailService = $mailService;
-
-        $this->feRouter = new FrontendRouter();
+        $this->feRouter = $frontendRouter;
     }
 
     public function setHost($host) {

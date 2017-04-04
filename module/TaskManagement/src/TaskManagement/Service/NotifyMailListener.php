@@ -55,15 +55,21 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
 	 * @var string
 	 */
 	protected $host;
-	
-	public function __construct(MailServiceInterface $mailService, UserService $userService, TaskService $taskService, OrganizationService $orgService) {
-		$this->mailService = $mailService;
+
+	protected $feRouter;
+
+	public function __construct(
+	    MailServiceInterface $mailService,
+        UserService $userService,
+        TaskService $taskService,
+        OrganizationService $orgService,
+        FrontendRouter $feRouter) {
+
+	    $this->mailService = $mailService;
 		$this->userService = $userService;
 		$this->taskService = $taskService;
 		$this->orgService = $orgService;
-
-        $this->feRouter = new FrontendRouter();
-	
+        $this->feRouter = $feRouter;
 	}
 	
 	public function attach(EventManagerInterface $events) {
