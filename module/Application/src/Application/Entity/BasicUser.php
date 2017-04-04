@@ -46,6 +46,7 @@ class BasicUser
 	public function setFirstname($firstname)
 	{
 		$this->firstname = $firstname;
+
 		return $this;
 	}
 
@@ -57,6 +58,7 @@ class BasicUser
 	public function setLastname($lastname)
 	{
 		$this->lastname = $lastname;
+
 		return $this;
 	}
 

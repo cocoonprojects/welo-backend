@@ -16,8 +16,21 @@ return array(
 						'controller' => 'Memberships'
 					),
 				),
-			),	
-		),
+			),
+            'users' => [
+                'type' => 'Segment',
+                'options' => [
+                    'route'	   => '/users[/:userId]',
+                    'constraints' => [
+                        'userId' => '([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})',
+                    ],
+                    'defaults' => [
+                        '__NAMESPACE__' => 'Application\Controller',
+                        'controller' => 'Users'
+                    ],
+                ],
+            ],
+        ),
 	),
 	'service_manager' => array(
 		'abstract_factories' => array(
