@@ -1,4 +1,4 @@
-<?php $link = $this->router->url($this->host, $this->task); ?>
+<?php $link = $this->router->item($this->task); ?>
 
 <p>Hi <?= $this->recipient->getFirstname() ?>,<br>
     the item you contributed to <a href="<?= $link ?>">"<?= $this->task->getSubject()?>"</a> has been accepted!</p>
