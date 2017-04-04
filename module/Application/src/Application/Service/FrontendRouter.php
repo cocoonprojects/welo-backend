@@ -17,22 +17,14 @@ class FrontendRouter
         $this->host = $host;
     }
 
-    /**
-     * @deprecated use FrontendRouter::item instead
-     */
-    public function url($host, Task $task)
+    public function item(Task $task)
     {
-        return $this->item($host, $task);
+        return $this->host . 'index.html#/' . $task->getOrganizationId() . '/items/' . $task->getId();
     }
 
-    public function item($host, Task $task)
+    public function member(Organization $org, User $member)
     {
-        return $host . 'index.html#/' . $task->getOrganizationId() . '/items/' . $task->getId();
-    }
-
-    public function member($host, Organization $org, User $member)
-    {
-        return $host . 'index.html#/' . $org->getId() . '/people/' . $member->getId();
+        return $this->host . 'index.html#/' . $org->getId() . '/people/' . $member->getId();
     }
 
 }

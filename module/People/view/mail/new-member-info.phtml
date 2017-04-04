@@ -1,4 +1,4 @@
-<?php $link = $this->router->member($this->host, $this->organization, $this->member); ?>
+<?php $link = $this->router->member($this->organization, $this->member); ?>
 
 <p>Hi <?= $this->recipient->getFirstname() ?>,<br>
     <b><?= $this->organization->getName() ?></b> has a new member! <strong><a href="<?= $link ?>"><?= $this->member->getFirstname() ?> <?= $this->member->getLastname() ?></a></strong> just joined the organization.</p>

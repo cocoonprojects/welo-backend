@@ -1,4 +1,4 @@
-<?php $link = $this->router->url($this->host, $this->task); ?>
+<?php $link = $this->router->item($this->task); ?>
 
 <p>Hi <?= $this->recipient->getFirstname() ?>,<br>
 time to assign shares "<a href="<?= $link ?>"><?= $this->task->getSubject()?>"</a> item <b>is running out</b>!</p>

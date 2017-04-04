@@ -1,4 +1,4 @@
-<?php $link = $this->router->url($this->host, $this->task); ?>
+<?php $link = $this->router->item($this->task); ?>
 
 <p>Hi <?= $this->recipient->getFirstname() ?>,<br>
 the item <a href="<?= $link ?>"><?= $this->task->getSubject()?>"</a> in which you are the owner has been closed, <?= $this->task->countMembersShare() ?> members on <?= $this->task->countMembers() ?> assigned shares for it!</p>
