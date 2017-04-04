@@ -49,6 +49,7 @@ abstract class FlowCard extends DomainEntity implements FlowCardInterface{
 	 * @var Task
 	 */
 	protected $item;
+
 	/**
 	 * @ORM\Column(type="boolean")
 	 * @var string
