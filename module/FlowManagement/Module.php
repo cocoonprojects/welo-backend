@@ -13,19 +13,23 @@ use FlowManagement\Service\CreditsTransferNotifiedViaFlowCardListener;
 
 class Module implements AutoloaderProviderInterface, ConfigProviderInterface{
 
-	public function getControllerConfig(){
-		return array(
-			'invokables' => array(
-			),
-			'factories' => array(
+	public function getControllerConfig() {
+		return [
+			'invokables' => [],
+			'factories' => [
 				'FlowManagement\Controller\Cards' => function ($sm) {
-					$locator = $sm->getServiceLocator();
-					$flowService = $locator->get('FlowManagement\FlowService');
-					$controller = new CardsController($flowService);
+
+		            $locator = $sm->getServiceLocator();
+
+					$controller = new CardsController(
+                        $locator->get('FlowManagement\FlowService'),
+                        $locator->get('Application\FrontendRouter')
+                    );
+
 					return $controller;
 				},
-			)
-		);
+			]
+		];
 	}
 
 	public function getServiceConfig(){

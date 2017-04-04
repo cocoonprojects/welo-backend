@@ -4,13 +4,14 @@ namespace FlowManagement\Entity;
 
 use Doctrine\ORM\Mapping AS ORM;
 use FlowManagement\FlowCardInterface;
+use Application\Service\FrontendRouter;
 
 /**
  * @ORM\Entity
  */
 class VoteCompletedItemCard extends FlowCard {
 	
-	public function serialize(){
+	public function serialize(FrontendRouter $feRouter){
 		$rv = [];
 		$type = FlowCardInterface::VOTE_COMPLETED_ITEM_CARD;
 		$content = $this->getContent();
