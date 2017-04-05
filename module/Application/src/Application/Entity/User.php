@@ -89,7 +89,11 @@ class User extends BasicUser implements RoleInterface , ResourceInterface
 	 * @var string
 	 */
 	private $role = self::ROLE_USER;
-
+	/**
+	* @ORM\Column(type="string", nullable=TRUE)
+	* @var string
+	*/
+	private $kanbanizeUsername;
 	/**
 	 * @ORM\OneToMany(targetEntity="FlowManagement\Entity\FlowCard", mappedBy="recipient", cascade={"persist"})
 	 * @var FlowCard[]
@@ -152,7 +156,6 @@ class User extends BasicUser implements RoleInterface , ResourceInterface
 		$rv->createdBy = $createdBy;
 		$rv->mostRecentEditAt = $rv->createdAt;
 		$rv->mostRecentEditBy = $rv->createdBy;
-
 		return $rv;
 	}
 
