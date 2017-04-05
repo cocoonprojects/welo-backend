@@ -4,7 +4,6 @@ namespace FlowManagement\Controller;
 use Application\Service\FrontendRouter;
 use ZFX\Rest\Controller\HATEOASRestfulController;
 use FlowManagement\Service\FlowService;
-use FlowManagement\FlowCardInterface;
 use Zend\Validator\ValidatorChain;
 use Zend\I18n\Validator\IsInt;
 use Zend\Validator\GreaterThan;
@@ -19,13 +18,10 @@ class CardsController extends HATEOASRestfulController {
 
 	private $flowService;
 
-	private $feRouter;
-
 	protected $listLimit = self::DEFAULT_FLOW_ITEMS_LIMIT;
 
-	public function __construct(FlowService $flowService, FrontendRouter $feRouter){
+	public function __construct(FlowService $flowService){
 		$this->flowService = $flowService;
-		$this->feRouter = $feRouter;
 	}
 
 	public function getList()
@@ -49,10 +45,9 @@ class CardsController extends HATEOASRestfulController {
 		$flowCards = $this->flowService->findFlowCards($this->identity(), $offset, $limit, $filters);
 		$totalCards = $this->flowService->countCards($this->identity(), $filters);
 		$count = count($flowCards);
-        $feRouter = $this->feRouter;
 
-		$serializer = function($flowCard) use ($feRouter) {
-            return $flowCard->serialize($feRouter);
+		$serializer = function($flowCard) {
+            return $flowCard->serialize();
         };
 
 		$hal['count'] = $count;

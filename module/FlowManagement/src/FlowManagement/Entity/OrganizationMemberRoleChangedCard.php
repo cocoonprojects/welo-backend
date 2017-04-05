@@ -4,48 +4,45 @@ namespace FlowManagement\Entity;
 
 use Doctrine\ORM\Mapping AS ORM;
 use FlowManagement\FlowCardInterface;
-use Application\Service\FrontendRouter;
+use Application\Entity\User;
 
 /**
  * @ORM\Entity
  */
-class OrganizationMemberRoleChangedCard extends FlowCard {
-
-	public function serialize(FrontendRouter $feRouter){
-		$rv = [];
+class OrganizationMemberRoleChangedCard extends FlowCard
+{
+	public function serialize() {
 
 		$type = FlowCardInterface::ORGANIZATION_MEMBER_ROLE_CHANGED_CARD;
+		$content = $this->getContent()[$type];
 
-		$content = $this->getContent();
+		$description = "User {$content['userName']} new role is {$content['newRole']} (was {$content['oldRole']})";
+        $description .= ". Change performed by {$content['by']}";
 
-		$title = "User {$content[$type]['userName']} role changed";
-		$description = sprintf(
-			"User %s new role is %s (was %s)",
-			$content[$type]['userName'],
-			$content[$type]['newRole'],
-			$content[$type]['oldRole']
-		);
-
-		if (isset($content[$type]['by'])) {
-			$description .= sprintf(
-				". Change performed by %s", $content[$type]['by']
-			);
-		}
-
-		$rv["type"] = $type;
-		$rv["createdAt"] = date_format($this->getCreatedAt(), 'c');
-		$rv["id"] = $this->getId();
-		$rv["title"] = $title;
-		$rv["content"] = [
-			"description" => $description,
-			"actions" => [
-				"primary" => [
-					"text" => "",
-					"orgId" => $content[$type]["orgId"]
+        $rv = [];
+        $rv['type'] = $type;
+		$rv['createdAt'] = date_format($this->getCreatedAt(), 'c');
+		$rv['id'] = $this->getId();
+		$rv['title'] = "User {$content['userName']} role changed";
+		$rv['content'] = [
+			'description' => $description,
+			'actions' => [
+				'primary' => [
+					'text'      => '',
+					'orgId'     => $content['orgId'],
+                    'userId'    => $content['userId']
 				],
-				"secondary" => []
 			],
 		];
+
 		return $rv;
 	}
+
+	public static function create($id, User $recipient, $content)
+    {
+        $entity = new static($id, $recipient);
+        $entity->setContent(FlowCardInterface::ORGANIZATION_MEMBER_ROLE_CHANGED_CARD, $content);
+
+        return $entity;
+    }
 }

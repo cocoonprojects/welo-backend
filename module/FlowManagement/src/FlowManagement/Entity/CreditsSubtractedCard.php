@@ -5,15 +5,14 @@ namespace FlowManagement\Entity;
 use Application\Entity\User;
 use Doctrine\ORM\Mapping AS ORM;
 use FlowManagement\FlowCardInterface;
-use Application\Service\FrontendRouter;
 use People\Entity\Organization;
 
 /**
  * @ORM\Entity
  */
-class CreditsSubtractedCard extends FlowCard {
-
-	public function serialize(FrontendRouter $feRouter)
+class CreditsSubtractedCard extends FlowCard
+{
+	public function serialize()
     {
 		$type = FlowCardInterface::CREDITS_SUBTRACTED_CARD;
 		$content = $this->getContent()[$type];
@@ -26,12 +25,13 @@ class CreditsSubtractedCard extends FlowCard {
         $rv['content'] = [
             'description' => "The user {$content['userName']} subtracted {$content['amount']} credits from your account",
             'actions' => [
-                'primary' => [],
-                'secondary' => []
+                'primary' => [
+                    'text' => 'See your balance',
+                    'orgId' => isset($content['orgId']) ? $content['orgId'] : null,
+                    'userId' => isset($content['userId']) ? $content['userId'] : null
+                ],
             ],
         ];
-
-        $rv['_links']['details']['href'] = $feRouter->member($content['orgId'], $content['userId']);
 
         return $rv;
 	}

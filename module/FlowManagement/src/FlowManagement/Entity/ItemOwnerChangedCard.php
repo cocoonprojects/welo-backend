@@ -4,36 +4,35 @@ namespace FlowManagement\Entity;
 
 use Doctrine\ORM\Mapping AS ORM;
 use FlowManagement\FlowCardInterface;
-use Application\Service\FrontendRouter;
 
 /**
  * @ORM\Entity
  */
 class ItemOwnerChangedCard extends FlowCard {
 	
-	public function serialize(FrontendRouter $feRouter){
-
+	public function serialize()
+    {
         $type = FlowCardInterface::ITEM_OWNER_CHANGED_CARD;
-        $content = $this->getContent();
+        $content = $this->getContent()[$type];
         $item = $this->getItem();
         $owner = $item->getOwner()->getMember();
 
         $rv = [];
-        $rv["type"] = $type;
-		$rv["createdAt"] = date_format($this->getCreatedAt(), 'c');
-		$rv["id"] = $this->getId();
-		$rv["title"] = "Owner changed for '".$item->getSubject()."'";
-		$rv["content"] = [
-			"description" => 'The new Item owner is '.$owner->getFirstname().' '.$owner->getLastname(),
-			"actions" => [
-				"primary" => [
-					"text" => "",
-					"orgId" => $content[$type]["orgId"],
-					"itemId" => $item->getId()
+        $rv['type'] = $type;
+		$rv['createdAt'] = date_format($this->getCreatedAt(), 'c');
+		$rv['id'] = $this->getId();
+		$rv['title'] = "Owner changed for '$item->getSubject()'";
+		$rv['content'] = [
+			'description' => 'The new Item owner is '.$owner->getFirstname().' '.$owner->getLastname(),
+			'actions' => [
+				'primary' => [
+					'text' => '',
+					'orgId' => $content['orgId'],
+					'itemId' => $item->getId()
 				],
-				"secondary" => []
 			],
 		];
+
 		return $rv;
 	}
 }
