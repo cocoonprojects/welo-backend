@@ -160,13 +160,17 @@ class Module {
 							if (! isset ( $jwt ['public-key'] )) {
 								throw new \Exception ( 'JWT public-key config not found' );
 							}
+
 							if (! ($publicKey = openssl_pkey_get_public ( $jwt ['public-key'] ))) {
 								throw new \Exception ( 'Error loading public key ' . $jwt ['public-key'] . ':' . openssl_error_string () );
 							}
+
 							$rv = new JWTAdapter ( $publicKey );
+
 							if (isset ( $jwt ['algorithm'] )) {
 								$rv->setAlgorithm ( $jwt ['algorithm'] );
 							}
+
 							return $rv;
 						}
 				)

@@ -1,9 +1,10 @@
 <?php
+
 return [
-	'jwt' => [
-//		'private-key'  => 'file://'.__DIR__.'/../ora.pem',
-		'public-key'   => 'file://'.__DIR__.'/../ora.pub',
-		'time-to-live' => 'P30D',
-		'algorithm'    => 'RS256'
-	]
+    'jwt' => [
+        'private-key'  => getenv('PRIVATE_KEY_PATH'),
+        'public-key'   => getenv('PUBLIC_KEY_PATH'),
+        'time-to-live' => 'P30D',
+        'algorithm'    => 'RS256'
+    ]
 ];

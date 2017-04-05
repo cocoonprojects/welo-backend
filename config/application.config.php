@@ -1,5 +1,8 @@
 <?php
 
+$dotEnv = new Dotenv\Dotenv(__DIR__ . '/..');
+$dotEnv->load();
+
 $env = getenv('APPLICATION_ENV') ? : "local";
 
 return array(
