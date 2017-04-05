@@ -38,6 +38,14 @@ class EventSourcingUserService implements UserService, EventManagerAwareInterfac
         return $user;
 	}
 
+	public function updateUser(User $user)
+    {
+        $this->entityManager->persist($user);
+        $this->entityManager->flush($user);
+
+        return $user;
+    }
+
 	public function findUser($id)
 	{
 		$user = $this->entityManager

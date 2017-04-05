@@ -100,7 +100,7 @@ class User extends BasicUser implements RoleInterface , ResourceInterface
     {
 		$this->memberships = new ArrayCollection();
 		$this->flowcards = new ArrayCollection();
-        $this->secondaryEmails = new ArrayCollection();
+        $this->secondaryEmails = [];
     }
 
     /**
@@ -303,18 +303,22 @@ class User extends BasicUser implements RoleInterface , ResourceInterface
 		return $this->getEmail();
 	}
 
-	public function addSecondaryEmail($email)
+	public function getSecondaryEmails()
     {
-        if ($this->secondaryEmails->contains($email)) {
-            return;
-        }
-
-        $this->secondaryEmails[] = $email;
+        return $this->secondaryEmails;
     }
 
-    public function removeSecondaryEmail($email)
+	public function hasSecondaryEmail($email)
     {
-        $this->secondaryEmails->removeElement($email);
+        if (is_null($this->secondaryEmails)) {
+            return false;
+        }
+        return array_search($email, $this->secondaryEmails)!==false;
+    }
+
+	public function setSecondaryEmails($emails)
+    {
+        $this->secondaryEmails = $emails;
     }
 
     public function setEmail($email)

@@ -41,7 +41,6 @@ abstract class OrganizationAwareController extends HATEOASRestfulController{
 	}
 
 	public function loadOrganization(MvcEvent $e){
-
 		$response = $this->getResponse();
 
 		$orgId = $this->params('orgId');

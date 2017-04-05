@@ -5,7 +5,7 @@ namespace Application;
 use Application\Authentication\OAuth2\LoadLocalProfileListener;
 use Application\Controller\AuthController;
 use Application\Controller\MembershipsController;
-use Application\Controller\UsersController;
+use Application\Controller\UsersSecondaryEmailsController;
 use Application\Service\DomainEventDispatcher;
 use Application\Service\EventSourcingUserService;
 use Zend\Authentication\AuthenticationService;
@@ -95,11 +95,11 @@ class Module {
 							$controller = new MembershipsController ( $orgService );
 							return $controller;
 						},
-						'Application\Controller\Users' => function ($sm) {
+						'Application\Controller\UsersSecondaryEmails' => function ($sm) {
 							$locator = $sm->getServiceLocator ();
 							$userService = $locator->get('Application\UserService');
 							$orgService = $locator->get('People\OrganizationService');
-							$controller = new UsersController ( $userService, $orgService );
+							$controller = new UsersSecondaryEmailsController ( $userService, $orgService );
 							return $controller;
 						}
 				)
