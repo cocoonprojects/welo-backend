@@ -22,12 +22,18 @@ class FrontendRouter
         return $this->host . 'index.html#/' . $task->getOrganizationId() . '/items/' . $task->getId();
     }
 
-    public function member($org, $member)
+    public function member($org, $member, $absolute = true)
     {
         $orgId = $org instanceof Organization ? $org->getId() : $org;
         $memberId = $member instanceof User ? $member->getId() : $member;
 
-        return $this->host . 'index.html#/' . $orgId . '/people/' . $memberId;
+        $url = "#/$orgId/people/$memberId";
+
+        if (!$absolute) {
+            return $url;
+        }
+
+        return "{$this->host}index.html$url";
     }
 
 }

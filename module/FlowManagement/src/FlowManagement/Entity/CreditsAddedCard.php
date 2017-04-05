@@ -5,16 +5,15 @@ namespace FlowManagement\Entity;
 use Application\Entity\User;
 use Doctrine\ORM\Mapping AS ORM;
 use FlowManagement\FlowCardInterface;
-use Application\Service\FrontendRouter;
 use People\Entity\Organization;
 use Rhumsaa\Uuid\Uuid;
 
 /**
  * @ORM\Entity
  */
-class CreditsAddedCard extends FlowCard {
-
-	public function serialize(FrontendRouter $feRouter)
+class CreditsAddedCard extends FlowCard
+{
+	public function serialize()
     {
 		$type = FlowCardInterface::CREDITS_ADDED_CARD;
 		$content = $this->getContent()[$type];
@@ -27,12 +26,14 @@ class CreditsAddedCard extends FlowCard {
 		$rv['content'] = [
 			'description' => "The user {$content['userName']} took these credits from '{$content['orgName']}' account",
 			'actions' => [
-				'primary' => [],
-				'secondary' => []
+				'primary' => [
+                    'text' => 'See your balance',
+                    'orgId' => isset($content['orgId']) ? $content['orgId'] : null,
+                    'userId' => isset($content['userId']) ? $content['userId'] : null
+                ],
 			],
 		];
 
-		$rv['_links']['details']['href'] = $feRouter->member($content['orgId'], $content['userId']);
 
 		return $rv;
 	}

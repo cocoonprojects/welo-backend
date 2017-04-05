@@ -101,8 +101,7 @@ class CardControllerTest extends ControllerTest {
 		$this->assertEquals("Do you want this work item idea to be opened?", $flowcardResult['content']['actions']['primary']['text']);
 		$this->assertEquals($this->organization->getId(), $flowcardResult['content']['actions']['primary']['orgId']);
 		$this->assertEquals($item->getId(), $flowcardResult['content']['actions']['primary']['itemId']);
-		$this->assertEmpty($flowcardResult['content']['actions']['secondary']);
-		
+
 	}
 	
 	public function testGetListFromFlowAsAnonymous(){

@@ -22,8 +22,7 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface{
 		            $locator = $sm->getServiceLocator();
 
 					$controller = new CardsController(
-                        $locator->get('FlowManagement\FlowService'),
-                        $locator->get('Application\FrontendRouter')
+                        $locator->get('FlowManagement\FlowService')
                     );
 
 					return $controller;

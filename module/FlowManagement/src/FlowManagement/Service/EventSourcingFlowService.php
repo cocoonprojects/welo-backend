@@ -178,9 +178,9 @@ class EventSourcingFlowService extends AggregateRepository implements FlowServic
 	 * (non-PHPdoc)
 	 * @see \FlowManagement\Service\FlowService::createItemMemberRemovedCard()
 	 */
-	public function createOrganizationMemberRoleChangedCard(BasicUser $recipient, BasicUser $member, $organizationid, $oldRole, $newRole, BasicUser $createdBy){
+	public function createOrganizationMemberRoleChangedCard(BasicUser $recipient, BasicUser $member, $organizationId, $oldRole, $newRole, BasicUser $createdBy){
 		$content = [
-			"orgId" => $organizationid,
+			'orgId' => $organizationId,
 			'userId' => $member->getId(),
 			'userName' => $member->getFirstname().' '.$member->getLastname(),
 			'oldRole' => $oldRole,

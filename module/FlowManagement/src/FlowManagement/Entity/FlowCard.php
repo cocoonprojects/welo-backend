@@ -2,7 +2,6 @@
 
 namespace FlowManagement\Entity;
 
-use Application\Service\FrontendRouter;
 use Doctrine\ORM\Mapping AS ORM;
 use Application\Entity\User;
 use Application\Entity\DomainEntity;
@@ -117,5 +116,5 @@ abstract class FlowCard extends DomainEntity implements FlowCardInterface{
 		$this->hidden = false;
 	}
 
-	abstract public function serialize(FrontendRouter $feRouter);
+	abstract public function serialize();
 }

@@ -51,9 +51,11 @@ class CardCommandsListener extends ReadModelProjector {
 	}
 
 	private function cardFactory(User $recipient, StreamEvent $event){
-		$id = $event->metadata()['aggregate_id'];
+
+	    $id = $event->metadata()['aggregate_id'];
 		$content = $event->payload()['content'];
 		$type = $event->metadata()['aggregate_type'];
+
 		switch ($type){
 			case 'FlowManagement\VoteIdeaCard':
 				$entity = new VoteIdeaCard($id, $recipient);
@@ -104,8 +106,9 @@ class CardCommandsListener extends ReadModelProjector {
 				$entity->setContent(FlowCardInterface::ITEM_MEMBER_REMOVED_CARD, $content);
 				break;
 			case 'FlowManagement\OrganizationMemberRoleChangedCard':
-				$entity = new OrganizationMemberRoleChangedCard($id, $recipient);
-				$entity->setContent(FlowCardInterface::ORGANIZATION_MEMBER_ROLE_CHANGED_CARD, $content);
+
+				$entity = OrganizationMemberRoleChangedCard::create($id, $recipient, $content);
+
 				break;
 			default:
 				$entity = null;
