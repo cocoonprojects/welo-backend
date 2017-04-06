@@ -13,9 +13,9 @@ use Rhumsaa\Uuid\Uuid;
 
 class AuthControllerTest extends ControllerTest
 {
-	private $user;
+    private $user;
 
-	private $privateKey = '-----BEGIN RSA PRIVATE KEY-----
+    private $privateKey = '-----BEGIN RSA PRIVATE KEY-----
 MIIEpQIBAAKCAQEA8SJjXkniIeE6mEOvOuB940kni2v0E+UwqNrrmdJ49quZP48d
 55k7t+OI9OFgQYLV7DW6u0tMGrvnuC+MD7nrFrwbSk74mO95C0C7TuU0k5S3OXFh
 e72z34aibVXX+3oR0m1FU6qAuKqXkP8+Z5zJvSKy1i+EUD1zhkjdFhJ4z6ZsoHEp
@@ -43,7 +43,7 @@ NIWpPWGtI3X48gQiw0BdbrQkDJI76Qa/xcn0yIt+Z1dw5Uhxf2PsKJEhBaLvToTz
 oGYZDHe7A05BzL5PD8vI3SeazAlpLidU6L40eZUeYj3+S7cthNr9MVU=
 -----END RSA PRIVATE KEY-----';
 
-	private $publicKey = '-----BEGIN PUBLIC KEY-----
+    private $publicKey = '-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA8SJjXkniIeE6mEOvOuB9
 40kni2v0E+UwqNrrmdJ49quZP48d55k7t+OI9OFgQYLV7DW6u0tMGrvnuC+MD7nr
 FrwbSk74mO95C0C7TuU0k5S3OXFhe72z34aibVXX+3oR0m1FU6qAuKqXkP8+Z5zJ
@@ -53,62 +53,62 @@ WY2YYeEi31dEvdcFM+ASmDkvcnftAbZVmDi8oJzksztA1nmUoD8XQzTXxBOTSFGS
 nwIDAQAB
 -----END PUBLIC KEY-----';
 
-	protected function setupController()
-	{
-		$authService = $this->getMockBuilder(AuthenticationServiceInterface::class)->getMock();
-		$this->user = User::createUser(Uuid::uuid4());
-		$result = new Result(Result::SUCCESS, $this->user);
-		$authService->method('authenticate')->willReturn($result);
-		$adapterResolver = $this->getMockBuilder(AdapterResolver::class)->getMock();
-		return new AuthController($authService, $adapterResolver, $this->privateKey);
-	}
+    protected function setupController()
+    {
+        $authService = $this->getMockBuilder(AuthenticationServiceInterface::class)->getMock();
+        $this->user = User::createUser(Uuid::uuid4());
+        $result = new Result(Result::SUCCESS, $this->user);
+        $authService->method('authenticate')->willReturn($result);
+        $adapterResolver = $this->getMockBuilder(AdapterResolver::class)->getMock();
+        return new AuthController($authService, $adapterResolver, $this->privateKey);
+    }
 
-	protected function setupRouteMatch()
-	{
-		return ['controller' => 'auth', 'action' => 'login'];
-	}
+    protected function setupRouteMatch()
+    {
+        return ['controller' => 'auth', 'action' => 'login'];
+    }
 
-	public function testLogin()
-	{
-		$this->controller->getAdapterResolver()
-			->method('getAdapter')
-			->willReturn('pippo');
+    public function testLogin()
+    {
+        $this->controller->getAdapterResolver()
+            ->method('getAdapter')
+            ->willReturn('pippo');
 
-		$this->request->setMethod('post');
+        $this->request->setMethod('post');
 
-		$result   = $this->controller->dispatch($this->request);
-		$response = $this->controller->getResponse();
+        $result   = $this->controller->dispatch($this->request);
+        $response = $this->controller->getResponse();
 
-		$arrayResult = json_decode($result->serialize(), true);
-		$this->assertNotEmpty($arrayResult['token']);
+        $arrayResult = json_decode($result->serialize(), true);
+        $this->assertNotEmpty($arrayResult['token']);
 
-		$jws = SimpleJWS::load($arrayResult['token']);
-		$this->assertTrue($jws->isValid($this->publicKey, $this->controller->getAlgorithm()));
-		$payload = $jws->getPayload();
-		$this->assertEquals($this->user->getId(), $payload['uid']);
-	}
+        $jws = SimpleJWS::load($arrayResult['token']);
+        $this->assertTrue($jws->isValid($this->publicKey, $this->controller->getAlgorithm()));
+        $payload = $jws->getPayload();
+        $this->assertEquals($this->user->getId(), $payload['uid']);
+    }
 
-	public function testLoginWithInvalidProvider()
-	{
-		$this->controller->getAdapterResolver()
-			->method('getAdapter')
-			->willReturn(null);
-		$result   = $this->controller->dispatch($this->request);
-		$response = $this->controller->getResponse();
+    public function testLoginWithInvalidProvider()
+    {
+        $this->controller->getAdapterResolver()
+            ->method('getAdapter')
+            ->willReturn(null);
+        $result   = $this->controller->dispatch($this->request);
+        $response = $this->controller->getResponse();
 
-		$arrayResult = json_decode($result->serialize(), true);
-		$this->assertEquals('Auth.InvalidProvider', $arrayResult['error']);
-	}
+        $arrayResult = json_decode($result->serialize(), true);
+        $this->assertEquals('Auth.InvalidProvider', $arrayResult['error']);
+    }
 
-	public function testLoginWithInvalidToken()
-	{
-		$this->controller->getAdapterResolver()
-			->method('getAdapter')
-			->will($this->throwException(new InvalidTokenException('Lorem Ipsum')));
-		$result   = $this->controller->dispatch($this->request);
-		$response = $this->controller->getResponse();
+    public function testLoginWithInvalidToken()
+    {
+        $this->controller->getAdapterResolver()
+            ->method('getAdapter')
+            ->will($this->throwException(new InvalidTokenException('Lorem Ipsum')));
+        $result   = $this->controller->dispatch($this->request);
+        $response = $this->controller->getResponse();
 
-		$arrayResult = json_decode($result->serialize(), true);
-		$this->assertEquals('Lorem Ipsum', $arrayResult['error']);
-	}
+        $arrayResult = json_decode($result->serialize(), true);
+        $this->assertEquals('Lorem Ipsum', $arrayResult['error']);
+    }
 }

@@ -27,30 +27,30 @@ use ZFX\Rest\Controller\HATEOASRestfulController;
 
 class UsersSecondaryEmailsController extends HATEOASRestfulController
 {
-	protected static $collectionOptions = [
-			'GET',
-			'POST'
-	];
-	protected static $resourceOptions = [
-			'DELETE',
-			'GET',
-			'PUT'
-	];
+    protected static $collectionOptions = [
+            'GET',
+            'POST'
+    ];
+    protected static $resourceOptions = [
+            'DELETE',
+            'GET',
+            'PUT'
+    ];
 
-	/**
-	 * @var UserService
-	 */
-	private $userService;
+    /**
+     * @var UserService
+     */
+    private $userService;
 
-	public function __construct(UserService $taskService)
-	{
-		$this->userService = $taskService;
-	}
+    public function __construct(UserService $taskService)
+    {
+        $this->userService = $taskService;
+    }
 
 
     public function getList()
     {
-        if(is_null($this->identity())) {
+        if (is_null($this->identity())) {
             $this->response->setStatusCode(401);
 
             return $this->response;
@@ -67,7 +67,7 @@ class UsersSecondaryEmailsController extends HATEOASRestfulController
 
     public function replaceList($emails)
     {
-        if(is_null($this->identity())) {
+        if (is_null($this->identity())) {
             $this->response->setStatusCode(401);
 
             return $this->response;
@@ -86,17 +86,20 @@ class UsersSecondaryEmailsController extends HATEOASRestfulController
     }
 
 
-    protected function getCollectionOptions() {
+    protected function getCollectionOptions()
+    {
         return self::$collectionOptions;
     }
 
 
-    protected function getResourceOptions() {
+    protected function getResourceOptions()
+    {
         return self::$resourceOptions;
     }
 
 
-	public function getUserService() {
-		return $this->userService;
-	}
+    public function getUserService()
+    {
+        return $this->userService;
+    }
 }

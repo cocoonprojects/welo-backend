@@ -43,10 +43,10 @@ class BaseTaskProcessTest extends \PHPUnit_Framework_TestCase
     {
         $this->controller = $this->serviceManager->get('ControllerManager')->get($controllerName);
 
-        $this->request	= new Request();
+        $this->request    = new Request();
 
         $this->routeMatch = new RouteMatch(array('controller' => $actionName));
-        $this->event	  = new MvcEvent();
+        $this->event      = new MvcEvent();
         $config = $this->serviceManager->get('Config');
         $routerConfig = isset($config['router']) ? $config['router'] : array();
         $router = $this->serviceManager->get('HttpRouter');
@@ -88,5 +88,4 @@ class BaseTaskProcessTest extends \PHPUnit_Framework_TestCase
 
         return $streamService->createStream($organization, $name, $admin);
     }
-
 }

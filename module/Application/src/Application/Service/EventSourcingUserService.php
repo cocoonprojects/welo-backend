@@ -10,17 +10,17 @@ use Application\Entity\User;
 
 class EventSourcingUserService implements UserService, EventManagerAwareInterface
 {
-	protected $events;
+    protected $events;
 
     protected $entityManager;
-	
-	public function __construct(EntityManager $entityManager)
-	{
-		$this->entityManager = $entityManager;
-	}
-	
-	public function subscribeUser($userInfo, $role = User::ROLE_USER)
-	{
+    
+    public function __construct(EntityManager $entityManager)
+    {
+        $this->entityManager = $entityManager;
+    }
+    
+    public function subscribeUser($userInfo, $role = User::ROLE_USER)
+    {
         $user = User::createUser(
             Uuid::uuid4(),
             $userInfo['email'],
@@ -36,9 +36,9 @@ class EventSourcingUserService implements UserService, EventManagerAwareInterfac
         $this->getEventManager()->trigger(User::EVENT_CREATED, $user);
 
         return $user;
-	}
+    }
 
-	public function updateUser(User $user)
+    public function updateUser(User $user)
     {
         $this->entityManager->persist($user);
         $this->entityManager->flush($user);
@@ -46,17 +46,17 @@ class EventSourcingUserService implements UserService, EventManagerAwareInterfac
         return $user;
     }
 
-	public function findUser($id)
-	{
-		$user = $this->entityManager
-					 ->getRepository(User::class)
-					 ->findOneBy(array("id" => $id));
+    public function findUser($id)
+    {
+        $user = $this->entityManager
+                     ->getRepository(User::class)
+                     ->findOneBy(array("id" => $id));
 
-		return $user;
-	}
-	
-	public function findUserByEmail($email)
-	{
+        return $user;
+    }
+    
+    public function findUserByEmail($email)
+    {
         $query = $this->entityManager
                       ->createQueryBuilder()
                       ->select('u')
@@ -66,45 +66,44 @@ class EventSourcingUserService implements UserService, EventManagerAwareInterfac
                       ->setParameter('email', $email)
                       ->getQuery();
 
-		return $query->getOneOrNullResult();
-	}	
+        return $query->getOneOrNullResult();
+    }
 
-	public function findUsers($filters)
+    public function findUsers($filters)
     {
-		$builder = $this->entityManager->createQueryBuilder();
-		$query = $builder->select('u')
-			->from(User::class, 'u')
-			->orderBy('u.mostRecentEditAt', 'DESC');
+        $builder = $this->entityManager->createQueryBuilder();
+        $query = $builder->select('u')
+            ->from(User::class, 'u')
+            ->orderBy('u.mostRecentEditAt', 'DESC');
 
-        if(isset($filters["kanbanizeusername"])) {
-			$query->andWhere('u. kanbanizeUsername = :username')
-				  ->setParameter('username', $filters["kanbanizeusername"]);
-		}
+        if (isset($filters["kanbanizeusername"])) {
+            $query->andWhere('u. kanbanizeUsername = :username')
+                  ->setParameter('username', $filters["kanbanizeusername"]);
+        }
 
-		return $query->getQuery()->getResult();
-	}
-	
-	public function setEventManager(EventManagerInterface $events)
-	{
-		$events->setIdentifiers(array(
-			'Application\UserService',
-			__CLASS__,
-			get_class($this)
-		));
-		$this->events = $events;
-	}
+        return $query->getQuery()->getResult();
+    }
+    
+    public function setEventManager(EventManagerInterface $events)
+    {
+        $events->setIdentifiers(array(
+            'Application\UserService',
+            __CLASS__,
+            get_class($this)
+        ));
+        $this->events = $events;
+    }
 
-	public function getEventManager()
-	{
-		if (!$this->events) {
-			$this->setEventManager(new EventManager());
-		}
-		return $this->events;
-	}
+    public function getEventManager()
+    {
+        if (!$this->events) {
+            $this->setEventManager(new EventManager());
+        }
+        return $this->events;
+    }
 
-	public function refreshEntity(User $user)
+    public function refreshEntity(User $user)
     {
         $this->entityManager->refresh($user);
     }
-
 }

@@ -49,17 +49,16 @@ class BaseIntegrationTest extends \PHPUnit_Framework_TestCase
         $adapter = new AdapterMock();
         $adapter->setEmail($email);
         $this->authService->authenticate($adapter);
-
     }
 
     protected function setupController($controllerName, $route)
     {
         $this->controller = $this->serviceManager->get('ControllerManager')->get($controllerName);
 
-        $this->request	= new Request();
+        $this->request    = new Request();
 
         $this->routeMatch = new RouteMatch(array('controller' => $route));
-        $this->event	  = new MvcEvent();
+        $this->event      = new MvcEvent();
         $config = $this->serviceManager->get('Config');
         $routerConfig = isset($config['router']) ? $config['router'] : array();
         $router = $this->serviceManager->get('HttpRouter');
@@ -104,5 +103,4 @@ class BaseIntegrationTest extends \PHPUnit_Framework_TestCase
     {
         return $this->streamService->createStream($organization, $name, $admin);
     }
-
 }

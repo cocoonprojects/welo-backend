@@ -2,7 +2,6 @@
 
 namespace Application\Authentication;
 
-
 use Application\Entity\User;
 use Namshi\JOSE\SimpleJWS;
 use Rhumsaa\Uuid\Uuid;
@@ -15,14 +14,14 @@ use ZFX\Authentication\JWTBuilder;
  */
 class JWTBuilderTest extends \PHPUnit_Framework_TestCase
 {
-	/**
-	 * @var JWTBuilder
-	 */
-	private $builder;
-	/**
-	 * @var string
-	 */
-	private $publicKey = "-----BEGIN PUBLIC KEY-----
+    /**
+     * @var JWTBuilder
+     */
+    private $builder;
+    /**
+     * @var string
+     */
+    private $publicKey = "-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA8SJjXkniIeE6mEOvOuB9
 40kni2v0E+UwqNrrmdJ49quZP48d55k7t+OI9OFgQYLV7DW6u0tMGrvnuC+MD7nr
 FrwbSk74mO95C0C7TuU0k5S3OXFhe72z34aibVXX+3oR0m1FU6qAuKqXkP8+Z5zJ
@@ -32,10 +31,10 @@ WY2YYeEi31dEvdcFM+ASmDkvcnftAbZVmDi8oJzksztA1nmUoD8XQzTXxBOTSFGS
 nwIDAQAB
 -----END PUBLIC KEY-----";
 
-	protected function setUp()
-	{
-		$this->builder = new JWTBuilder(
-			"-----BEGIN RSA PRIVATE KEY-----
+    protected function setUp()
+    {
+        $this->builder = new JWTBuilder(
+            "-----BEGIN RSA PRIVATE KEY-----
 MIIEpQIBAAKCAQEA8SJjXkniIeE6mEOvOuB940kni2v0E+UwqNrrmdJ49quZP48d
 55k7t+OI9OFgQYLV7DW6u0tMGrvnuC+MD7nrFrwbSk74mO95C0C7TuU0k5S3OXFh
 e72z34aibVXX+3oR0m1FU6qAuKqXkP8+Z5zJvSKy1i+EUD1zhkjdFhJ4z6ZsoHEp
@@ -62,18 +61,17 @@ yZYw6P1gPCiOs+Ml7BZ8jvGdQfwW3oVCaj0i/Otn9miQgCl9AQ4ZBAnWkaZ/68Lf
 NIWpPWGtI3X48gQiw0BdbrQkDJI76Qa/xcn0yIt+Z1dw5Uhxf2PsKJEhBaLvToTz
 oGYZDHe7A05BzL5PD8vI3SeazAlpLidU6L40eZUeYj3+S7cthNr9MVU=
 -----END RSA PRIVATE KEY-----");
-	}
+    }
 
-	public function testBuildJWT()
-	{
-		$identity = User::createUser(Uuid::uuid4());
-		$token = $this->builder->buildJWT($identity);
+    public function testBuildJWT()
+    {
+        $identity = User::createUser(Uuid::uuid4());
+        $token = $this->builder->buildJWT($identity);
 
-		$jws = SimpleJWS::load($token);
-		$this->assertTrue($jws->isValid($this->publicKey, 'RS256'));
-		$payload = $jws->getPayload();
-		$this->assertEquals($identity->getId(), $payload['uid']);
-		$this->assertNotEmpty($payload['exp']);
-	}
-
+        $jws = SimpleJWS::load($token);
+        $this->assertTrue($jws->isValid($this->publicKey, 'RS256'));
+        $payload = $jws->getPayload();
+        $this->assertEquals($identity->getId(), $payload['uid']);
+        $this->assertNotEmpty($payload['exp']);
+    }
 }

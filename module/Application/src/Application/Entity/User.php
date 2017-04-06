@@ -17,93 +17,93 @@ use FlowManagement\Entity\FlowCard;
  * @ORM\Entity
  * @ORM\Table(name="users")
  */
-class User extends BasicUser implements RoleInterface , ResourceInterface
+class User extends BasicUser implements RoleInterface, ResourceInterface
 {
-	CONST STATUS_ACTIVE = 1;
-	CONST ROLE_ADMIN = 'admin';
-	CONST ROLE_GUEST = 'guest';
-	CONST ROLE_USER = 'user';
-	CONST ROLE_SYSTEM = 'system';
+    const STATUS_ACTIVE = 1;
+    const ROLE_ADMIN = 'admin';
+    const ROLE_GUEST = 'guest';
+    const ROLE_USER = 'user';
+    const ROLE_SYSTEM = 'system';
 
-	CONST SYSTEM_USER = '00000000-0000-0000-0000-000000000000';
+    const SYSTEM_USER = '00000000-0000-0000-0000-000000000000';
 
-	CONST EVENT_CREATED = 'User.Created';
+    const EVENT_CREATED = 'User.Created';
 
-	/**
-	 * @ORM\Column(type="datetime")
-	 * @var \DateTime
-	 */
-	protected $createdAt;
+    /**
+     * @ORM\Column(type="datetime")
+     * @var \DateTime
+     */
+    protected $createdAt;
 
-	/**
-	 * @ORM\ManyToOne(targetEntity="User")
-	 * @ORM\JoinColumn(name="createdBy_id", referencedColumnName="id", nullable=TRUE)
-	 * @var BasicUser
-	 */
-	protected $createdBy;
+    /**
+     * @ORM\ManyToOne(targetEntity="User")
+     * @ORM\JoinColumn(name="createdBy_id", referencedColumnName="id", nullable=TRUE)
+     * @var BasicUser
+     */
+    protected $createdBy;
 
-	/**
-	 * @ORM\Column(type="datetime")
-	 * @var \DateTime
-	 */
-	protected $mostRecentEditAt;
+    /**
+     * @ORM\Column(type="datetime")
+     * @var \DateTime
+     */
+    protected $mostRecentEditAt;
 
-	/**
-	 * @ORM\ManyToOne(targetEntity="User")
-	 * @ORM\JoinColumn(name="mostRecentEditBy_id", referencedColumnName="id", nullable=TRUE)
-	 * @var BasicUser
-	 */
-	protected $mostRecentEditBy;
+    /**
+     * @ORM\ManyToOne(targetEntity="User")
+     * @ORM\JoinColumn(name="mostRecentEditBy_id", referencedColumnName="id", nullable=TRUE)
+     * @var BasicUser
+     */
+    protected $mostRecentEditBy;
 
-	/**
-	 * @ORM\Column(type="string", length=200, unique=TRUE)
-	 * @var string
-	 */
-	private $email;
+    /**
+     * @ORM\Column(type="string", length=200, unique=TRUE)
+     * @var string
+     */
+    private $email;
 
     /**
      * @ORM\Column(type="json_array", nullable=TRUE)
      */
-	private $secondaryEmails;
+    private $secondaryEmails;
 
-	/**
-	 * @ORM\Column(type="string", nullable=TRUE)
-	 * @var string
-	 */
-	private $picture;
+    /**
+     * @ORM\Column(type="string", nullable=TRUE)
+     * @var string
+     */
+    private $picture;
 
-	/**
-	 * @ORM\Column(type="integer")
-	 * @var int
-	 */
-	private $status;
+    /**
+     * @ORM\Column(type="integer")
+     * @var int
+     */
+    private $status;
 
-	/**
-	 * @ORM\OneToMany(targetEntity="People\Entity\OrganizationMembership", mappedBy="member", indexBy="organization_id", cascade={"persist"})
-	 * @var OrganizationMembership[]
-	 */
-	private $memberships;
+    /**
+     * @ORM\OneToMany(targetEntity="People\Entity\OrganizationMembership", mappedBy="member", indexBy="organization_id", cascade={"persist"})
+     * @var OrganizationMembership[]
+     */
+    private $memberships;
 
-	/**
-	 * @ORM\Column(type="string")
-	 * @var string
-	 */
-	private $role = self::ROLE_USER;
-	/**
-	* @ORM\Column(type="string", nullable=TRUE)
-	* @var string
-	*/
-	private $kanbanizeUsername;
-	/**
-	 * @ORM\OneToMany(targetEntity="FlowManagement\Entity\FlowCard", mappedBy="recipient", cascade={"persist"})
-	 * @var FlowCard[]
-	 */
-	private $flowcards;
+    /**
+     * @ORM\Column(type="string")
+     * @var string
+     */
+    private $role = self::ROLE_USER;
+    /**
+    * @ORM\Column(type="string", nullable=TRUE)
+    * @var string
+    */
+    private $kanbanizeUsername;
+    /**
+     * @ORM\OneToMany(targetEntity="FlowManagement\Entity\FlowCard", mappedBy="recipient", cascade={"persist"})
+     * @var FlowCard[]
+     */
+    private $flowcards;
 
-	private function __construct()
+    private function __construct()
     {
-		$this->memberships = new ArrayCollection();
-		$this->flowcards = new ArrayCollection();
+        $this->memberships = new ArrayCollection();
+        $this->flowcards = new ArrayCollection();
         $this->secondaryEmails = [];
     }
 
@@ -148,116 +148,124 @@ class User extends BasicUser implements RoleInterface , ResourceInterface
     /**
      * @deprecated use User::createUser instead
      */
-    public static function create(User $createdBy = null) {
-		$rv = new self();
-		$rv->id = Uuid::uuid4()->toString();
-		$rv->status = self::STATUS_ACTIVE;
-		$rv->createdAt = new \DateTime();
-		$rv->createdBy = $createdBy;
-		$rv->mostRecentEditAt = $rv->createdAt;
-		$rv->mostRecentEditBy = $rv->createdBy;
-		return $rv;
-	}
+    public static function create(User $createdBy = null)
+    {
+        $rv = new self();
+        $rv->id = Uuid::uuid4()->toString();
+        $rv->status = self::STATUS_ACTIVE;
+        $rv->createdAt = new \DateTime();
+        $rv->createdBy = $createdBy;
+        $rv->mostRecentEditAt = $rv->createdAt;
+        $rv->mostRecentEditBy = $rv->createdBy;
+        return $rv;
+    }
 
-	/**
-	 * @param ReadModelOrganization|Organization $organization
-	 * @param string $role
-	 * @return $this
-	 */
-	public function addMembership($organization, $role = OrganizationMembership::ROLE_CONTRIBUTOR) {
-		$org = null;
-		if($organization instanceof Organization) {
-			$org = new ReadModelOrganization($organization->getId());
-			$org->setName($organization->getName());
-		} elseif ($organization instanceof ReadModelOrganization) {
-			$org = $organization;
-		} else {
-			throw new InvalidArgumentException('First argument must be of type People\\Organization or People\\Entity\\Organization: ' . get_class($organization) . ' given');
-		}
-		$membership = new OrganizationMembership($this, $org, $role);
-		$this->memberships->set($org->getId(), $membership);
-		return $this;
-	}
+    /**
+     * @param ReadModelOrganization|Organization $organization
+     * @param string $role
+     * @return $this
+     */
+    public function addMembership($organization, $role = OrganizationMembership::ROLE_CONTRIBUTOR)
+    {
+        $org = null;
+        if ($organization instanceof Organization) {
+            $org = new ReadModelOrganization($organization->getId());
+            $org->setName($organization->getName());
+        } elseif ($organization instanceof ReadModelOrganization) {
+            $org = $organization;
+        } else {
+            throw new InvalidArgumentException('First argument must be of type People\\Organization or People\\Entity\\Organization: ' . get_class($organization) . ' given');
+        }
+        $membership = new OrganizationMembership($this, $org, $role);
+        $this->memberships->set($org->getId(), $membership);
+        return $this;
+    }
 
-	/**
-	 * @param ReadModelOrganization|Organization $organization
-	 * @return $this
-	 */
-	public function removeMembership($organization) {
-		if(!($organization instanceof Organization) && !($organization instanceof ReadModelOrganization)) {
-			throw new InvalidArgumentException('First argument must be of type People\\Organization or People\\Entity\\Organization: ' . get_class($organization) . ' given');
-		}
-		$this->memberships->remove($organization->getId());
-	}
+    /**
+     * @param ReadModelOrganization|Organization $organization
+     * @return $this
+     */
+    public function removeMembership($organization)
+    {
+        if (!($organization instanceof Organization) && !($organization instanceof ReadModelOrganization)) {
+            throw new InvalidArgumentException('First argument must be of type People\\Organization or People\\Entity\\Organization: ' . get_class($organization) . ' given');
+        }
+        $this->memberships->remove($organization->getId());
+    }
 
-	/**
-	 * @param string|ReadModelOrganization|Organization $organization
-	 * @return bool
-	 */
-	public function isMemberOf($organization) {
-		$key = $organization;
-		if($organization instanceof Organization || $organization instanceof ReadModelOrganization) {
-			$key = $organization->getId();
-		}
-		return $this->memberships->containsKey($key);
-	}
+    /**
+     * @param string|ReadModelOrganization|Organization $organization
+     * @return bool
+     */
+    public function isMemberOf($organization)
+    {
+        $key = $organization;
+        if ($organization instanceof Organization || $organization instanceof ReadModelOrganization) {
+            $key = $organization->getId();
+        }
+        return $this->memberships->containsKey($key);
+    }
 
-	public function isContributorOf($organization) {
-		$key = $organization;
-		if($organization instanceof Organization ||
-		   $organization instanceof ReadModelOrganization) {
-			$key = $organization->getId();
-		}
-		$membership = $this->memberships->get($key);
+    public function isContributorOf($organization)
+    {
+        $key = $organization;
+        if ($organization instanceof Organization ||
+           $organization instanceof ReadModelOrganization) {
+            $key = $organization->getId();
+        }
+        $membership = $this->memberships->get($key);
 
-		if(is_null($membership)){
-			return false;
-		}
+        if (is_null($membership)) {
+            return false;
+        }
 
-		return $membership->getRole() == OrganizationMembership::ROLE_CONTRIBUTOR;
-	}
+        return $membership->getRole() == OrganizationMembership::ROLE_CONTRIBUTOR;
+    }
 
-	public function isRoleMemberOf($organization) {
-		$key = $organization;
-		if($organization instanceof Organization ||
-		   $organization instanceof ReadModelOrganization) {
-			$key = $organization->getId();
-		}
-		$membership = $this->memberships->get($key);
+    public function isRoleMemberOf($organization)
+    {
+        $key = $organization;
+        if ($organization instanceof Organization ||
+           $organization instanceof ReadModelOrganization) {
+            $key = $organization->getId();
+        }
+        $membership = $this->memberships->get($key);
 
-		if(is_null($membership)){
-			return false;
-		}
+        if (is_null($membership)) {
+            return false;
+        }
 
-		return $membership->getRole() == OrganizationMembership::ROLE_MEMBER;
-	}
+        return $membership->getRole() == OrganizationMembership::ROLE_MEMBER;
+    }
 
-	/**
-	 * @param string|ReadModelOrganization|Organization $organization
-	 * @return bool
-	 */
-	public function isOwnerOf($organization) {
-		$key = $organization;
-		if($organization instanceof Organization || $organization instanceof ReadModelOrganization) {
-			$key = $organization->getId();
-		}
-		$membership = $this->memberships->get($key);
-		if(is_null($membership)){
-			return false;
-		}
-		return $membership->getRole() == OrganizationMembership::ROLE_ADMIN;
-	}
+    /**
+     * @param string|ReadModelOrganization|Organization $organization
+     * @return bool
+     */
+    public function isOwnerOf($organization)
+    {
+        $key = $organization;
+        if ($organization instanceof Organization || $organization instanceof ReadModelOrganization) {
+            $key = $organization->getId();
+        }
+        $membership = $this->memberships->get($key);
+        if (is_null($membership)) {
+            return false;
+        }
+        return $membership->getRole() == OrganizationMembership::ROLE_ADMIN;
+    }
 
-	/**
-	 * @param string|ReadModelOrganization|Organization $organization
-	 * @return OrganizationMembership|null
-	 */
-	public function getMembership($organization){
-		$id = is_object($organization) ? $organization->getId() : $organization;
-		return $this->memberships->get($id);
-	}
+    /**
+     * @param string|ReadModelOrganization|Organization $organization
+     * @return OrganizationMembership|null
+     */
+    public function getMembership($organization)
+    {
+        $id = is_object($organization) ? $organization->getId() : $organization;
+        return $this->memberships->get($id);
+    }
 
-	public function getCreatedAt()
+    public function getCreatedAt()
     {
         return $this->createdAt;
     }
@@ -267,51 +275,55 @@ class User extends BasicUser implements RoleInterface , ResourceInterface
         return $this->picture;
     }
 
-	public function getRole()
+    public function getRole()
     {
-		return $this->role;
-	}
+        return $this->role;
+    }
 
-	public function getRoleId() {
-		return $this->role;
-	}
+    public function getRoleId()
+    {
+        return $this->role;
+    }
 
     public function getOrganizationMemberships()
     {
         return $this->memberships->toArray();
     }
 
-	public function getFlowCards(){
-		return $this->flowcards;
-	}
+    public function getFlowCards()
+    {
+        return $this->flowcards;
+    }
 
-    public function setRole($role){
+    public function setRole($role)
+    {
         $this->role = $role;
         return $this;
     }
 
-    public function addFlowCard(FlowCard $card){
-		$this->flowcards[] = $card;
-		return $this;
-	}
+    public function addFlowCard(FlowCard $card)
+    {
+        $this->flowcards[] = $card;
+        return $this;
+    }
 
-	public function getDislayedName()
-	{
-		$fullname = $this->getFirstname() . ' ' . $this->getLastname();
+    public function getDislayedName()
+    {
+        $fullname = $this->getFirstname() . ' ' . $this->getLastname();
 
-		if ($fullname != ' ') {
-			return $fullname;
-		}
+        if ($fullname != ' ') {
+            return $fullname;
+        }
 
-		return $this->getEmail();
-	}
+        return $this->getEmail();
+    }
 
-	public function getSecondaryEmails()
+    public function getSecondaryEmails()
     {
         return $this->secondaryEmails;
     }
 
-	public function hasSecondaryEmail($email)
+    public function hasSecondaryEmail($email)
     {
         if (is_null($this->secondaryEmails)) {
             return false;
@@ -319,7 +331,7 @@ class User extends BasicUser implements RoleInterface , ResourceInterface
         return array_search($email, $this->secondaryEmails)!==false;
     }
 
-	public function setSecondaryEmails($emails)
+    public function setSecondaryEmails($emails)
     {
         $this->secondaryEmails = $emails;
     }
@@ -335,8 +347,8 @@ class User extends BasicUser implements RoleInterface , ResourceInterface
         return $this->email;
     }
 
-	public function getResourceId()
-	{
-		return 'Ora\User';
-	}
+    public function getResourceId()
+    {
+        return 'Ora\User';
+    }
 }
