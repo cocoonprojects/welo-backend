@@ -40,7 +40,8 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "Test\\": "tests/functional/Test"
+      "Test\\": "tests/functional/Test",
+      "IntegrationTest\\": "tests/integration/Test"
     }
   }
 }

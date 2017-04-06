@@ -2,6 +2,7 @@
 
 namespace TaskManagement;
 
+use Rhumsaa\Uuid\Uuid;
 use TaskManagement\Controller\Console\RemindersController;
 use Guzzle\Http\Client;
 use IntegrationTest\Bootstrap;
@@ -18,109 +19,101 @@ use TaskManagement\Service\MailService;
 
 class ConsoleRemindersProcessTest extends \PHPUnit_Framework_TestCase
 {
+    private $controller;
+    private $owner;
+    private $member;
+    private $task;
+    private $taskService;
+    private $orgService;
+    private $mailService;
 
-	private $controller;
-	private $owner;
-	private $member;
-	private $task;
-	private $transactionManager;
-	private $taskService;
-	private $orgService;
-	private $mailService;
+    protected function setUp()
+    {
+        $serviceManager = Bootstrap::getServiceManager();
+        $this->mailService = $serviceManager->get('AcMailer\Service\MailService');
 
-	protected function setUp()
-	{
-		$serviceManager = Bootstrap::getServiceManager();
-		$this->mailService = $serviceManager->get('AcMailer\Service\MailService');
+        $this->mailcatcher = new Client('http://127.0.0.1:1080');
 
-		$this->mailcatcher = new Client('http://127.0.0.1:1080');
+        $this->organization = new Organization('1');
+        $this->organization->setName('Organization Name');
 
-		$this->organization = new Organization('1');
-		$this->organization->setName('Organization Name');
+        $this->stream = new EntityStream('1', $this->organization);
+        $this->stream->setSubject("Stream subject");
 
-		$this->stream = new EntityStream('1', $this->organization);
-		$this->stream->setSubject("Stream subject");
+        $this->owner = User::createUser(Uuid::uuid4(), 'john.doe@foo.com', 'John', 'Doe');
+        $this->owner->addMembership($this->organization);
 
-		$this->owner = User::create();
-		$this->owner->setFirstname('John');
-		$this->owner->setLastname('Doe');
-		$this->owner->setEmail('john.doe@foo.com');
-		$this->owner->addMembership($this->organization);
+        $this->member = User::createUser(Uuid::uuid4(), 'jane.doe@foo.com', 'Jane', 'Doe');
+        $this->member->addMembership($this->organization);
 
-		$this->member = User::create();
-		$this->member->setFirstname('Jane');
-		$this->member->setLastname('Doe');
-		$this->member->setEmail('jane.doe@foo.com');
-		$this->member->addMembership($this->organization);
+        $this->task = new EntityTask('1', $this->stream);
+        $this->task->setSubject('Lorem Ipsum Sic Dolor Amit');
+        $this->task->addMember($this->owner, TaskMember::ROLE_OWNER, $this->owner, new \DateTime());
+        $this->task->addMember($this->member, TaskMember::ROLE_MEMBER, $this->member, new \DateTime());
 
-		$this->task = new EntityTask('1', $this->stream);
-		$this->task->setSubject('Lorem Ipsum Sic Dolor Amit');
-		$this->task->addMember($this->owner, TaskMember::ROLE_OWNER, $this->owner, new \DateTime());
-		$this->task->addMember($this->member, TaskMember::ROLE_MEMBER, $this->member, new \DateTime());
+        $vote = new Vote(new \DateTime('today'));
+        $vote->setValue(1);
+        $this->task->addApproval($vote, $this->owner, new \DateTime('today'), 'Voto a favore');
 
-		$vote = new Vote(new \DateTime('today'));
-		$vote->setValue(1);
-		$this->task->addApproval($vote, $this->owner, new \DateTime('today'), 'Voto a favore');
+        $this->taskService = $this->getMockBuilder(TaskService::class)->getMock();
+        $this->orgService = $this->getMockBuilder(OrganizationService::class)->getMock();
 
-		$this->taskService = $this->getMockBuilder(TaskService::class)->getMock();
-		$this->orgService = $this->getMockBuilder(OrganizationService::class)->getMock();
+        $this->controller = new RemindersController(
+            $this->taskService,
+            $this->mailService,
+            $this->orgService
+        );
 
-		$this->controller = new RemindersController(
-			$this->taskService,
-			$this->mailService,
-			$this->orgService
-		);
+        $this->request = new ConsoleRequest();
 
-		$this->request = new ConsoleRequest();
-
-		$this->cleanEmailMessages();
-	}
+        $this->cleanEmailMessages();
+    }
 
 
-	protected function cleanEmailMessages()
-	{
-		$request = $this->mailcatcher->delete('/messages');
-		$response = $request->send();
-	}
+    protected function cleanEmailMessages()
+    {
+        $request = $this->mailcatcher->delete('/messages');
+        $response = $request->send();
+    }
 
-	protected function getEmailMessages()
-	{
-		$request = $this->mailcatcher->get('/messages');
-		$response = $request->send();
-		$json = json_decode($response->getBody());
-		return $json;
-	}
+    protected function getEmailMessages()
+    {
+        $request = $this->mailcatcher->get('/messages');
+        $response = $request->send();
+        $json = json_decode($response->getBody());
+        return $json;
+    }
 
-	public function assertEmailHtmlContains($needle, $email, $description = '')
-	{
-		$request = $this->mailcatcher->get("/messages/{$email->id}.html");
-		$response = $request->send();
-		$this->assertContains($needle, (string)$response->getBody(), $description);
-	}
+    public function assertEmailHtmlContains($needle, $email, $description = '')
+    {
+        $request = $this->mailcatcher->get("/messages/{$email->id}.html");
+        $response = $request->send();
+        $this->assertContains($needle, (string)$response->getBody(), $description);
+    }
 
-	public function testSendNotificationToUserWhoDidntVote()
-	{
-		$this->taskService
-			->method('findIdeasCreatedBetween')
-			->willReturn([$this->task]);
+    public function testSendNotificationToUserWhoDidntVote()
+    {
+        $this->taskService
+            ->method('findIdeasCreatedBetween')
+            ->willReturn([$this->task]);
 
-		$this->orgService
-			->method('findOrganizations')
-			->willReturn([$this->organization]);
+        $this->orgService
+            ->method('findOrganizations')
+            ->willReturn([$this->organization]);
 
-		ob_start();
+        ob_start();
 
-		$this->controller->sendAction();
+        $this->controller->sendAction();
 
-		$result = ob_get_clean();
+        $result = ob_get_clean();
 
-		$emails = $this->getEmailMessages();
+        $emails = $this->getEmailMessages();
 
-		$this->assertNotEmpty($emails);
-		$this->assertCount(1, $emails);
-		$this->assertContains($this->task->getSubject(), $emails[0]->subject);
-		$this->assertEmailHtmlContains('approval', $emails[0]);
-		$this->assertNotEmpty($emails[0]->recipients);
-		$this->assertEquals($emails[0]->recipients[0], '<jane.doe@foo.com>');
-	}
+        $this->assertNotEmpty($emails);
+        $this->assertCount(1, $emails);
+        $this->assertContains($this->task->getSubject(), $emails[0]->subject);
+        $this->assertEmailHtmlContains('approval', $emails[0]);
+        $this->assertNotEmpty($emails[0]->recipients);
+        $this->assertEquals($emails[0]->recipients[0], '<jane.doe@foo.com>');
+    }
 }

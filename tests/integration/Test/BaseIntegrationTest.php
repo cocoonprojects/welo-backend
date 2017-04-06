@@ -1,12 +1,15 @@
 <?php
 
-use IntegrationTest\Bootstrap;
+namespace IntegrationTest;
+
 use Zend\Http\Request;
 use Zend\Mvc\MvcEvent;
 use Zend\Mvc\Router\RouteMatch;
 use Zend\Uri\Http;
+use ZFX\Test\Authentication\AdapterMock;
+use ZFX\Test\Authentication\OAuth2AdapterMock;
 
-class BaseTaskProcessTest extends \PHPUnit_Framework_TestCase
+class BaseIntegrationTest extends \PHPUnit_Framework_TestCase
 {
     protected $controller;
     protected $event;
@@ -22,12 +25,14 @@ class BaseTaskProcessTest extends \PHPUnit_Framework_TestCase
     protected $userService;
     protected $organizationService;
     protected $kanbanizeService;
+    protected $authService;
 
     public function __construct()
     {
         $this->serviceManager = Bootstrap::getServiceManager();
         $this->transactionManager = $this->serviceManager->get('prooph.event_store');
 
+        $this->authService = $this->serviceManager->get('Zend\Authentication\AuthenticationService');
         $this->userService = $this->serviceManager->get('Application\UserService');
         $this->taskService = $this->serviceManager->get('TaskManagement\TaskService');
         $this->streamService = $this->serviceManager->get('TaskManagement\StreamService');
@@ -39,13 +44,20 @@ class BaseTaskProcessTest extends \PHPUnit_Framework_TestCase
     {
     }
 
-    protected function setupController($controllerName, $actionName)
+    protected function setupAuthenticatedUser($email)
+    {
+        $adapter = new AdapterMock();
+        $adapter->setEmail($email);
+        $this->authService->authenticate($adapter);
+    }
+
+    protected function setupController($controllerName, $route)
     {
         $this->controller = $this->serviceManager->get('ControllerManager')->get($controllerName);
 
         $this->request    = new Request();
 
-        $this->routeMatch = new RouteMatch(array('controller' => $actionName));
+        $this->routeMatch = new RouteMatch(array('controller' => $route));
         $this->event      = new MvcEvent();
         $config = $this->serviceManager->get('Config');
         $routerConfig = isset($config['router']) ? $config['router'] : array();
@@ -81,11 +93,14 @@ class BaseTaskProcessTest extends \PHPUnit_Framework_TestCase
         return $this->organizationService->createOrganization($name, $admin);
     }
 
-    protected function createStream($name, $organization, $admin, $serviceManager)
+    /**
+     * @param string $name
+     * @param \Application\Entity\Organization
+     * @param \Application\Entity\User $user
+     * @return Stream
+     */
+    protected function createStream($name, $organization, $admin)
     {
-        $stream = null;
-        $streamService = $serviceManager->get('TaskManagement\StreamService');
-
-        return $streamService->createStream($organization, $name, $admin);
+        return $this->streamService->createStream($organization, $name, $admin);
     }
 }

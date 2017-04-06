@@ -20,28 +20,31 @@ use Behat\Testwork\Tester\Setup\Teardown;
 use People\Organization;
 use TaskManagement\Stream;
 
-
 class TaskApprovalTaskProcessTest extends \BaseTaskProcessTest
-{	
+{
+    protected $task;
+    protected $author;
+    protected $admin;
+    protected $organization;
 
-	protected $task;
-	protected $author;
-	protected $admin;
-	protected $organization;
+    /**
+     * @var \DateInterval
+     */
+    protected $intervalForCloseTasks;
 
-	/**
-	 * @var \DateInterval
-	 */
-	protected $intervalForCloseTasks;
+    protected function setUp()
+    {
+        parent::setupController('TaskManagement\Controller\Approvals', 'invoke');
 
-	protected function setUp()
-	{
+        $this->admin = $this->userService->subscribeUser(
+            ['given_name' => 'Admin', 'family_name' => 'Uber', 'email' => TestFixturesHelper::generateRandomEmail()],
+            User::ROLE_ADMIN
+        );
 
-	    parent::setupController('TaskManagement\Controller\Approvals', 'invoke');
-
-
-	    $this->admin = $this->userService->create( [ 'given_name' => 'Admin', 'family_name' => 'Uber', 'email' => TestFixturesHelper::generateRandomEmail() ], User::ROLE_ADMIN );
-        $this->author = $this->userService->create( [ 'given_name' => 'John', 'family_name' => 'Doe', 'email' => TestFixturesHelper::generateRandomEmail() ], User::ROLE_USER );
+        $this->author = $this->userService->subscribeUser(
+            ['given_name' => 'John', 'family_name' => 'Doe', 'email' => TestFixturesHelper::generateRandomEmail()],
+            User::ROLE_USER
+        );
 
         $this->organization = $this->organizationService->createOrganization('approval', $this->admin);
         $this->organization->addMember($this->author, Organization::ROLE_MEMBER);
@@ -61,13 +64,13 @@ class TaskApprovalTaskProcessTest extends \BaseTaskProcessTest
         $this->authService = $this->serviceManager->get('Zend\Authentication\AuthenticationService');
         $this->authService->authenticate($adapter);
 
-		$transactionManager = $this->serviceManager->get('prooph.event_store');
+        $transactionManager = $this->serviceManager->get('prooph.event_store');
 
-		$transactionManager->beginTransaction();
-		try {
-			$task = Task::create($stream, 'Cras placerat libero non tempor', $this->author);
+        $transactionManager->beginTransaction();
+        try {
+            $task = Task::create($stream, 'Cras placerat libero non tempor', $this->author);
 
-			$this->task = $this->taskService->addTask($task);
+            $this->task = $this->taskService->addTask($task);
             $this->task->addApproval(Vote::VOTE_ABSTAIN, $this->admin, 'Voto a favore');
             $transactionManager->commit();
         } catch (\Exception $e) {
@@ -76,11 +79,12 @@ class TaskApprovalTaskProcessTest extends \BaseTaskProcessTest
             throw $e;
         }
 
-        $taskReadModel = $this->taskService->findTask ( $task->getId() );
-        $this->taskService->refreshEntity( $taskReadModel );
+        $taskReadModel = $this->taskService->findTask($task->getId());
+        $this->taskService->refreshEntity($taskReadModel);
     }
 
-	public function testTaskShouldBeApproved() {
+    public function testTaskShouldBeApproved()
+    {
         $this->routeMatch->setParam('id', $this->task->getId());
 
         $this->request->setMethod('post');
@@ -94,6 +98,5 @@ class TaskApprovalTaskProcessTest extends \BaseTaskProcessTest
 
         $this->assertEquals(201, $response->getStatusCode());
         $this->assertEquals(TaskInterface::STATUS_OPEN, $readModelTask->getStatus());
-	}
-
+    }
 }

@@ -9,73 +9,62 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class BasicUser
 {
-	/**
-	 * @ORM\Id @ORM\Column(type="string")
-	 * @var string
-	 */
-	protected $id;
-	/**
-	 * @ORM\Column(type="string", length=100, nullable=TRUE)
-	 * @var string
-	 */
-	protected $firstname;
-	/**
-	 * @ORM\Column(type="string", length=100, nullable=TRUE)
-	 * @var string
-	 */
-	protected $lastname;
+    /**
+     * @ORM\Id
+     * @ORM\Column(type="string")
+     */
+    protected $id;
 
-	/**
-	 * @param $id string
-	 * @return BasicUser
-	 */
-	public static function createBasicUser($id) {
-		$rv = new self();
-		$rv->id = $id;
-		return $rv;
-	}
+    /**
+     * @ORM\Column(type="string", length=100, nullable=TRUE)
+     */
+    protected $firstname;
 
-	/**
-	 * @return string
-	 */
-	public function getId()
-	{
-		return $this->id;
-	}
+    /**
+     * @ORM\Column(type="string", length=100, nullable=TRUE)
+     */
+    protected $lastname;
 
-	/**
-	 * @param string $firstname
-	 * @return $this
-	 */
-	public function setFirstname($firstname)
-	{
-		$this->firstname = $firstname;
-		return $this;
-	}
+    /**
+     * @param $id string
+     * @return BasicUser
+     */
+    public static function createBasicUser($id)
+    {
+        $rv = new self();
+        $rv->id = $id;
+        return $rv;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getFirstname()
-	{
-		return $this->firstname;
-	}
+    /**
+     * @return string
+     */
+    public function getId()
+    {
+        return $this->id;
+    }
 
-	/**
-	 * @param string $lastname
-	 * @return $this
-	 */
-	public function setLastname($lastname)
-	{
-		$this->lastname = $lastname;
-		return $this;
-	}
+    public function setFirstname($firstname)
+    {
+        $this->firstname = $firstname;
 
-	/**
-	 * @return string
-	 */
-	public function getLastname()
-	{
-		return $this->lastname;
-	}
+        return $this;
+    }
+
+    public function getFirstname()
+    {
+        return $this->firstname;
+    }
+
+    public function setLastname($lastname)
+    {
+        $this->lastname = $lastname;
+
+        return $this;
+    }
+
+    public function getLastname()
+    {
+        return $this->lastname;
+    }
 }

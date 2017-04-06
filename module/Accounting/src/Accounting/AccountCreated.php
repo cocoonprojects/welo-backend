@@ -4,10 +4,10 @@ namespace Accounting;
 use Prooph\EventSourcing\AggregateChanged;
 
 /**
- * 
+ *
  * @author andreabandera
  *
  */
-class AccountCreated extends AggregateChanged {
-	
+class AccountCreated extends AggregateChanged
+{
 }

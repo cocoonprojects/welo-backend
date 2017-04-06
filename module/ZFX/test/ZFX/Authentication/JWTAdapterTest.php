@@ -2,11 +2,11 @@
 
 namespace ZFX\Authentication;
 
-
 use Application\Authentication\OAuth2\LoadLocalProfileListener;
 use Application\Entity\User;
 use Application\Service\UserService;
 use Namshi\JOSE\SimpleJWS;
+use Rhumsaa\Uuid\Uuid;
 use Zend\Authentication\Result;
 
 /**
@@ -16,10 +16,8 @@ use Zend\Authentication\Result;
  */
 class JWTAdapterTest extends \PHPUnit_Framework_TestCase
 {
-	/**
-	 * @var string
-	 */
-	private $publicKey = "-----BEGIN PUBLIC KEY-----
+    private $publicKey = <<< 'EOT'
+-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA8SJjXkniIeE6mEOvOuB9
 40kni2v0E+UwqNrrmdJ49quZP48d55k7t+OI9OFgQYLV7DW6u0tMGrvnuC+MD7nr
 FrwbSk74mO95C0C7TuU0k5S3OXFhe72z34aibVXX+3oR0m1FU6qAuKqXkP8+Z5zJ
@@ -27,24 +25,11 @@ vSKy1i+EUD1zhkjdFhJ4z6ZsoHEpVrnkI0QrUnWkKancw+e5BcR4uFbi3hgXdkIL
 Hsf4L4YeW9Tds4MOUEymm/hAcc4JXn95cDbOO51/Z+C6YPyjkWdzUHQ7TDaaboQT
 WY2YYeEi31dEvdcFM+ASmDkvcnftAbZVmDi8oJzksztA1nmUoD8XQzTXxBOTSFGS
 nwIDAQAB
------END PUBLIC KEY-----";
-	/**
-	 * @var JWTAdapter
-	 */
-	private $adapter;
-	/**
-	 * @var LoadLocalProfileListener
-	 */
-	private $listener;
-	/**
-	 * @var JWTBuilder
-	 */
-	private $builder;
+-----END PUBLIC KEY-----
+EOT;
 
-	protected function setUp()
-	{
-		$this->builder = new JWTBuilder(
-			"-----BEGIN RSA PRIVATE KEY-----
+    private $privateKey = <<< 'EOT'
+-----BEGIN RSA PRIVATE KEY-----
 MIIEpQIBAAKCAQEA8SJjXkniIeE6mEOvOuB940kni2v0E+UwqNrrmdJ49quZP48d
 55k7t+OI9OFgQYLV7DW6u0tMGrvnuC+MD7nrFrwbSk74mO95C0C7TuU0k5S3OXFh
 e72z34aibVXX+3oR0m1FU6qAuKqXkP8+Z5zJvSKy1i+EUD1zhkjdFhJ4z6ZsoHEp
@@ -70,97 +55,111 @@ yZYw6P1gPCiOs+Ml7BZ8jvGdQfwW3oVCaj0i/Otn9miQgCl9AQ4ZBAnWkaZ/68Lf
 +5CSRfkCgYEAngpwml1MunLUO1gFYk5PS0Elq6bjR7bEe8JegvqfqeM8IILpSyXo
 NIWpPWGtI3X48gQiw0BdbrQkDJI76Qa/xcn0yIt+Z1dw5Uhxf2PsKJEhBaLvToTz
 oGYZDHe7A05BzL5PD8vI3SeazAlpLidU6L40eZUeYj3+S7cthNr9MVU=
------END RSA PRIVATE KEY-----");
-		$this->adapter = new JWTAdapter($this->publicKey);
-		$googleClient = new \Google_Client();
-		$userService = $this->getMockBuilder(UserService::class)->getMock();
-		$this->listener = new LoadLocalProfileListener($userService, $googleClient);
-		$this->listener->attach($this->adapter->getEventManager());
-	}
+-----END RSA PRIVATE KEY-----
+EOT;
 
-	public function testAuthenticate()
-	{
-		$user = User::create();
+    private $adapter;
 
-		$this->listener->getUserService()
-			->method('findUser')
-			->willReturn($user);
+    private $listener;
 
-		$token = $this->builder->buildJWT($user);
+    private $builder;
 
-		$this->adapter->setToken($token);
-		$result = $this->adapter->authenticate();
+    private $userService;
 
-		$this->assertEquals(Result::SUCCESS, $result->getCode());
-		$this->assertEquals($user, $result->getIdentity());
-	}
+    protected function setUp()
+    {
+        $this->builder = new JWTBuilder($this->privateKey);
+        $this->adapter = new JWTAdapter($this->publicKey);
+        $this->userService = $this->getMockBuilder(UserService::class)->getMock();
 
-	public function testAuthenticateWithExpiredToken()
-	{
-		$jwt = new SimpleJWS([
-			'alg' => $this->builder->getAlgorithm()
-		]);
+        $this->listener = new LoadLocalProfileListener($this->userService);
 
-		$expireAt = new \DateTime();
-		$expireAt->sub(new \DateInterval('P1D'));
+        $this->listener->attach($this->adapter->getEventManager());
+    }
 
-		$jwt->setPayload([
-			'uid' => '1',
-			'exp' => $expireAt->format('U')
-		]);
-		$jwt->sign($this->builder->getPrivateKey());
-		$token = $jwt->getTokenString();
+    public function testAuthenticate()
+    {
+        $user = User::createUser(Uuid::uuid4());
 
-		$this->adapter->setToken($token);
-		$result = $this->adapter->authenticate();
+        $this->userService
+             ->method('findUser')
+             ->willReturn($user);
 
-		$this->assertEquals(Result::FAILURE_CREDENTIAL_INVALID, $result->getCode());
-		$this->assertNull($result->getIdentity());
-	}
+        $token = $this->builder->buildJWT($user);
 
-	public function testAuthenticateWithNotExistingIdentity()
-	{
-		$this->listener->getUserService()
-			->method('findUser')
-			->willReturn(null);
+        $this->adapter->setToken($token);
+        $result = $this->adapter->authenticate();
 
-		$user = User::create();
-		$token = $this->builder->buildJWT($user);
+        $this->assertEquals(Result::SUCCESS, $result->getCode());
+        $this->assertEquals($user, $result->getIdentity());
+    }
 
-		$this->adapter->setToken($token);
-		$result = $this->adapter->authenticate();
+    public function testAuthenticateWithExpiredToken()
+    {
+        $jwt = new SimpleJWS([
+            'alg' => $this->builder->getAlgorithm()
+        ]);
 
-		$this->assertEquals(Result::FAILURE_IDENTITY_NOT_FOUND, $result->getCode());
-		$this->assertNull($result->getIdentity());
-	}
+        $expireAt = new \DateTime();
+        $expireAt->sub(new \DateInterval('P1D'));
 
-	public function testParseCorruptedToken()
-	{
-		$jwt = new SimpleJWS([
-			'alg' => $this->builder->getAlgorithm()
-		]);
+        $jwt->setPayload([
+            'uid' => '1',
+            'exp' => $expireAt->format('U')
+        ]);
+        $jwt->sign($this->builder->getPrivateKey());
+        $token = $jwt->getTokenString();
 
-		$expireAt = new \DateTime();
-		$expireAt->add(new \DateInterval('P1D'));
+        $this->adapter->setToken($token);
+        $result = $this->adapter->authenticate();
 
-		$jwt->setPayload([
-			'uid' => '1',
-			'exp' => $expireAt->format('U')
-		]);
-		$jwt->sign($this->builder->getPrivateKey());
-		$token = $jwt->getTokenString();
+        $this->assertEquals(Result::FAILURE_CREDENTIAL_INVALID, $result->getCode());
+        $this->assertNull($result->getIdentity());
+    }
 
-		$jwt->setPayload([
-			'uid' => '2',
-		]);
-		$editedToken = $jwt->getTokenString();
+    public function testAuthenticateWithNotExistingIdentity()
+    {
+        $this->userService
+            ->method('findUser')
+            ->willReturn(null);
 
-		$token = substr($editedToken, 0, strrpos($editedToken, '.')) . substr($token, strrpos($token, '.'));
+        $user = User::createUser(Uuid::uuid4());
+        $token = $this->builder->buildJWT($user);
 
-		$this->adapter->setToken($token);
-		$result = $this->adapter->authenticate();
+        $this->adapter->setToken($token);
+        $result = $this->adapter->authenticate();
 
-		$this->assertEquals(Result::FAILURE_CREDENTIAL_INVALID, $result->getCode());
-		$this->assertNull($result->getIdentity());
-	}
+        $this->assertEquals(Result::FAILURE_IDENTITY_NOT_FOUND, $result->getCode());
+        $this->assertNull($result->getIdentity());
+    }
+
+    public function testParseCorruptedToken()
+    {
+        $jwt = new SimpleJWS([
+            'alg' => $this->builder->getAlgorithm()
+        ]);
+
+        $expireAt = new \DateTime();
+        $expireAt->add(new \DateInterval('P1D'));
+
+        $jwt->setPayload([
+            'uid' => '1',
+            'exp' => $expireAt->format('U')
+        ]);
+        $jwt->sign($this->builder->getPrivateKey());
+        $token = $jwt->getTokenString();
+
+        $jwt->setPayload([
+            'uid' => '2',
+        ]);
+        $editedToken = $jwt->getTokenString();
+
+        $token = substr($editedToken, 0, strrpos($editedToken, '.')) . substr($token, strrpos($token, '.'));
+
+        $this->adapter->setToken($token);
+        $result = $this->adapter->authenticate();
+
+        $this->assertEquals(Result::FAILURE_CREDENTIAL_INVALID, $result->getCode());
+        $this->assertNull($result->getIdentity());
+    }
 }

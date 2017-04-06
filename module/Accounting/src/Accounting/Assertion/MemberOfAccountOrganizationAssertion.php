@@ -9,9 +9,8 @@ use Zend\Permissions\Acl\Role\RoleInterface;
 
 class MemberOfAccountOrganizationAssertion implements AssertionInterface
 {
-	public function assert(Acl $acl, RoleInterface $user = null, ResourceInterface $resource = null, $privilege = null)
-	{
-		return $user->isMemberOf($resource->getOrganization());
-	}
-	
+    public function assert(Acl $acl, RoleInterface $user = null, ResourceInterface $resource = null, $privilege = null)
+    {
+        return $user->isMemberOf($resource->getOrganization());
+    }
 }
