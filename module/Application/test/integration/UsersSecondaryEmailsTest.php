@@ -8,7 +8,7 @@ use Test\TestFixturesHelper;
 use Zend\Http\Request;
 
 
-class UsersTest extends BaseIntegrationTest
+class UsersSecondaryEmailsTest extends BaseIntegrationTest
 {
     protected $request;
 
@@ -36,13 +36,44 @@ class UsersTest extends BaseIntegrationTest
 	    $testEmail2 = TestFixturesHelper::generateRandomEmail();
         $this->assertFalse($this->user->hasSecondaryEmail($testEmail));
 
+        $result   = $this->controller->getList();
+        $this->assertEquals(
+            [
+                'id' => $this->user->getId(),
+                'secondaryEmails' => []
+            ],
+            $result->getVariables()
+        );
+
+
         $result   = $this->controller->replaceList([ $testEmail, $testEmail2 ]);
         $response = $this->controller->getResponse();
 
         $this->assertEquals(200, $response->getStatusCode());
+        $this->assertEquals(
+            [
+                'id' => $this->user->getId(),
+                'secondaryEmails' => [ $testEmail, $testEmail2 ]
+            ],
+            $result->getVariables()
+        );
+
+
+        $result   = $this->controller->getList();
+
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertEquals(
+            [
+                'id' => $this->user->getId(),
+                'secondaryEmails' => [ $testEmail, $testEmail2 ]
+            ],
+            $result->getVariables()
+        );
+
 
         $this->user = $this->userService->findUser($this->user->getId());
         $this->assertTrue($this->user->hasSecondaryEmail($testEmail));
+
 
         $result   = $this->controller->replaceList([ $testEmail2 ]);
 

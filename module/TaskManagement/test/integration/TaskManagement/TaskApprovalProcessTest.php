@@ -40,12 +40,12 @@ class TaskApprovalTaskProcessTest extends \BaseTaskProcessTest
 	    parent::setupController('TaskManagement\Controller\Approvals', 'invoke');
 
 	    $this->admin = $this->userService->subscribeUser(
-            ['given_name' => 'Admin', 'family_name' => 'Uber', 'email' => 'admin@foo.com'],
+            ['given_name' => 'Admin', 'family_name' => 'Uber', 'email' => TestFixturesHelper::generateRandomEmail()],
             User::ROLE_ADMIN
         );
 
         $this->author = $this->userService->subscribeUser(
-            ['given_name' => 'John', 'family_name' => 'Doe', 'email' => 'nobody@foo.com'],
+            ['given_name' => 'John', 'family_name' => 'Doe', 'email' => TestFixturesHelper::generateRandomEmail()],
             User::ROLE_USER
         );
 

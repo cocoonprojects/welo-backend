@@ -22,6 +22,7 @@ use Zend\Validator\Regex as UuidValidator;
 use Zend\Validator\ValidatorChain;
 use Kanbanize\Service\KanbanizeService;
 use Kanbanize\KanbanizeTask as KanbanizeTask;
+use Zend\View\Model\JsonModel;
 use ZFX\Rest\Controller\HATEOASRestfulController;
 
 class UsersSecondaryEmailsController extends HATEOASRestfulController
@@ -58,7 +59,8 @@ class UsersSecondaryEmailsController extends HATEOASRestfulController
         $user = $this->userService->findUser($this->identity()->getId());
 
         return new JsonModel([
-            'user' => $user->getSecondaryEmalis()
+            'id' => $user->getId(),
+            'secondaryEmails' => $user->getSecondaryEmails()
         ]);
     }
 
@@ -76,6 +78,11 @@ class UsersSecondaryEmailsController extends HATEOASRestfulController
         $user->setSecondaryEmails($emails);
 
         $this->userService->updateUser($user);
+
+        return new JsonModel([
+            'id' => $user->getId(),
+            'secondaryEmails' => $user->getSecondaryEmails()
+        ]);
     }
 
 
