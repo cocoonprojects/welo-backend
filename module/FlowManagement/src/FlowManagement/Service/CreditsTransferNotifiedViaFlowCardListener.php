@@ -75,6 +75,8 @@ class CreditsTransferNotifiedViaFlowCardListener implements ListenerAggregateInt
         $payer = $payerAccount->holders()->first();
         $org = $payerAccount->getOrganization();
 
+        $flowCard = CreditsSubtractedCard::create(Uuid::uuid4(), $data['amount'], $payer, $org, $by);
+
         $data = [
             'userName' => $by->getFirstName() . ' ' . $by->getLastName(),
             'orgName'  => $org->getName(),
@@ -105,15 +107,7 @@ class CreditsTransferNotifiedViaFlowCardListener implements ListenerAggregateInt
         $payee = $payeeAccount->holders()->first();
         $org = $payeeAccount->getOrganization();
 
-        $data = [
-            'userName' => $by->getFirstName() . ' ' . $by->getLastName(),
-            'orgName'  => $org->getName(),
-            'amount'   => abs($data['amount']),
-        ];
-
-        $flowCard = new CreditsAddedCard(Uuid::uuid4(), $payee);
-        $flowCard->setContent(FlowCardInterface::CREDITS_ADDED_CARD, $data);
-        $flowCard->setCreatedBy($by);
+        $flowCard = CreditsAddedCard::create(Uuid::uuid4(), $data['amount'], $payee, $org, $by);
 
         $this->entityManager->persist($flowCard);
         $this->entityManager->flush();

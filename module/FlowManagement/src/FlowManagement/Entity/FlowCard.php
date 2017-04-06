@@ -5,7 +5,6 @@ namespace FlowManagement\Entity;
 use Doctrine\ORM\Mapping AS ORM;
 use Application\Entity\User;
 use Application\Entity\DomainEntity;
-use Rhumsaa\Uuid\Uuid;
 use FlowManagement\FlowCardInterface;
 use TaskManagement\Entity\Task;
 
@@ -49,6 +48,7 @@ abstract class FlowCard extends DomainEntity implements FlowCardInterface{
 	 * @var Task
 	 */
 	protected $item;
+
 	/**
 	 * @ORM\Column(type="boolean")
 	 * @var string
@@ -115,5 +115,6 @@ abstract class FlowCard extends DomainEntity implements FlowCardInterface{
 	public function show(){
 		$this->hidden = false;
 	}
+
 	abstract public function serialize();
 }

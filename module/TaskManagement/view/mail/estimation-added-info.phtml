@@ -1,4 +1,4 @@
-<?php $link = $this->router->url($this->host, $this->task); ?>
+<?php $link = $this->router->item($this->task); ?>
 
 <p>Hi <?php echo $this->recipient->getFirstname()?>,<br>
     <a href="<?= $link ?>">"<?= $this->task->getSubject()?>"</a> item has an important update: <b><?php echo $this->member->getFirstname()?> <?php echo $this->member->getLastname()?></b> just estimated the item.</p>

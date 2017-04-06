@@ -2,6 +2,7 @@
 
 namespace FlowManagement\Controller;
 
+use Application\Service\FrontendRouter;
 use FlowManagement\Service\FlowService;
 use ZFX\Test\Controller\ControllerTest;
 use Application\Entity\User;
@@ -16,9 +17,11 @@ class CardControllerTest extends ControllerTest {
 	private $user;
 	private $organization;
 	
-	protected function setupController(){
+	protected function setupController() {
 		$flowServiceStub = $this->getMockBuilder(FlowService::class)->getMock();
-		return new CardsController($flowServiceStub);
+		$feRouter = $this->getMockBuilder(FrontendRouter::class)->getMock();
+
+		return new CardsController($flowServiceStub, $feRouter);
 	}
 	
 	protected function setupRouteMatch()
@@ -98,8 +101,7 @@ class CardControllerTest extends ControllerTest {
 		$this->assertEquals("Do you want this work item idea to be opened?", $flowcardResult['content']['actions']['primary']['text']);
 		$this->assertEquals($this->organization->getId(), $flowcardResult['content']['actions']['primary']['orgId']);
 		$this->assertEquals($item->getId(), $flowcardResult['content']['actions']['primary']['itemId']);
-		$this->assertEmpty($flowcardResult['content']['actions']['secondary']);
-		
+
 	}
 	
 	public function testGetListFromFlowAsAnonymous(){

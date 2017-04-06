@@ -32,11 +32,16 @@ class SendMailListener implements ListenerAggregateInterface
 
 	protected $listeners = array ();
 
-	public function __construct(MailService $mailService, UserService $userService, OrganizationService $organizationService) {
-		$this->mailService = $mailService;
+	public function __construct(
+	    MailService $mailService,
+        UserService $userService,
+        OrganizationService $organizationService,
+        FrontendRouter $feRouter) {
+
+	    $this->mailService = $mailService;
 		$this->userService = $userService;
 		$this->organizationService = $organizationService;
-		$this->feRouter = new FrontendRouter();
+		$this->feRouter = $feRouter;
 
 	}
 

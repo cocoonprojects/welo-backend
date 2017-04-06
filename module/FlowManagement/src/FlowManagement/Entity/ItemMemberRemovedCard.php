@@ -10,10 +10,10 @@ use FlowManagement\FlowCardInterface;
  */
 class ItemMemberRemovedCard extends FlowCard {
 
-	public function serialize() {
-
+	public function serialize()
+    {
 		$type = FlowCardInterface::ITEM_MEMBER_REMOVED_CARD;
-		$content = $this->getContent();
+		$content = $this->getContent()[$type];
 		$item = $this->getItem();
 
 		$rv = [];
@@ -22,14 +22,13 @@ class ItemMemberRemovedCard extends FlowCard {
 		$rv['id'] = $this->getId();
 		$rv['title'] = "Member removed from \"{$item->getSubject()}\"";
 		$rv['content'] = [
-			'description' => "The user {$content[$type]['userName']} is no more a member of this item",
+			'description' => "The user {$content['userName']} is no more a member of this item",
 			'actions' => [
 				'primary' => [
 					'text' => '',
-					'orgId' => $content[$type]['orgId'],
+					'orgId' => $content['orgId'],
 					'itemId' => $item->getId()
 				],
-				'secondary' => []
 			],
 		];
 

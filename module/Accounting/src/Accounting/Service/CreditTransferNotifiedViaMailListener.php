@@ -17,42 +17,32 @@ use Accounting\OutgoingCreditsTransferred;
 
 class CreditTransferNotifiedViaMailListener implements ListenerAggregateInterface
 {
-	/**
-	 * @var MailServiceInterface
-	 */
 	private $mailService;
-	/**
-	 * @var UserService
-	 */
+
 	private $userService;
-	/**
-	 * @var OrganizationService
-	 */
+
 	private $orgService;
 
 	private $accountService;
 
-	/**
-	 * @var array
-	 */
 	protected $listeners = [];
-	/**
-	 * @var string
-	 */
+
+	protected $feRouter;
+
 	protected $host;
 	
 	public function __construct(
 	    MailServiceInterface $mailService,
         UserService $userService,
         OrganizationService $orgService,
-        AccountService $accountService) {
+        AccountService $accountService,
+        FrontendRouter $feRouter) {
 
 	    $this->mailService = $mailService;
 		$this->userService = $userService;
 		$this->orgService = $orgService;
 		$this->accountService = $accountService;
-
-        $this->feRouter = new FrontendRouter();
+        $this->feRouter = $feRouter;
 	}
 	
 	public function attach(EventManagerInterface $events) {

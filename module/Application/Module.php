@@ -7,6 +7,7 @@ use Application\Controller\AuthController;
 use Application\Controller\MembershipsController;
 use Application\Service\DomainEventDispatcher;
 use Application\Service\EventSourcingUserService;
+use Application\Service\FrontendRouter;
 use Zend\Authentication\AuthenticationService;
 use Zend\Authentication\Storage\NonPersistent;
 use Zend\Http\Request;
@@ -18,7 +19,6 @@ use ZFX\Authentication\GoogleJWTAdapter;
 use ZFX\Authentication\JWTAdapter;
 use ZFX\EventStore\Controller\Plugin\EventStoreTransactionPlugin;
 use Zend\Console\Request as ConsoleRequest;
-use FlowManagement\Service\CardCommandsListener;
 
 
 class Module {
@@ -124,6 +124,12 @@ class Module {
 							$rv->setStorage ( new NonPersistent () );
 							return $rv;
 						},
+						'Application\FrontendRouter' => function($serviceLocator) {
+
+                            $config = $serviceLocator->get('Config');
+
+						    return new FrontendRouter($config['mail_domain']);
+                        },
 						'Application\Service\AdapterResolver' => 'Application\Service\OAuth2AdapterResolverFactory',
 						'Application\Service\Acl' => 'Application\Service\AclFactory',
 						'Application\UserService' => function ($serviceLocator) {

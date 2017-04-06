@@ -66,7 +66,7 @@ class NotifyMailListenerTest extends \PHPUnit_Framework_TestCase {
 		$this->task->addMember($this->owner, TaskMember::ROLE_OWNER, $this->owner, new \DateTime());
 		$this->task->addMember($this->member, TaskMember::ROLE_MEMBER, $this->member, new \DateTime());
 
-        $this->feRouter = new FrontendRouter();
+        $this->feRouter = $this->getMockBuilder(FrontendRouter::class)->getMock();
 
 		$mailService = $this->getMockBuilder(MailServiceInterface::class)->getMock();
 		$mailService->expects($this->atLeastOnce())
@@ -82,7 +82,14 @@ class NotifyMailListenerTest extends \PHPUnit_Framework_TestCase {
 
 		$this->orgService = $this->getMockBuilder(OrganizationService::class)->getMock();
 
-		$this->service = new NotifyMailListener($mailService, $userService, $taskService, $this->orgService);
+		$this->service = new NotifyMailListener(
+		    $mailService,
+            $userService,
+            $taskService,
+            $this->orgService,
+            $this->feRouter
+        );
+
 		$this->service->setHost('http://example.com');
 	}
 

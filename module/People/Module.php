@@ -73,7 +73,13 @@ class Module
 					$mailService = $serviceLocator->get('AcMailer\Service\MailService');
 					$userService = $serviceLocator->get('Application\UserService');
 					$organizationService = $serviceLocator->get('People\OrganizationService');
-					return new SendMailListener($mailService, $userService, $organizationService);
+
+					return new SendMailListener(
+					    $mailService,
+                        $userService,
+                        $organizationService,
+                        $serviceLocator->get('Application\FrontendRouter')
+                    );
 				}
 			],
 		];
