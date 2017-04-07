@@ -12,12 +12,21 @@ $targets = array(
             'rsync_exclude_file' => 'deploy_exclude'
         ),
     ),
-    'stage-welo' => array(
+    'stage' => array(
         'hosts' => array('10.250.2.44'),
         'ssh_params' => ['user' => 'cocoon'],
         'deploy' => array(
             'local_base_dir' => __DIR__,
-            'remote_base_dir' => '/var/www/vhosts/welo/',
+            'remote_base_dir' => '/var/www/vhosts/welo-stage/',
+            'rsync_exclude_file' => 'deploy_exclude'
+        ),
+    ),
+    'prod' => array(
+        'hosts' => array('10.250.2.44'),
+        'ssh_params' => ['user' => 'cocoon'],
+        'deploy' => array(
+            'local_base_dir' => __DIR__,
+            'remote_base_dir' => '/var/www/vhosts/welo-prod/',
             'rsync_exclude_file' => 'deploy_exclude'
         ),
     ),
