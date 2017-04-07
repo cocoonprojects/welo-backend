@@ -17,16 +17,13 @@ return array(
                     ),
                 ),
             ),
-            'usersemails' => [
+            'user_emails' => [
                 'type' => 'Segment',
                 'options' => [
-                    'route'       => '/useremails[/:userId]',
-                    'constraints' => [
-                        'userId' => '([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})',
-                    ],
+                    'route'       => '/users/me/emails',
                     'defaults' => [
                         '__NAMESPACE__' => 'Application\Controller',
-                        'controller' => 'Users'
+                        'controller' => 'UsersSecondaryEmails'
                     ],
                 ],
             ],

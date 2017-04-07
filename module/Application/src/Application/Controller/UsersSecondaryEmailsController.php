@@ -29,7 +29,7 @@ class UsersSecondaryEmailsController extends HATEOASRestfulController
 {
     protected static $collectionOptions = [
             'GET',
-            'POST'
+            'PUT'
     ];
     protected static $resourceOptions = [
             'DELETE',

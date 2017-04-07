@@ -265,6 +265,7 @@ class MembersController extends OrganizationAwareController
 			'firstname' => $membership->getMember()->getFirstname(),
 			'lastname'  => $membership->getMember()->getLastname(),
 			'email'     => $membership->getMember()->getEmail(),
+			'secondaryEmails'     => $membership->getMember()->getSecondaryEmails(),
 			'picture'   => $membership->getMember()->getPicture(),
 			'role'      => $membership->getRole(),
 			'createdAt' => date_format($membership->getCreatedAt(), 'c'),
