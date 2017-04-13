@@ -14,6 +14,7 @@ use Zend\Filter\StringTrim;
 use Zend\Filter\StripNewlines;
 use Zend\Filter\StripTags;
 use Zend\I18n\Validator\IsInt;
+use Zend\Json\Json;
 use Zend\Validator\EmailAddress;
 use Zend\Validator\GreaterThan;
 use Zend\Validator\InArray as StatusValidator;
@@ -71,6 +72,16 @@ class UsersSecondaryEmailsController extends HATEOASRestfulController
             $this->response->setStatusCode(401);
 
             return $this->response;
+        }
+
+        foreach ($emails as $email) {
+            if ($found = $this->userService->findUserByEmail($email)) {
+                $this->response->setStatusCode(401);
+                $this->response->setContent(
+                    Json::encode([ 'wrongEmail' => $email ])
+                );
+                return $this->response;
+            }
         }
 
         $user = $this->identity();

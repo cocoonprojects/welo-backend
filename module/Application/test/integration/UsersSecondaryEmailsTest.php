@@ -80,4 +80,45 @@ class UsersSecondaryEmailsTest extends BaseIntegrationTest
         $this->assertFalse($this->user->hasSecondaryEmail($testEmail));
         $this->assertTrue($this->user->hasSecondaryEmail($testEmail2));
     }
+
+
+    public function testCannotAddExistingEmailAsSecondary()
+    {
+        $existingUser = $this->createUser([ 'given_name' => 'Blue', 'family_name' => 'Earth', 'email' => TestFixturesHelper::generateRandomEmail() ], User::ROLE_USER);
+
+        $testEmail = TestFixturesHelper::generateRandomEmail();
+        $testEmail2 = TestFixturesHelper::generateRandomEmail();
+        $this->assertFalse($this->user->hasSecondaryEmail($testEmail));
+
+        $result   = $this->controller->getList();
+
+        $this->assertEquals(
+            [
+                'id' => $this->user->getId(),
+                'secondaryEmails' => []
+            ],
+            $result->getVariables()
+        );
+
+
+        $result   = $this->controller->replaceList([ $testEmail, $existingUser->getEmail() ]);
+        $status = $this->controller->getResponse()->getStatusCode();
+
+        $this->assertEquals(401, $status);
+        $this->assertEquals(
+            '{"wrongEmail":"'.$existingUser->getEmail().'"}',
+            $result->getContent()
+        );
+
+        
+        $result   = $this->controller->getList();
+
+        $this->assertEquals(
+            [
+                'id' => $this->user->getId(),
+                'secondaryEmails' => []
+            ],
+            $result->getVariables()
+        );
+    }
 }
