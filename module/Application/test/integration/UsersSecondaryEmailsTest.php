@@ -45,7 +45,7 @@ class UsersSecondaryEmailsTest extends BaseIntegrationTest
         );
 
 
-        $result   = $this->controller->replaceList([ $testEmail, $testEmail2 ]);
+        $result = $this->controller->replaceList([ $testEmail, $testEmail2 ]);
         $response = $this->controller->getResponse();
 
         $this->assertEquals(200, $response->getStatusCode());
@@ -59,6 +59,7 @@ class UsersSecondaryEmailsTest extends BaseIntegrationTest
 
 
         $result   = $this->controller->getList();
+        $this->user = $this->userService->findUser($this->user->getId());
 
         $this->assertEquals(200, $response->getStatusCode());
         $this->assertEquals(
@@ -68,15 +69,15 @@ class UsersSecondaryEmailsTest extends BaseIntegrationTest
             ],
             $result->getVariables()
         );
-
-
-        $this->user = $this->userService->findUser($this->user->getId());
         $this->assertTrue($this->user->hasSecondaryEmail($testEmail));
+        $this->assertTrue($this->user->hasSecondaryEmail($testEmail2));
 
 
-        $result   = $this->controller->replaceList([ $testEmail2 ]);
-
+        $result = $this->controller->replaceList([ $testEmail2 ]);
+        $response = $this->controller->getResponse();
         $this->user = $this->userService->findUser($this->user->getId());
+
+        $this->assertEquals(200, $response->getStatusCode());
         $this->assertFalse($this->user->hasSecondaryEmail($testEmail));
         $this->assertTrue($this->user->hasSecondaryEmail($testEmail2));
     }
@@ -87,7 +88,7 @@ class UsersSecondaryEmailsTest extends BaseIntegrationTest
         $existingUser = $this->createUser([ 'given_name' => 'Blue', 'family_name' => 'Earth', 'email' => TestFixturesHelper::generateRandomEmail() ], User::ROLE_USER);
 
         $testEmail = TestFixturesHelper::generateRandomEmail();
-        $testEmail2 = TestFixturesHelper::generateRandomEmail();
+
         $this->assertFalse($this->user->hasSecondaryEmail($testEmail));
 
         $result   = $this->controller->getList();
@@ -102,12 +103,14 @@ class UsersSecondaryEmailsTest extends BaseIntegrationTest
 
 
         $result   = $this->controller->replaceList([ $testEmail, $existingUser->getEmail() ]);
-        $status = $this->controller->getResponse()->getStatusCode();
+        $response = $this->controller->getResponse();
 
-        $this->assertEquals(401, $status);
+
+
+        $this->assertEquals(401, $response->getStatusCode());
         $this->assertEquals(
-            '{"wrongEmail":"'.$existingUser->getEmail().'"}',
-            $result->getContent()
+            "email address {$existingUser->getEmail()} already in use by another account",
+            $response->getReasonPhrase()
         );
 
         

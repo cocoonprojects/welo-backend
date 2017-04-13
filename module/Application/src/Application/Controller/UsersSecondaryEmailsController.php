@@ -75,10 +75,10 @@ class UsersSecondaryEmailsController extends HATEOASRestfulController
         }
 
         foreach ($emails as $email) {
-            if ($found = $this->userService->findUserByEmail($email)) {
+            if ($found = $this->userService->findUserByMainEmail($email)) {
                 $this->response->setStatusCode(401);
-                $this->response->setContent(
-                    Json::encode([ 'wrongEmail' => $email ])
+                $this->response->setReasonPhrase(
+                    "email address $email already in use by another account"
                 );
                 return $this->response;
             }
