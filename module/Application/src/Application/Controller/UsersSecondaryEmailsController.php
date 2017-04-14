@@ -74,8 +74,12 @@ class UsersSecondaryEmailsController extends HATEOASRestfulController
             return $this->response;
         }
 
+        $loggedUser = $this->identity();
+
         foreach ($emails as $email) {
-            if ($found = $this->userService->findUserByMainEmail($email)) {
+            $userFound = $this->userService->findUserByEmail($email);
+
+            if ($userFound && $userFound->getId()!=$loggedUser->getId()) {
                 $this->response->setStatusCode(401);
                 $this->response->setReasonPhrase(
                     "email address $email already in use by another account"
@@ -84,15 +88,14 @@ class UsersSecondaryEmailsController extends HATEOASRestfulController
             }
         }
 
-        $user = $this->identity();
 
-        $user->setSecondaryEmails($emails);
+        $loggedUser->setSecondaryEmails($emails);
 
-        $this->userService->updateUser($user);
+        $this->userService->updateUser($loggedUser);
 
         return new JsonModel([
-            'id' => $user->getId(),
-            'secondaryEmails' => $user->getSecondaryEmails()
+            'id' => $loggedUser->getId(),
+            'secondaryEmails' => $loggedUser->getSecondaryEmails()
         ]);
     }
 
