@@ -14,6 +14,7 @@ use Zend\Filter\StringTrim;
 use Zend\Filter\StripNewlines;
 use Zend\Filter\StripTags;
 use Zend\I18n\Validator\IsInt;
+use Zend\Json\Json;
 use Zend\Validator\EmailAddress;
 use Zend\Validator\GreaterThan;
 use Zend\Validator\InArray as StatusValidator;
@@ -73,15 +74,28 @@ class UsersSecondaryEmailsController extends HATEOASRestfulController
             return $this->response;
         }
 
-        $user = $this->identity();
+        $loggedUser = $this->identity();
 
-        $user->setSecondaryEmails($emails);
+        foreach ($emails as $email) {
+            $userFound = $this->userService->findUserByEmail($email);
 
-        $this->userService->updateUser($user);
+            if ($userFound && $userFound->getId()!=$loggedUser->getId()) {
+                $this->response->setStatusCode(401);
+                $this->response->setReasonPhrase(
+                    "email address $email already in use by another account"
+                );
+                return $this->response;
+            }
+        }
+
+
+        $loggedUser->setSecondaryEmails($emails);
+
+        $this->userService->updateUser($loggedUser);
 
         return new JsonModel([
-            'id' => $user->getId(),
-            'secondaryEmails' => $user->getSecondaryEmails()
+            'id' => $loggedUser->getId(),
+            'secondaryEmails' => $loggedUser->getSecondaryEmails()
         ]);
     }
 

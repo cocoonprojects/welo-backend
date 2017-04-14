@@ -21,7 +21,7 @@ class ItemOwnerChangedCard extends FlowCard {
         $rv['type'] = $type;
 		$rv['createdAt'] = date_format($this->getCreatedAt(), 'c');
 		$rv['id'] = $this->getId();
-		$rv['title'] = "Owner changed for '$item->getSubject()'";
+		$rv['title'] = "Owner changed for '".$item->getSubject()."'";
 		$rv['content'] = [
 			'description' => 'The new Item owner is '.$owner->getFirstname().' '.$owner->getLastname(),
 			'actions' => [

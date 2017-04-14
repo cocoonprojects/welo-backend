@@ -58,13 +58,27 @@ class EventSourcingUserService implements UserService, EventManagerAwareInterfac
     public function findUserByEmail($email)
     {
         $query = $this->entityManager
-                      ->createQueryBuilder()
-                      ->select('u')
-                      ->from(User::class, 'u')
-                      ->where('u.email = :email')
-                      ->orWhere("u.secondaryEmails LIKE '%:email%'")
-                      ->setParameter('email', $email)
-                      ->getQuery();
+            ->createQueryBuilder()
+            ->select('u')
+            ->from(User::class, 'u')
+            ->where('u.email = :mainEmail')
+            ->orWhere("u.secondaryEmails LIKE :secEmail")
+            ->setParameter('mainEmail', $email)
+            ->setParameter('secEmail', "%$email%")
+            ->getQuery();
+
+        return $query->getOneOrNullResult();
+    }
+
+    public function findUserByMainEmail($email)
+    {
+        $query = $this->entityManager
+            ->createQueryBuilder()
+            ->select('u')
+            ->from(User::class, 'u')
+            ->where('u.email = :mainEmail')
+            ->setParameter('mainEmail', $email)
+            ->getQuery();
 
         return $query->getOneOrNullResult();
     }

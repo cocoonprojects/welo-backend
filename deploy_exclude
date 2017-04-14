@@ -9,6 +9,7 @@ config/pubkey.pem
 config/privkey.pem
 .env
 public/.htaccess
+public/*
 
 .gitignore
 .travis.composer.config.json
