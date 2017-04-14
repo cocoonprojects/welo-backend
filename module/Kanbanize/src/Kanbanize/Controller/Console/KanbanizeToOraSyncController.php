@@ -76,6 +76,16 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
             $this->kanbanizeService
                  ->initApi($kanbanize['apiKey'], $kanbanize['accountSubdomain']);
 
+            $kanbanizeFullStructure = $this->kanbanizeService
+                                           ->getFullBoardStructure($stream->getBoardId());
+
+            $kanbanizeSettings = $org->getSettings ( Organization::KANBANIZE_SETTINGS );
+
+            $lanes = $kanbanizeFullStructure['lanes'];
+            var_dump($kanbanizeSettings);
+            var_dump($lanes);
+            die;
+
             $this->write("loading board activities stream {$stream->getId()} board {$stream->getBoardId()}");
 
             $kanbanizeTasks = $this->kanbanizeService

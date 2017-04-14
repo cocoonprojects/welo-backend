@@ -47,6 +47,14 @@ class KanbanizeServiceImpl implements KanbanizeService
 		return $response;
 	}
 
+	public function getFullBoardStructure($boardId)
+	{
+		$response = $this->kanbanize
+						 ->getFullBoardStructure($boardId);
+
+		return $response;
+	}
+
 	public function getBoardActivities($boardId)
 	{
 		$now = new \DateTimeImmutable('now');
