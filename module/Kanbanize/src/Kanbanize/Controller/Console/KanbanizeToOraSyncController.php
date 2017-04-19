@@ -78,13 +78,20 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
 
             $kanbanizeFullStructure = $this->kanbanizeService
                                            ->getFullBoardStructure($stream->getBoardId());
+            $lanes = $kanbanizeFullStructure['lanes'];
 
             $kanbanizeSettings = $org->getSettings ( Organization::KANBANIZE_SETTINGS );
+            $alreadySavedLanes = $kanbanize['boards'][$stream->getBoardId()];
 
-            $lanes = $kanbanizeFullStructure['lanes'];
-            var_dump($kanbanizeSettings);
-            var_dump($lanes);
-            die;
+            /*
+             * le lanes vengono salvate nel local storage dal FE ( KanbanizeLaneService.js )
+             * dopo essere state recuperate da /kanbanize/settings
+             * quindi potrebbe essere necessario salvarne l'id kanbanize oltre al nome
+             * per poter gestire anche il cambio di nome lato kanbanize
+             */
+            if ($kanbanize['accountSubdomain']!='Radoland') {
+                continue;
+            }
 
             $this->write("loading board activities stream {$stream->getId()} board {$stream->getBoardId()}");
 

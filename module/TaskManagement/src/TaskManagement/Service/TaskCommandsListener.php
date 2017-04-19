@@ -85,11 +85,9 @@ class TaskCommandsListener extends ReadModelProjector {
 			$entity->setAttachments($event->payload()['attachments']);
 		}
 		if(isset($event->payload()['lane']) && $entity->getLane() !== $event->payload()['lane']) {
-
             $entity->setLane($event->payload()['lane']);
 
             if ($entity->getType() == "kanbanizetask") {
-
                 $kanbanizeStream = $entity->getStream();
                 $kanbanizeBoardId = $kanbanizeStream->getBoardId();
 

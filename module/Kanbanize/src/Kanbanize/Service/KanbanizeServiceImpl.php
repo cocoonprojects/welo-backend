@@ -114,7 +114,7 @@ class KanbanizeServiceImpl implements KanbanizeService
 		$options = [];
 
 		if ($task->getLane()) {
-			$options['lane'] = $task->getLane();
+			$options['lane'] = $this->getLaneName($kanbanizeTask->getLane(), $boardId);
 		}
 
 		$response = $this->kanbanize
@@ -133,7 +133,7 @@ class KanbanizeServiceImpl implements KanbanizeService
 		$options = [];
 
 		if ($kanbanizeTask->getLane()) {
-			$options['lane'] = $kanbanizeTask->getLane();
+            $options['lane'] = $this->getLaneName($kanbanizeTask->getLane(), $boardId);
 		}
 
 		$response = $this->kanbanize
@@ -158,7 +158,12 @@ class KanbanizeServiceImpl implements KanbanizeService
 			'description' => $taskSubject,
 		]);
 
-		$id = $this->kanbanize
+        if ($options['lane']) {
+            $options['lane'] = $this->getLaneName($options['lane'], $boardId);
+        }
+
+
+        $id = $this->kanbanize
 				   ->createNewTask($boardId, $all_options);
 
 		if (is_null ( $id )) {
@@ -359,4 +364,17 @@ class KanbanizeServiceImpl implements KanbanizeService
 		$this->kanbanize->setApiKey($apiKey);
 		$this->kanbanize->setUrl(sprintf(Importer::API_URL_FORMAT, $subdomain));
 	}
+
+    /**
+     * @param ReadModelKanbanizeTask $kanbanizeTask
+     * @param $boardId
+     * @param $options
+     * @return mixed
+     */
+    public function getLaneName($laneId, $boardId)
+    {
+        $lanes = $this->kanbanize->getFullBoardStructure($boardId)['lanes'];
+        $lanePos = array_search($laneId, array_column($lanes, 'lcid'));
+        return $lanes[$lanePos]['lcname'];
+    }
 }
