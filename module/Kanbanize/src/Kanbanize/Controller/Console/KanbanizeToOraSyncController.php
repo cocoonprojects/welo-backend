@@ -75,22 +75,59 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
 
             $this->kanbanizeService
                  ->initApi($kanbanize['apiKey'], $kanbanize['accountSubdomain']);
-
-            $kanbanizeFullStructure = $this->kanbanizeService
-                                           ->getFullBoardStructure($stream->getBoardId());
-            $lanes = $kanbanizeFullStructure['lanes'];
-
-            $kanbanizeSettings = $org->getSettings ( Organization::KANBANIZE_SETTINGS );
-            $alreadySavedLanes = $kanbanize['boards'][$stream->getBoardId()];
-
             /*
              * le lanes vengono salvate nel local storage dal FE ( KanbanizeLaneService.js )
              * dopo essere state recuperate da /kanbanize/settings
              * quindi potrebbe essere necessario salvarne l'id kanbanize oltre al nome
              * per poter gestire anche il cambio di nome lato kanbanize
              */
-            if ($kanbanize['accountSubdomain']!='Radoland') {
-                continue;
+            if ($org->getName()=='RadoLand') {
+    var_dump('=======================================');
+
+                $kanbanizeFullStructure = $this->kanbanizeService
+                                               ->getFullBoardStructure($stream->getBoardId());
+
+                $kanbanizeFullLanes = $kanbanizeFullStructure['lanes'];
+                $kanbanizeLanes = [];
+                foreach ($kanbanizeFullLanes as $lane) {
+                    $kanbanizeLanes[$lane['lcid']] = $lane['lcname'];
+                }
+
+                $appLanes = $org->getLanes();
+
+                $removedInKanbanize = array_diff($appLanes, $kanbanizeLanes);
+                $addedInKanbanize = array_diff($kanbanizeLanes, $appLanes);
+
+/*
+    var_dump('$kanbanizeLanes');
+    var_dump($kanbanizeLanes);
+    var_dump('$appLanes');
+    var_dump($appLanes);
+    var_dump('$addedInKanbanize');
+    var_dump($addedInKanbanize);
+    var_dump('$removedInKanbanize');
+    var_dump($removedInKanbanize);
+*/
+                try{
+                    $lanes = [];
+                    foreach ($addedInKanbanize as $laneId => $laneName) {
+                        $lanes[$laneId] = $laneName;
+                    }
+
+                    // controllare se ci sono items nelle $removedInKanbanize
+                    // e rimuovere quelle vuote
+
+                    $organization = $this->organizationService->getOrganization($org->getId());
+                    $this->transaction()->begin();
+                    $organization->setLanes($lanes, $systemUser);
+                    $this->transaction()->commit();
+                }catch(\Exception $e){
+                    $this->transaction()->rollback();
+                    $this->write("ERROR updating organization {$organization->getId()} lanes");
+                }
+                $this->write("organization {$organization->getId()} lanes UPDATED");
+
+    var_dump('=======================================');
             }
 
             $this->write("loading board activities stream {$stream->getId()} board {$stream->getBoardId()}");

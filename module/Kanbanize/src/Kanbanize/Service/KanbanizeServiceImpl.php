@@ -140,7 +140,7 @@ class KanbanizeServiceImpl implements KanbanizeService
 						 ->moveTask($boardId, $taskId, $status, $options);
 
 		if($response != 1) {
-			throw new OperationFailedException('Unable to move the task ' + $taskId + ' in board ' + $boardId + 'to the column ' + $status + ' because of ' + $response);
+			throw new OperationFailedException('Unable to move the task ' . $taskId . ' in board ' . $boardId . ' to the column ' . $status . ' because of ' . $response['Error']);
 		}
 
 		return 1;
