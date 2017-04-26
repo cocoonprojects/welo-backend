@@ -347,6 +347,19 @@ class EventSourcingTaskService extends AggregateRepository implements TaskServic
 	}
 
 
+	public function countItemsInLane($laneId){
+        $builder = $this->entityManager->createQueryBuilder();
+
+        $query = $builder->select ( 'COUNT(item) as itemsCount' )
+		->from(ReadModelTask::class, 'item')
+		->where('item.lane = :lane')
+		->setParameter ( ':lane', $laneId)
+		->getQuery();
+
+		return $query->getResult()[0]['itemsCount'];
+	}
+
+
 	public function getTaskHistory($aggregateId) {
 		$streamEvents = $this->streamStrategy->read($this->aggregateType, $aggregateId);
 		$events = [];

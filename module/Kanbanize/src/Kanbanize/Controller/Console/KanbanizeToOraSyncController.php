@@ -75,60 +75,28 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
 
             $this->kanbanizeService
                  ->initApi($kanbanize['apiKey'], $kanbanize['accountSubdomain']);
-            /*
-             * le lanes vengono salvate nel local storage dal FE ( KanbanizeLaneService.js )
-             * dopo essere state recuperate da /kanbanize/settings
-             * quindi potrebbe essere necessario salvarne l'id kanbanize oltre al nome
-             * per poter gestire anche il cambio di nome lato kanbanize
-             */
-            if ($org->getName()=='RadoLand') {
-    var_dump('=======================================');
 
-                $kanbanizeFullStructure = $this->kanbanizeService
-                                               ->getFullBoardStructure($stream->getBoardId());
 
-                $kanbanizeFullLanes = $kanbanizeFullStructure['lanes'];
-                $kanbanizeLanes = [];
-                foreach ($kanbanizeFullLanes as $lane) {
-                    $kanbanizeLanes[$lane['lcid']] = $lane['lcname'];
-                }
+            $kanbanizeFullStructure = $this->kanbanizeService
+                                           ->getFullBoardStructure($stream->getBoardId());
 
-                $appLanes = $org->getLanes();
+            $lanes = $this->getLanesSyncReport($kanbanizeFullStructure, $org);
 
-                $removedInKanbanize = array_diff($appLanes, $kanbanizeLanes);
-                $addedInKanbanize = array_diff($kanbanizeLanes, $appLanes);
+            try{
+                $lanes['app'] = $this->addLanes($lanes['app'], $lanes['toAdd']);
+                $lanes['app'] = $this->removeLanes($lanes['app'], $lanes['toRemove']);
 
-/*
-    var_dump('$kanbanizeLanes');
-    var_dump($kanbanizeLanes);
-    var_dump('$appLanes');
-    var_dump($appLanes);
-    var_dump('$addedInKanbanize');
-    var_dump($addedInKanbanize);
-    var_dump('$removedInKanbanize');
-    var_dump($removedInKanbanize);
-*/
-                try{
-                    $lanes = [];
-                    foreach ($addedInKanbanize as $laneId => $laneName) {
-                        $lanes[$laneId] = $laneName;
-                    }
-
-                    // controllare se ci sono items nelle $removedInKanbanize
-                    // e rimuovere quelle vuote
-
-                    $organization = $this->organizationService->getOrganization($org->getId());
-                    $this->transaction()->begin();
-                    $organization->setLanes($lanes, $systemUser);
-                    $this->transaction()->commit();
-                }catch(\Exception $e){
-                    $this->transaction()->rollback();
-                    $this->write("ERROR updating organization {$organization->getId()} lanes");
-                }
-                $this->write("organization {$organization->getId()} lanes UPDATED");
-
-    var_dump('=======================================');
+                $organization = $this->organizationService->getOrganization($org->getId());
+                $this->transaction()->begin();
+                $organization->setLanes($lanes['app'], $systemUser);
+                $this->transaction()->commit();
+                $this->write('[K-SYNC] saved lanes: '.var_export($lanes['app'], 1));
+            }catch(\Exception $e){
+                $this->transaction()->rollback();
+                $this->write("ERROR updating organization {$organization->getId()} lanes");
             }
+            $this->write("organization {$organization->getId()} lanes UPDATED");
+
 
             $this->write("loading board activities stream {$stream->getId()} board {$stream->getBoardId()}");
 
@@ -337,5 +305,59 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
         } catch (Exception $e) {
             $this->transaction()->rollback();
         }
+    }
+
+    public function getLanesSyncReport($kanbanizeFullStructure, $org)
+    {
+        $kanbanizeLanes = [];
+        foreach ($kanbanizeFullStructure['lanes'] as $lane) {
+            $kanbanizeLanes[$lane['lcid']] = $lane['lcname'];
+        }
+        $this->write('[K-SYNC] ' . count($kanbanizeLanes) . ' lanes found into the Kanbanize');
+
+        $appLanes = $org->getLanes();
+        $this->write('[K-SYNC] ' . count($appLanes) . ' lanes found into the application');
+
+        $addedInKanbanize = array_diff($kanbanizeLanes, $appLanes);
+        $this->write('[K-SYNC] ' . count($addedInKanbanize) . ' lanes will be added into the application');
+
+        $removedInKanbanize = array_diff($appLanes, $kanbanizeLanes);
+        $this->write('[K-SYNC] ' . count($removedInKanbanize) . ' lanes will be possibly removed from application');
+
+        return [
+            'app' => $appLanes,
+            'kanbanize' => $kanbanizeLanes,
+            'toAdd' => $addedInKanbanize,
+            'toRemove' => $removedInKanbanize
+        ];
+    }
+
+    /**
+     * @param $lanesToAdd
+     * @return array
+     */
+    public function addLanes($appLanes, $lanesToAdd)
+    {
+        foreach ($lanesToAdd as $laneId => $laneName) {
+            $this->write('[K-SYNC] adding "' . $laneName . '" lane into the application');
+            $appLanes[$laneId] = $laneName;
+        }
+        return $appLanes;
+    }
+
+    /**
+     * @param $lanes
+     */
+    public function removeLanes($appLanes, $lanesToRemove)
+    {
+        foreach ($lanesToRemove as $laneId => $laneName) {
+            if (!$this->taskService->countItemsInLane($laneId)) {
+                $this->write('[K-SYNC] removing "' . $laneName . '" lane from the application');
+                unset($appLanes[$laneId]);
+            } else {
+                $this->write('[K-SYNC] unable to remove "' . $laneName . '" lane from the application because has items associated');
+            }
+        }
+        return $appLanes;
     }
 }
