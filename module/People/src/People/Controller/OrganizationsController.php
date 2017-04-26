@@ -13,7 +13,7 @@ use ZFX\Rest\Controller\HATEOASRestfulController;
 class OrganizationsController extends HATEOASRestfulController
 {
 	protected static $collectionOptions = ['GET', 'POST'];
-	protected static $resourceOptions = [];
+	protected static $resourceOptions = ['GET'];
 	
 	/**
 	 * 
@@ -23,6 +23,24 @@ class OrganizationsController extends HATEOASRestfulController
 	
 	public function __construct(OrganizationService $orgService) {
 		$this->orgService = $orgService;
+	}
+
+	public function get($id)
+	{
+		if(is_null($this->identity())) {
+			$this->response->setStatusCode(401);
+			return $this->response;
+		}
+
+        $organization = $this->orgService->findOrganization($id);
+        return new JsonModel([
+            'organization' => $this->serializeOneDetailed($organization),
+            '_links' => [
+                'self' => [
+                    'href' => $this->url()->fromRoute('organizations', ['id' => $organization->getId()]),
+                ]
+            ]
+        ]);
 	}
 
 	public function getList()
@@ -46,7 +64,7 @@ class OrganizationsController extends HATEOASRestfulController
 				]
 		]);
 	}
-	
+
 	public function create($data)
 	{
 		if(is_null($this->identity())) {
@@ -87,6 +105,22 @@ class OrganizationsController extends HATEOASRestfulController
 				'id' => $organization->getId(),
 				'name' => $organization->getName(),
 				'createdAt' => date_format($organization->getCreatedAt(), 'c'),
+				'_links' => [
+						'self' => [
+								'href' => $this->url()->fromRoute('organizations', ['id' => $organization->getId()])
+						],
+						'ora:member' => [
+								'href' => $this->url()->fromRoute('members', ['orgId' => $organization->getId()])
+						]
+				]
+		];
+	}
+
+	protected function serializeOneDetailed($organization) {
+		return [
+				'id' => $organization->getId(),
+				'name' => $organization->getName(),
+				'lanes' => $organization->getLanes(),
 				'_links' => [
 						'self' => [
 								'href' => $this->url()->fromRoute('organizations', ['id' => $organization->getId()])
