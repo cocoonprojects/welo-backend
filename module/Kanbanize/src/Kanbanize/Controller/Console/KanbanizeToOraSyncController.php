@@ -2,6 +2,7 @@
 
 namespace Kanbanize\Controller\Console;
 
+use Kanbanize\Service\OperationFailedException;
 use Zend\Mvc\Controller\AbstractConsoleController;
 use Zend\Console\Request as ConsoleRequest;
 
@@ -77,6 +78,7 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
                  ->initApi($kanbanize['apiKey'], $kanbanize['accountSubdomain'])
             ;
 
+            $this->kanbanizeService->loadLanesFromKanbanize($stream->getBoardId());
 
             $lanes = $this->getLanesDiffWithKanbanize(
                 $this->kanbanizeService->getFullBoardStructure($stream->getBoardId()),
@@ -92,7 +94,7 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
                 $this->transaction()->begin();
                 $organization->setLanes($lanes['app'], $systemUser);
                 $this->transaction()->commit();
-                $this->write('[K-SYNC] saved lanes: '.var_export($lanes['app'], 1));
+                $this->write('saved lanes: '.str_replace(PHP_EOL, '', var_export($lanes['app'], 1)));
             }catch(\Exception $e){
                 $this->transaction()->rollback();
                 $this->write("ERROR updating organization {$organization->getId()} lanes");
@@ -127,22 +129,32 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
                              ->findTaskByKanbanizeId($kanbanizeTask['taskid']);
 
                 if (!$task) {
-                    $this->blockTaskOnKanbanize($kanbanizeTask);
+                    try {
+                        $this->blockTaskOnKanbanize($kanbanizeTask);
+                    } catch(\Exception $e) {
+                        $this->write("[ERROR] generic exception raised syncing with kanbanize: ".$e->getMessage());
+                    }
                     continue;
                 }
 
-                $this->fixColumnOnKanbanize(
-                    $task,
-                    $kanbanizeTask,
-                    $stream->getBoardId(),
-                    $mapping
-                );
+                try {
+                    $this->fixColumnOnKanbanize(
+                        $task,
+                        $kanbanizeTask,
+                        $stream->getBoardId(),
+                        $mapping
+                    );
 
-                $this->updateTaskOnKanbanize(
-                    $task,
-                    $kanbanizeTask,
-                    $stream
-                );
+                    $this->updateTaskOnKanbanize(
+                        $task,
+                        $kanbanizeTask,
+                        $stream
+                    );
+                } catch(OperationFailedException $e) {
+                    $this->write("[ERROR] operation failed: ".$e->getMessage());
+                } catch(\Exception $e) {
+                    $this->write("[ERROR] generic exception raised syncing with kanbanize: ".$e->getMessage());
+                }
 
                 $this->updateTaskPositionFromKanbanize(
                     $task,
@@ -330,10 +342,10 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
             $removedInKanbanize[$key] = $appLanes[$key];
         }
 
-        $this->write('[K-SYNC] ' . count($kanbanizeLanes) . ' lanes found into the Kanbanize');
-        $this->write('[K-SYNC] ' . count($appLanes) . ' lanes found into the application');
-        $this->write('[K-SYNC] ' . count($keysAddedInKanbanize) . ' lanes will be added into the application');
-        $this->write('[K-SYNC] ' . count($keysRemovedInKanbanize) . ' lanes will be possibly removed from application');
+        $this->write( count($kanbanizeLanes) . ' lanes found into the Kanbanize');
+        $this->write( count($appLanes) . ' lanes found into the application');
+        $this->write( count($keysAddedInKanbanize) . ' lanes will be added into the application');
+        $this->write( count($keysRemovedInKanbanize) . ' lanes will be possibly removed from application');
 
         return [
             'app' => $appLanes,
@@ -352,7 +364,7 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
         foreach ($appLanes as $laneId => $laneName) {
             if (isset($kanbanizeLanes[$laneId]) && $appLanes[$laneId] != $kanbanizeLanes[$laneId]) {
                 $appLanes[$laneId] = $kanbanizeLanes[$laneId];
-                $this->write('[K-SYNC] updating #' . $laneId . ' lane');
+                $this->write('updating #' . $laneId . ' lane');
             }
         }
         return $appLanes;
@@ -365,7 +377,7 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
     public function addLanes($appLanes, $lanesToAdd)
     {
         foreach ($lanesToAdd as $laneId => $laneName) {
-            $this->write('[K-SYNC] adding "' . $laneName . '" lane into the application');
+            $this->write('adding "' . $laneName . '" lane into the application');
             $appLanes[$laneId] = $laneName;
         }
         return $appLanes;
@@ -378,10 +390,10 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
     {
         foreach ($lanesToRemove as $laneId => $laneName) {
             if (!$this->taskService->countItemsInLane($laneId)) {
-                $this->write('[K-SYNC] removing "' . $laneName . '" lane from the application');
+                $this->write('removing "' . $laneName . '" lane from the application');
                 unset($appLanes[$laneId]);
             } else {
-                $this->write('[K-SYNC] unable to remove "' . $laneName . '" lane from the application because has items associated');
+                $this->write('unable to remove "' . $laneName . '" lane from the application because has items associated');
             }
         }
         return $appLanes;

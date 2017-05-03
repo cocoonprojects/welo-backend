@@ -147,7 +147,7 @@ class KanbanizeServiceImpl implements KanbanizeService
             ->moveTask($boardId, $taskId, $status, $options);
 
         if ($response != 1) {
-            throw new OperationFailedException('Unable to move the task ' . $taskId . ' in board ' . $boardId . ' to the column ' . $status . ' because of ' . var_export($response,1), 400);
+            throw new OperationFailedException('Unable to move the task ' . $taskId . ' in board ' . $boardId . ' to the column ' . $status . ' because of ' . str_replace(PHP_EOL, '', var_export($response,1)), 400);
         }
 		return 1;
 	}
@@ -383,10 +383,14 @@ class KanbanizeServiceImpl implements KanbanizeService
 		$this->kanbanize->setApiKey($apiKey);
 		$this->kanbanize->setUrl(sprintf(Importer::API_URL_FORMAT, $subdomain));
 
-        $this->kanbanizeLanes = $this->kanbanize->getFullBoardStructure($boardId)['lanes'];
-
 		return $this;
 	}
+
+	public function loadLanesFromKanbanize($boardId)
+    {
+        $this->kanbanizeLanes = $this->kanbanize->getFullBoardStructure($boardId)['lanes'];
+        return $this;
+    }
 
     /**
      * @param ReadModelKanbanizeTask $kanbanizeTask
