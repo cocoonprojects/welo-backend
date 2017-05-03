@@ -63,6 +63,7 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
                      ->findOrganizations();
 
         foreach($orgs as $org) {
+            $this->write("-------------------");
             $this->write("org {$org->getName()} ({$org->getId()})");
 
             $stream = $this->kanbanizeService
@@ -138,6 +139,8 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
                 }
 
                 try {
+                    $this->unblockTaskOnKanbanize($kanbanizeTask);
+
                     $this->fixColumnOnKanbanize(
                         $task,
                         $kanbanizeTask,
@@ -249,6 +252,27 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
     }
 
     /**
+     * first case: task on kanbanize but not on Welo
+     * block task
+     */
+    private function unblockTaskOnKanbanize($kanbanizeTask)
+    {
+        if (!$kanbanizeTask['blocked']) {
+            return;
+        }
+
+        $result = $this->kanbanizeService
+                        ->unblockTask(
+                                $kanbanizeTask['boardparent'],
+                                $kanbanizeTask['taskid'],
+                                'task must be unblocked'
+        );
+
+        $result = ($result!=1) ? 'ok' : 'error '.$result;
+        $this->write("  try to unblock it: $result");
+    }
+
+    /**
      * move task to a column matching its status
      */
     private function fixColumnOnKanbanize($task, $kanbanizeTask, $boardId, $mapping)
@@ -290,7 +314,8 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
                              $kanbanizeTask,
                              $stream->getBoardId());
 
-        $this->write("  try update it: $result");
+        $result = ($result!=1) ? 'ok' : 'error '.$result;
+        $this->write("  try update it: ".$result);
     }
 
     private function updateTaskPositionFromKanbanize($task, $kanbanizeTask, $systemUser)

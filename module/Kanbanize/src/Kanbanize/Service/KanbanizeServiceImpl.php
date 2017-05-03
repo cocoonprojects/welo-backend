@@ -77,6 +77,14 @@ class KanbanizeServiceImpl implements KanbanizeService
 		return $response;
 	}
 
+	public function unblockTask($boardid, $taskid, $reason)
+	{
+		$response = $this->kanbanize
+			 			 ->blockTask($boardid, $taskid, 'unblock', $reason);
+
+		return $response;
+	}
+
 	public function getTaskDetails($boardId, $taskId)
 	{
 		$response = $this->kanbanize->getTaskDetails($boardId, $taskId);
@@ -123,7 +131,8 @@ class KanbanizeServiceImpl implements KanbanizeService
 						 ->moveTask($boardId, $taskId, $status, $options);
 
 		if($response != 1) {
-			throw new OperationFailedException('Unable to move the task ' + $taskId + ' in board ' + $boardId + 'to the column ' + $status + ' because of ' + $response);
+            $error = isset($response['Error']) ? $response['Error'] : str_replace(PHP_EOL, '', var_export($response,1));
+			throw new OperationFailedException('Unable to move the task ' + $taskId + ' in board ' + $boardId + 'to the column ' + $status + ' because ' + $error);
 		}
 
 		return 1;
@@ -147,7 +156,8 @@ class KanbanizeServiceImpl implements KanbanizeService
             ->moveTask($boardId, $taskId, $status, $options);
 
         if ($response != 1) {
-            throw new OperationFailedException('Unable to move the task ' . $taskId . ' in board ' . $boardId . ' to the column ' . $status . ' because of ' . str_replace(PHP_EOL, '', var_export($response,1)), 400);
+            $error = isset($response['Error']) ? $response['Error'] : str_replace(PHP_EOL, '', var_export($response,1));
+            throw new OperationFailedException('Unable to move the task ' . $taskId . ' in board ' . $boardId . ' to the column "' . $status . '" because ' . $error, 400);
         }
 		return 1;
 	}
