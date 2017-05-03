@@ -24,6 +24,12 @@ class Organization extends EditableEntity implements ResourceInterface
 	 */
 	private $settings = [];
 
+	/**
+	 * @ORM\Column(type="json_array", nullable=true)
+	 * @var string
+	 */
+	private $lanes = [];
+
 	public function getName()
 	{
 		return $this->name;
@@ -54,6 +60,15 @@ class Organization extends EditableEntity implements ResourceInterface
 			return $this->settings[$key];
 		}
 		return null;
+	}
+
+	public function setLanes($lanes){
+        $this->lanes = $lanes;
+		return $this;
+	}
+
+	public function getLanes(){
+        return $this->lanes;
 	}
 
 	public function getParams() {

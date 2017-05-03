@@ -2,6 +2,7 @@
 
 namespace Kanbanize\Controller\Console;
 
+use Kanbanize\Service\OperationFailedException;
 use Zend\Mvc\Controller\AbstractConsoleController;
 use Zend\Console\Request as ConsoleRequest;
 
@@ -62,6 +63,7 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
                      ->findOrganizations();
 
         foreach($orgs as $org) {
+            $this->write("-------------------");
             $this->write("org {$org->getName()} ({$org->getId()})");
 
             $stream = $this->kanbanizeService
@@ -74,7 +76,32 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
             $kanbanize = $org->getSettings(Organization::KANBANIZE_SETTINGS);
 
             $this->kanbanizeService
-                 ->initApi($kanbanize['apiKey'], $kanbanize['accountSubdomain']);
+                 ->initApi($kanbanize['apiKey'], $kanbanize['accountSubdomain'])
+            ;
+
+            $this->kanbanizeService->loadLanesFromKanbanize($stream->getBoardId());
+
+            $lanes = $this->getLanesDiffWithKanbanize(
+                $this->kanbanizeService->getFullBoardStructure($stream->getBoardId()),
+                $org
+            );
+
+            try{
+                $lanes['app'] = $this->updateLanesNames($lanes['app'], $lanes['kanbanize']);
+                $lanes['app'] = $this->addLanes($lanes['app'], $lanes['toAdd']);
+                $lanes['app'] = $this->removeLanes($lanes['app'], $lanes['toRemove']);
+
+                $organization = $this->organizationService->getOrganization($org->getId());
+                $this->transaction()->begin();
+                $organization->setLanes($lanes['app'], $systemUser);
+                $this->transaction()->commit();
+                $this->write('saved lanes: '.str_replace(PHP_EOL, '', var_export($lanes['app'], 1)));
+            }catch(\Exception $e){
+                $this->transaction()->rollback();
+                $this->write("ERROR updating organization {$organization->getId()} lanes");
+            }
+            $this->write("organization {$organization->getId()} lanes UPDATED");
+
 
             $this->write("loading board activities stream {$stream->getId()} board {$stream->getBoardId()}");
 
@@ -103,22 +130,34 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
                              ->findTaskByKanbanizeId($kanbanizeTask['taskid']);
 
                 if (!$task) {
-                    $this->blockTaskOnKanbanize($kanbanizeTask);
+                    try {
+                        $this->blockTaskOnKanbanize($kanbanizeTask);
+                    } catch(\Exception $e) {
+                        $this->write("[ERROR] generic exception raised syncing with kanbanize: ".$e->getMessage());
+                    }
                     continue;
                 }
 
-                $this->fixColumnOnKanbanize(
-                    $task,
-                    $kanbanizeTask,
-                    $stream->getBoardId(),
-                    $mapping
-                );
+                try {
+                    $this->unblockTaskOnKanbanize($kanbanizeTask);
 
-                $this->updateTaskOnKanbanize(
-                    $task,
-                    $kanbanizeTask,
-                    $stream
-                );
+                    $this->fixColumnOnKanbanize(
+                        $task,
+                        $kanbanizeTask,
+                        $stream->getBoardId(),
+                        $mapping
+                    );
+
+                    $this->updateTaskOnKanbanize(
+                        $task,
+                        $kanbanizeTask,
+                        $stream
+                    );
+                } catch(OperationFailedException $e) {
+                    $this->write("[ERROR] operation failed: ".$e->getMessage());
+                } catch(\Exception $e) {
+                    $this->write("[ERROR] generic exception raised syncing with kanbanize: ".$e->getMessage());
+                }
 
                 $this->updateTaskPositionFromKanbanize(
                     $task,
@@ -213,6 +252,27 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
     }
 
     /**
+     * first case: task on kanbanize but not on Welo
+     * block task
+     */
+    private function unblockTaskOnKanbanize($kanbanizeTask)
+    {
+        if (!$kanbanizeTask['blocked']) {
+            return;
+        }
+
+        $result = $this->kanbanizeService
+                        ->unblockTask(
+                                $kanbanizeTask['boardparent'],
+                                $kanbanizeTask['taskid'],
+                                'task must be unblocked'
+        );
+
+        $result = ($result!=1) ? 'ok' : 'error '.$result;
+        $this->write("  try to unblock it: $result");
+    }
+
+    /**
      * move task to a column matching its status
      */
     private function fixColumnOnKanbanize($task, $kanbanizeTask, $boardId, $mapping)
@@ -223,6 +283,7 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
 
         $rightColumn = array_search($task->getStatus(), $mapping);
 
+        $result = '';
         try {
             $result = $this->kanbanizeService
                            ->moveTaskonKanbanize(
@@ -253,7 +314,8 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
                              $kanbanizeTask,
                              $stream->getBoardId());
 
-        $this->write("  try update it: $result");
+        $result = ($result!=1) ? 'ok' : 'error '.$result;
+        $this->write("  try update it: ".$result);
     }
 
     private function updateTaskPositionFromKanbanize($task, $kanbanizeTask, $systemUser)
@@ -283,5 +345,82 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
         } catch (Exception $e) {
             $this->transaction()->rollback();
         }
+    }
+
+    public function getLanesDiffWithKanbanize($kanbanizeFullStructure, $org)
+    {
+        $kanbanizeLanes = [];
+        foreach ($kanbanizeFullStructure['lanes'] as $lane) {
+            $kanbanizeLanes[$lane['lcid']] = $lane['lcname'];
+        }
+        $appLanes = $org->getLanes();
+
+        $keysAddedInKanbanize = array_diff(array_keys($kanbanizeLanes), array_keys($appLanes));
+        $addedInKanbanize = [];
+        foreach ($keysAddedInKanbanize as $key) {
+            $addedInKanbanize[$key] = $kanbanizeLanes[$key];
+        }
+
+        $keysRemovedInKanbanize = array_diff(array_keys($appLanes), array_keys($kanbanizeLanes));
+        $removedInKanbanize = [];
+        foreach ($keysRemovedInKanbanize as $key) {
+            $removedInKanbanize[$key] = $appLanes[$key];
+        }
+
+        $this->write( count($kanbanizeLanes) . ' lanes found into the Kanbanize');
+        $this->write( count($appLanes) . ' lanes found into the application');
+        $this->write( count($keysAddedInKanbanize) . ' lanes will be added into the application');
+        $this->write( count($keysRemovedInKanbanize) . ' lanes will be possibly removed from application');
+
+        return [
+            'app' => $appLanes,
+            'kanbanize' => $kanbanizeLanes,
+            'toAdd' => $addedInKanbanize,
+            'toRemove' => $removedInKanbanize
+        ];
+    }
+
+    /**
+     * @param $lanesToAdd
+     * @return array
+     */
+    public function updateLanesNames($appLanes, $kanbanizeLanes)
+    {
+        foreach ($appLanes as $laneId => $laneName) {
+            if (isset($kanbanizeLanes[$laneId]) && $appLanes[$laneId] != $kanbanizeLanes[$laneId]) {
+                $appLanes[$laneId] = $kanbanizeLanes[$laneId];
+                $this->write('updating #' . $laneId . ' lane');
+            }
+        }
+        return $appLanes;
+    }
+
+    /**
+     * @param $lanesToAdd
+     * @return array
+     */
+    public function addLanes($appLanes, $lanesToAdd)
+    {
+        foreach ($lanesToAdd as $laneId => $laneName) {
+            $this->write('adding "' . $laneName . '" lane into the application');
+            $appLanes[$laneId] = $laneName;
+        }
+        return $appLanes;
+    }
+
+    /**
+     * @param $lanes
+     */
+    public function removeLanes($appLanes, $lanesToRemove)
+    {
+        foreach ($lanesToRemove as $laneId => $laneName) {
+            if (!$this->taskService->countItemsInLane($laneId)) {
+                $this->write('removing "' . $laneName . '" lane from the application');
+                unset($appLanes[$laneId]);
+            } else {
+                $this->write('unable to remove "' . $laneName . '" lane from the application because has items associated');
+            }
+        }
+        return $appLanes;
     }
 }

@@ -31,6 +31,8 @@ class KanbanizeServiceImpl implements KanbanizeService
 	 */
 	private $kanbanize;
 
+	private $kanbanizeLanes;
+
 	/*
 	 * Constructs service
 	 */
@@ -43,6 +45,14 @@ class KanbanizeServiceImpl implements KanbanizeService
 	{
 		$response = $this->kanbanize
 						 ->getBoardStructure($boardId);
+
+		return $response;
+	}
+
+	public function getFullBoardStructure($boardId)
+	{
+		$response = $this->kanbanize
+						 ->getFullBoardStructure($boardId);
 
 		return $response;
 	}
@@ -63,6 +73,14 @@ class KanbanizeServiceImpl implements KanbanizeService
 	{
 		$response = $this->kanbanize
 			 			 ->blockTask($boardid, $taskid, 'block', $reason);
+
+		return $response;
+	}
+
+	public function unblockTask($boardid, $taskid, $reason)
+	{
+		$response = $this->kanbanize
+			 			 ->blockTask($boardid, $taskid, 'unblock', $reason);
 
 		return $response;
 	}
@@ -106,35 +124,41 @@ class KanbanizeServiceImpl implements KanbanizeService
 		$options = [];
 
 		if ($task->getLane()) {
-			$options['lane'] = $task->getLane();
+			$options['lane'] = $this->getLaneName($task->getLane(), $boardId);
 		}
 
 		$response = $this->kanbanize
 						 ->moveTask($boardId, $taskId, $status, $options);
 
 		if($response != 1) {
-			throw new OperationFailedException('Unable to move the task ' + $taskId + ' in board ' + $boardId + 'to the column ' + $status + ' because of ' + $response);
+            $error = isset($response['Error']) ? $response['Error'] : str_replace(PHP_EOL, '', var_export($response,1));
+			throw new OperationFailedException('Unable to move the task ' + $taskId + ' in board ' + $boardId + 'to the column ' + $status + ' because ' + $error);
 		}
 
 		return 1;
 	}
 
-	public function moveTaskonKanbanize(ReadModelKanbanizeTask $kanbanizeTask, $status, $boardId){
+	public function moveTaskonKanbanize(ReadModelKanbanizeTask $kanbanizeTask, $status, $boardId)
+    {
+        $taskId = $kanbanizeTask->getTaskId();
+        $options = [];
 
-		$taskId = $kanbanizeTask->getTaskId();
-		$options = [];
+        if ($kanbanizeTask->getLane()) {
+            $options['lane'] = $this->getLaneName($kanbanizeTask->getLane(), $boardId);
+        }
 
-		if ($kanbanizeTask->getLane()) {
-			$options['lane'] = $kanbanizeTask->getLane();
-		}
+        if (!$this->laneExists($kanbanizeTask->getLane(), $boardId)) {
+            unset($options['lane']);
+//            throw new OperationFailedException('Unable to move the task ' . $taskId . ' in board ' . $boardId . ' to the column ' . $status . ' because that lane does not exists on Kanbanize', 400);
+        }
 
-		$response = $this->kanbanize
-						 ->moveTask($boardId, $taskId, $status, $options);
+        $response = $this->kanbanize
+            ->moveTask($boardId, $taskId, $status, $options);
 
-		if($response != 1) {
-			throw new OperationFailedException('Unable to move the task ' + $taskId + ' in board ' + $boardId + 'to the column ' + $status + ' because of ' + $response);
-		}
-
+        if ($response != 1) {
+            $error = isset($response['Error']) ? $response['Error'] : str_replace(PHP_EOL, '', var_export($response,1));
+            throw new OperationFailedException('Unable to move the task ' . $taskId . ' in board ' . $boardId . ' to the column "' . $status . '" because ' . $error, 400);
+        }
 		return 1;
 	}
 
@@ -150,7 +174,12 @@ class KanbanizeServiceImpl implements KanbanizeService
 			'description' => $taskSubject,
 		]);
 
-		$id = $this->kanbanize
+        if ($options['lane']) {
+            $options['lane'] = $this->getLaneName($options['lane'], $boardId);
+        }
+
+
+        $id = $this->kanbanize
 				   ->createNewTask($boardId, $all_options);
 
 		if (is_null ( $id )) {
@@ -185,10 +214,12 @@ class KanbanizeServiceImpl implements KanbanizeService
 		if(isset($info['Error'])) {
 			throw new OperationFailedException($info["Error"]);
 		}
-		if ( $info['columnname'] == KanbanizeTask::COLUMN_ACCEPTED){
+		if ( $info['columnname'] == KanbanizeTask::COLUMN_ACCEPTED)
+		{
 			return;
 		}
-		if($info['columnname'] == KanbanizeTask::COLUMN_COMPLETED){
+		if($info['columnname'] == KanbanizeTask::COLUMN_COMPLETED)
+		{
 			$this->moveTask($task, KanbanizeTask::COLUMN_ACCEPTED);
 		}else{
 			throw new IllegalRemoteStateException("Cannot accpet a task which is " + $info["columnname"]);
@@ -199,11 +230,13 @@ class KanbanizeServiceImpl implements KanbanizeService
 		if(isset($info['Error'])) {
 			throw new OperationFailedException($info["Error"]);
 		}
-		if($info["columnname"] == KanbanizeTask::COLUMN_ONGOING){
+		if($info["columnname"] == KanbanizeTask::COLUMN_ONGOING)
+		{
 			return;
 		}
 
-		if($info['columnname'] == KanbanizeTask::COLUMN_COMPLETED || $info['columnname'] == KanbanizeTask::COLUMN_OPEN){
+		if($info['columnname'] == KanbanizeTask::COLUMN_COMPLETED || $info['columnname'] == KanbanizeTask::COLUMN_OPEN)
+		{
 			$this->moveTask($task, KanbanizeTask::COLUMN_ONGOING);
 		}else{
 			throw new IllegalRemoteStateException("Cannot move task in ongoing from "+$info["columnname"]);
@@ -215,7 +248,8 @@ class KanbanizeServiceImpl implements KanbanizeService
 		if(isset($info['Error'])) {
 			throw new OperationFailedException($info["Error"]);
 		}
-		if($info["columnname"] == KanbanizeTask::COLUMN_COMPLETED){
+		if($info["columnname"] == KanbanizeTask::COLUMN_COMPLETED)
+		{
 			return;
 		}
 		if (in_array($info['columnname'], [KanbanizeTask::COLUMN_ONGOING, KanbanizeTask::COLUMN_ACCEPTED])) {
@@ -232,8 +266,10 @@ class KanbanizeServiceImpl implements KanbanizeService
 	 * (non-PHPdoc)
 	 * @see \Kanbanize\Service\KanbanizeService::findStreamByBoardId()
 	 */
-	public function findStreamByBoardId($boardId, $organization){
-		switch (get_class($organization)){
+	public function findStreamByBoardId($boardId, $organization)
+    {
+		switch (get_class($organization))
+        {
 			case Organization::class :
 			case WriteModelOrganization::class:
 				$organizationId = $organization->getId();
@@ -257,10 +293,12 @@ class KanbanizeServiceImpl implements KanbanizeService
 	 * (non-PHPdoc)
 	 * @see \Kanbanize\Service\KanbanizeService::findStreamByBoardId()
 	 */
-	public function findStreamByProjectId($projectId, $organization){
+	public function findStreamByProjectId($projectId, $organization)
+    {
 		$test = 'test';
 		try {
-		switch (get_class($organization)){
+		switch (get_class($organization))
+        {
 			case Organization::class :
 			case WriteModelOrganization::class:
 				$organizationId = $organization->getId();
@@ -285,7 +323,8 @@ class KanbanizeServiceImpl implements KanbanizeService
 		return $test;
 	}
 
-	public function findStreamByOrganization($organization){
+	public function findStreamByOrganization($organization)
+    {
 
 	    if (is_string($organization)) {
             $organizationId = $organization;
@@ -319,8 +358,10 @@ class KanbanizeServiceImpl implements KanbanizeService
 	 * (non-PHPdoc)
 	 * @see \Kanbanize\Service\KanbanizeService::findTask()
 	 */
-	public function findTask($taskId, $organization){
-		switch (get_class($organization)){
+	public function findTask($taskId, $organization)
+    {
+		switch (get_class($organization))
+        {
 			case Organization::class :
 			case WriteModelOrganization::class:
 				$organizationId = $organization->getId();
@@ -341,14 +382,46 @@ class KanbanizeServiceImpl implements KanbanizeService
 		return $query->getQuery()->getOneOrNullResult();
 	}
 
-	public function initApi($apiKey, $subdomain){
-		if(is_null($apiKey)){
+	public function initApi($apiKey, $subdomain)
+    {
+		if(is_null($apiKey)) {
 			throw new KanbanizeApiException("Cannot connect to Kanbanize due to missing api key");
 		}
-		if(is_null($subdomain)){
+		if(is_null($subdomain)) {
 			throw new KanbanizeApiException("Cannot connect to Kanbanize due to missing account subdomain");
 		}
 		$this->kanbanize->setApiKey($apiKey);
 		$this->kanbanize->setUrl(sprintf(Importer::API_URL_FORMAT, $subdomain));
+
+		return $this;
 	}
+
+	public function loadLanesFromKanbanize($boardId)
+    {
+        $this->kanbanizeLanes = $this->kanbanize->getFullBoardStructure($boardId)['lanes'];
+        return $this;
+    }
+
+    /**
+     * @param ReadModelKanbanizeTask $kanbanizeTask
+     * @param $boardId
+     * @param $options
+     * @return mixed
+     */
+    public function getLaneName($laneId, $boardId)
+    {
+        $lanePos = array_search($laneId, array_column($this->kanbanizeLanes, 'lcid'));
+        return $lanePos!==false ? $this->kanbanizeLanes[$lanePos]['lcname'] : '';
+    }
+
+    /**
+     * @param ReadModelKanbanizeTask $kanbanizeTask
+     * @param $boardId
+     * @param $options
+     * @return mixed
+     */
+    public function laneExists($laneId, $boardId)
+    {
+        return array_search($laneId, array_column($this->kanbanizeLanes, 'lcid'))!==false;
+    }
 }

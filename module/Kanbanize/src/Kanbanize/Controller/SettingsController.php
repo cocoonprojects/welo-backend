@@ -213,7 +213,7 @@ class SettingsController extends OrganizationAwareController
 
 			foreach($projects as &$project){
 				foreach($project['boards'] as &$board){
-					$boardStructure = $this->client->getBoardStructure($board['id']);
+					$boardStructure = $this->client->getFullBoardStructure($board['id']);
 
 					if(is_string($boardStructure)){
 						$board['errors'] = [$boardStructure];

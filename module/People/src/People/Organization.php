@@ -105,7 +105,16 @@ class Organization extends DomainEntity
 		return null;
 	}
 
-	public function getName() {
+    public function setLanes($lanes, User $updatedBy) {
+        $lanes = is_null($lanes)||!is_array($lanes) ? [] : $lanes;
+        $this->recordThat(OrganizationUpdated::occur($this->id->toString(), array(
+            'lanes' => $lanes,
+            'by' => $updatedBy->getId(),
+        )));
+        return $this;
+    }
+
+    public function getName() {
 		return $this->name;
 	}
 

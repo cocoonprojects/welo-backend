@@ -47,6 +47,19 @@ class EventSourcingOrganizationService extends AggregateRepository implements Or
 		return $org;
 	}
 
+	public function updateOrganizationLanes($id, $lanes, User $updatedBy) {
+		$this->eventStore->beginTransaction();
+		try {
+			$org = $this->getOrganization($id);
+            $org->setLanes($lanes);
+			$this->eventStore->commit();
+		} catch (\Exception $e) {
+			$this->eventStore->rollback();
+			throw $e;
+		}
+		return $org;
+    }
+
 	/**
 	 * @param string|Uuid $id
 	 * @return null|object
