@@ -99,6 +99,7 @@ class Task extends DomainEntity implements TaskInterface
             'organizationId' => $stream->getOrganizationId(),
             'streamId' => $stream->getId(),
             'by' => $createdBy->getId(),
+            'userName' => $createdBy->getFirstname().' '.$createdBy->getLastname(),
             'decision' => $decision,
             'lane' => is_array($options) && isset($options['lane']) ? $options['lane'] : ''
         ]));
@@ -221,6 +222,7 @@ class Task extends DomainEntity implements TaskInterface
         $this->recordThat(TaskOngoing::occur($this->id->toString(), array(
                 'prevStatus' => $this->getStatus(),
                 'by' => $executedBy->getId(),
+                'userName' => $executedBy->getFirstname().' '.$executedBy->getLastname(),
         )));
         return $this;
     }
