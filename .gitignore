@@ -27,6 +27,9 @@ auth.json
 
 cache.properties
 build/
+!build/phpcs.xml
+!build/phpmd.xml
+!build/travis-ci-apache
 
 .php_cs.cache
 .env
