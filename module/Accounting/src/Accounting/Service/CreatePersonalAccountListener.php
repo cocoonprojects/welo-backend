@@ -32,20 +32,26 @@ class CreatePersonalAccountListener implements ListenerAggregateInterface
 	}
 	
 	public function attach(EventManagerInterface $events) {
-		$this->listeners[] = $events->getSharedManager()->attach(Application::class, OrganizationMemberAdded::class, function(Event $event) {
-			$streamEvent = $event->getTarget();
-			$organizationId = $streamEvent->metadata()['aggregate_id'];
-			$organization = $this->organizationService->getOrganization($organizationId);
-			$userId = $event->getParam ( 'userId' );
-			$user = $this->userService->findUser($userId);
-			$this->accountService->createPersonalAccount($user, $organization);
-		});
-	}
-	
+		$this->listeners[] = $events->getSharedManager()->attach(Application::class, OrganizationMemberAdded::class, array($this, 'processMemberAdded'));
+    }
+
 	public function detach(EventManagerInterface $events)
 	{
 		if($events->getSharedManager()->detach(Application::class, $this->listeners[0])) {
 			unset($this->listeners[0]);
 		}
 	}
+
+
+    public function processMemberAdded(Event $event) {
+        $streamEvent = $event->getTarget();
+        $organizationId = $streamEvent->metadata()['aggregate_id'];
+        $organization = $this->organizationService->getOrganization($organizationId);
+
+        $userId = $event->getParam ( 'userId' );
+        $user = $this->userService->findUser($userId);
+        $this->accountService->createPersonalAccount($user, $organization);
+die('CONTINUA DA QUI');
+        $flowService->createWelcomeCard($user, $organization->getId());
+    }
 }

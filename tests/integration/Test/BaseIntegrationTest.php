@@ -26,6 +26,7 @@ class BaseIntegrationTest extends \PHPUnit_Framework_TestCase
     protected $organizationService;
     protected $kanbanizeService;
     protected $authService;
+    protected $flowService;
 
     public function __construct()
     {
@@ -38,6 +39,8 @@ class BaseIntegrationTest extends \PHPUnit_Framework_TestCase
         $this->streamService = $this->serviceManager->get('TaskManagement\StreamService');
         $this->organizationService = $this->serviceManager->get('People\OrganizationService');
         $this->kanbanizeService = $this->serviceManager->get('Kanbanize\KanbanizeService');
+
+        $this->flowService = $this->serviceManager->get('FlowManagement\FlowService');
     }
 
     public function test()

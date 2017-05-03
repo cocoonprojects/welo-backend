@@ -13,6 +13,7 @@ use Prooph\EventStore\Aggregate\AggregateType;
 use Prooph\EventStore\Stream\SingleStreamStrategy;
 use Prooph\EventSourcing\EventStoreIntegration\AggregateTranslator;
 use Application\Entity\BasicUser;
+use FlowManagement\WelcomeCard;
 use FlowManagement\VoteIdeaCard;
 use FlowManagement\VoteCompletedItemCard;
 use FlowManagement\VoteCompletedItemVotingClosedCard;
@@ -58,6 +59,27 @@ class EventSourcingFlowService extends AggregateRepository implements FlowServic
 			->setParameter(':recipient', $recipient);
 		return $query->getQuery()->getResult();
 	}
+
+	/**
+	 * (non-PHPdoc)
+	 * @see \FlowManagement\Service\FlowService::createLazyMajorityVoteCard()
+	 */
+	public function createWelcomeCard(BasicUser $recipient, $organizationid){
+		$content = [
+				"orgId" => $organizationid
+		];
+		$this->eventStore->beginTransaction();
+		try {
+			$card = WelcomeCard::create($recipient, $content);
+			$this->addAggregateRoot($card);
+			$this->eventStore->commit();
+		} catch (\Exception $e) {
+			$this->eventStore->rollback();
+			throw $e;
+		}
+		return $card;
+	}
+
 	/**
 	 * (non-PHPdoc)
 	 * @see \FlowManagement\Service\FlowService::createLazyMajorityVoteCard()
@@ -77,6 +99,7 @@ class EventSourcingFlowService extends AggregateRepository implements FlowServic
 		}
 		return $card;
 	}
+
 	/**
 	 * (non-PHPdoc)
 	 * @see \FlowManagement\Service\FlowService::createLazyMajorityVoteCard()

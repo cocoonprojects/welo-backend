@@ -4,6 +4,7 @@ namespace FlowManagement;
 
 interface FlowCardInterface{
 	
+	const WELCOME_CARD = 'Welcome';
 	const VOTE_IDEA_CARD = 'VoteIdea';
 	const VOTE_COMPLETED_ITEM_CARD = 'VoteCompletedItem';
 	const VOTE_COMPLETED_ITEM_VOTING_CLOSED_CARD = 'VoteCompletedItemVotingClosed';
