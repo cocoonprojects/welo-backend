@@ -8,11 +8,6 @@ config/autoload/*.local.php
 
 # Data
 data/
-temp/
-
-# Legacy ZF1
-demos/
-extras/documentation
 
 #Eclipse files
 .project
@@ -21,15 +16,10 @@ extras/documentation
 .DS_Store
 *.log
 .idea/
-
-#GitHub
 auth.json
 
 cache.properties
-build/
-!build/phpcs.xml
-!build/phpmd.xml
-!build/travis-ci-apache
 
 .php_cs.cache
 .env
+/build/logs/

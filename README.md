@@ -1,5 +1,5 @@
-Welo [![Build Status](https://travis-ci.org/cocoonprojects/ora.svg?branch=develop)](https://travis-ci.org/cocoonprojects/ora)
-===
+Welo [![Build Status](https://travis-ci.org/cocoonprojects/welo-backend.svg?branch=master)](https://travis-ci.org/cocoonprojects/welo-backend)
+====
 
 non-hierarchical clustering technological platform
 

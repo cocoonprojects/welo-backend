@@ -24,10 +24,12 @@ class EventSourcingOrganizationServiceTest extends TestCase
     protected function setUp()
     {
         parent::setUp();
-        $entityManager = $this->getMock('\Doctrine\ORM\EntityManager', array('getRepository', 'getClassMetadata', 'persist', 'flush'), array(), '', false);
+        $entityManager = $this->createMock('\Doctrine\ORM\EntityManager', array('getRepository', 'getClassMetadata', 'persist', 'flush'), array(), '', false);
+
         $this->eventStore->beginTransaction();
         $this->eventStore->create(new Stream(new StreamName('event_stream'), array()));
         $this->eventStore->commit();
+
         $this->organizationService = new EventSourcingOrganizationService($this->eventStore, $entityManager);
         $this->user = User::createUser(Uuid::uuid4());
     }

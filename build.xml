@@ -1,24 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="welo" default="build">
+<project name="welo" default="build-local">
 
  <target name="build-local"
          description="local build"
          depends="prepare,lint,phpunit,phpunit-i,behat"/>
 
  <target name="clean" description="Cleanup build artifacts">
-  <delete dir="${basedir}/build/api"/>
-  <delete dir="${basedir}/build/coverage"/>
   <delete dir="${basedir}/build/logs"/>
-  <delete dir="${basedir}/build/pdepend"/>
-  <delete dir="${basedir}/build/jslint"/>
  </target>
 
  <target name="prepare" depends="clean" description="Prepare for build">
-  <mkdir dir="${basedir}/build/api"/>
-  <mkdir dir="${basedir}/build/coverage"/>
   <mkdir dir="${basedir}/build/logs"/>
-  <mkdir dir="${basedir}/build/pdepend"/>
-  <mkdir dir="${basedir}/build/jslint"/>
  </target>
 
  <target name="lint" description="Perform syntax check of sourcecode files">
