@@ -57,3 +57,6 @@ script:
   - phpunit --configuration unit/phpunit.xml --coverage-text
   - phpunit --configuration integration/phpunit.xml
   - ../vendor/bin/behat --format progress
+
+notifications:
+  slack: ideato:lZBegMhS9T81cMvC3PQPrt8u
