@@ -74,16 +74,17 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
             $kanbanize = $org->getSettings(Organization::KANBANIZE_SETTINGS);
 
             $this->kanbanizeService
-                 ->initApi($kanbanize['apiKey'], $kanbanize['accountSubdomain']);
+                 ->initApi($kanbanize['apiKey'], $kanbanize['accountSubdomain'])
+            ;
 
 
-            $kanbanizeFullStructure = $this->kanbanizeService
-                                           ->getFullBoardStructure($stream->getBoardId());
-
-            $lanes = $this->getLanesSyncReport($kanbanizeFullStructure, $org);
+            $lanes = $this->getLanesDiffWithKanbanize(
+                $this->kanbanizeService->getFullBoardStructure($stream->getBoardId()),
+                $org
+            );
 
             try{
-                $lanes['app'] = $this->updateLanes($lanes['app'], $lanes['kanbanize']);
+                $lanes['app'] = $this->updateLanesNames($lanes['app'], $lanes['kanbanize']);
                 $lanes['app'] = $this->addLanes($lanes['app'], $lanes['toAdd']);
                 $lanes['app'] = $this->removeLanes($lanes['app'], $lanes['toRemove']);
 
@@ -309,32 +310,30 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
         }
     }
 
-    public function getLanesSyncReport($kanbanizeFullStructure, $org)
+    public function getLanesDiffWithKanbanize($kanbanizeFullStructure, $org)
     {
         $kanbanizeLanes = [];
         foreach ($kanbanizeFullStructure['lanes'] as $lane) {
             $kanbanizeLanes[$lane['lcid']] = $lane['lcname'];
         }
-        $this->write('[K-SYNC] ' . count($kanbanizeLanes) . ' lanes found into the Kanbanize');
-
         $appLanes = $org->getLanes();
-        $this->write('[K-SYNC] ' . count($appLanes) . ' lanes found into the application');
 
         $keysAddedInKanbanize = array_diff(array_keys($kanbanizeLanes), array_keys($appLanes));
-        $this->write('[K-SYNC] ' . count($keysAddedInKanbanize) . ' lanes will be added into the application');
-
         $addedInKanbanize = [];
         foreach ($keysAddedInKanbanize as $key) {
             $addedInKanbanize[$key] = $kanbanizeLanes[$key];
         }
 
         $keysRemovedInKanbanize = array_diff(array_keys($appLanes), array_keys($kanbanizeLanes));
-        $this->write('[K-SYNC] ' . count($keysRemovedInKanbanize) . ' lanes will be possibly removed from application');
-
         $removedInKanbanize = [];
         foreach ($keysRemovedInKanbanize as $key) {
             $removedInKanbanize[$key] = $appLanes[$key];
         }
+
+        $this->write('[K-SYNC] ' . count($kanbanizeLanes) . ' lanes found into the Kanbanize');
+        $this->write('[K-SYNC] ' . count($appLanes) . ' lanes found into the application');
+        $this->write('[K-SYNC] ' . count($keysAddedInKanbanize) . ' lanes will be added into the application');
+        $this->write('[K-SYNC] ' . count($keysRemovedInKanbanize) . ' lanes will be possibly removed from application');
 
         return [
             'app' => $appLanes,
@@ -348,7 +347,7 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
      * @param $lanesToAdd
      * @return array
      */
-    public function updateLanes($appLanes, $kanbanizeLanes)
+    public function updateLanesNames($appLanes, $kanbanizeLanes)
     {
         foreach ($appLanes as $laneId => $laneName) {
             if (isset($kanbanizeLanes[$laneId]) && $appLanes[$laneId] != $kanbanizeLanes[$laneId]) {

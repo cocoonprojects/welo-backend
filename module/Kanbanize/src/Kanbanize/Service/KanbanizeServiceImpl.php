@@ -31,6 +31,8 @@ class KanbanizeServiceImpl implements KanbanizeService
 	 */
 	private $kanbanize;
 
+	private $kanbanizeLanes;
+
 	/*
 	 * Constructs service
 	 */
@@ -137,14 +139,15 @@ class KanbanizeServiceImpl implements KanbanizeService
         }
 
         if (!$this->laneExists($kanbanizeTask->getLane(), $boardId)) {
-            throw new OperationFailedException('Unable to move the task ' . $taskId . ' in board ' . $boardId . ' to the column ' . $status . ' because that column does not exists on Kanbanize', 400);
+            unset($options['lane']);
+//            throw new OperationFailedException('Unable to move the task ' . $taskId . ' in board ' . $boardId . ' to the column ' . $status . ' because that lane does not exists on Kanbanize', 400);
         }
 
         $response = $this->kanbanize
             ->moveTask($boardId, $taskId, $status, $options);
 
         if ($response != 1) {
-            throw new OperationFailedException('Unable to move the task ' . $taskId . ' in board ' . $boardId . ' to the column ' . $status . ' because of ' . var_export($response), 400);
+            throw new OperationFailedException('Unable to move the task ' . $taskId . ' in board ' . $boardId . ' to the column ' . $status . ' because of ' . var_export($response,1), 400);
         }
 		return 1;
 	}
@@ -379,6 +382,10 @@ class KanbanizeServiceImpl implements KanbanizeService
 		}
 		$this->kanbanize->setApiKey($apiKey);
 		$this->kanbanize->setUrl(sprintf(Importer::API_URL_FORMAT, $subdomain));
+
+        $this->kanbanizeLanes = $this->kanbanize->getFullBoardStructure($boardId)['lanes'];
+
+		return $this;
 	}
 
     /**
@@ -389,9 +396,8 @@ class KanbanizeServiceImpl implements KanbanizeService
      */
     public function getLaneName($laneId, $boardId)
     {
-        $lanes = $this->kanbanize->getFullBoardStructure($boardId)['lanes'];
-        $lanePos = array_search($laneId, array_column($lanes, 'lcid'));
-        return $lanes[$lanePos]['lcname'];
+        $lanePos = array_search($laneId, array_column($this->kanbanizeLanes, 'lcid'));
+        return $lanePos!==false ? $this->kanbanizeLanes[$lanePos]['lcname'] : '';
     }
 
     /**
@@ -402,7 +408,6 @@ class KanbanizeServiceImpl implements KanbanizeService
      */
     public function laneExists($laneId, $boardId)
     {
-        $lanes = $this->kanbanize->getFullBoardStructure($boardId)['lanes'];
-        return array_search($laneId, array_column($lanes, 'lcid'))!==false;
+        return array_search($laneId, array_column($this->kanbanizeLanes, 'lcid'))!==false;
     }
 }
