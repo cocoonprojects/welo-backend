@@ -4,6 +4,7 @@ namespace TaskManagement;
 use Application\Entity\User;
 use IntegrationTest\BaseIntegrationTest;
 use IntegrationTest\Bootstrap;
+use People\Organization;
 use PHPUnit_Framework_TestCase;
 use TaskManagement\Controller\SharesController;
 use Test\TestFixturesHelper;
@@ -43,20 +44,26 @@ class CreateWelcomeCardTest extends BaseIntegrationTest
 	}
 
 	public function testWelcomeFlowcard() {
+        $this->transactionManager->beginTransaction();
+        try {
+            $this->organization->addMember($this->user, Organization::ROLE_MEMBER);
+            $this->transactionManager->commit();
+        } catch (\Exception $e) {
+            var_dump($e->getMessage());
+            $this->transactionManager->rollback();
+            throw $e;
+        }
+
 		$result   = $this->controller->dispatch($this->request);
 		$response = $this->controller->getResponse();
-var_dump($response->getStatusCode());
-var_dump($response->getContent());
 
 		$readModelCards = $this->flowService->findFlowCards($this->user, 0, 1000);
-var_dump($readModelCards);
+        $cardContent = $readModelCards[0]->getContent();
+
+        $this->assertEquals(200, $response->getStatusCode());
 		$this->assertCount(1, $readModelCards);
-/*
-		$this->assertEquals(201, $response->getStatusCode());
-		$this->assertEquals(Task::STATUS_ACCEPTED, $this->task->getStatus());
-		$this->assertEquals(Task::STATUS_ACCEPTED, $readModelTask->getStatus());
-		$this->assertEquals(true, $this->task->isSharesAssignmentCompleted());
-*/
-	}
+        $this->assertArrayHasKey('Welcome', $cardContent);
+        $this->assertEquals($this->organization->getId(), $cardContent['Welcome']['orgId']);
+    }
 
 }

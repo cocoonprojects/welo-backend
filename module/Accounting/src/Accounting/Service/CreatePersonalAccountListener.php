@@ -51,7 +51,5 @@ class CreatePersonalAccountListener implements ListenerAggregateInterface
         $userId = $event->getParam ( 'userId' );
         $user = $this->userService->findUser($userId);
         $this->accountService->createPersonalAccount($user, $organization);
-die('CONTINUA DA QUI');
-        $flowService->createWelcomeCard($user, $organization->getId());
     }
 }

@@ -7,11 +7,12 @@ use Application\Entity\BasicUser;
 
 class WelcomeCard extends FlowCard {
 
-	public static function create(BasicUser $recipient, $content){
+	public static function create(BasicUser $recipient, $content, BasicUser $by, $itemId = null){
 		$rv = new self();
 		$event = FlowCardCreated::occur(Uuid::uuid4()->toString(), [
-				'to' => $recipient->getId(),
-				'content' => $content
+            'to' => $recipient->getId(),
+            'content' => $content,
+            'by' => $by->getId()
 		]);
 		$rv->recordThat($event);
         return $rv;
