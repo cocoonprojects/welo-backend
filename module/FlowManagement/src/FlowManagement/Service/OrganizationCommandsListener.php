@@ -88,7 +88,9 @@ class OrganizationCommandsListener implements ListenerAggregateInterface {
 
         $user = $this->userService->findUser($userId);
 
-        $this->flowService->createWelcomeCard($user, $organization->getId(), $user);
+        $welcomeText = $organization->getParams()->get('flow_welcome_card_text');
+
+        $this->flowService->createWelcomeCard($user, $organization->getId(), $welcomeText);
     }
 
     public function detach(EventManagerInterface $events){

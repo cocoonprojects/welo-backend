@@ -64,6 +64,8 @@ class CreateWelcomeCardTest extends BaseIntegrationTest
 		$this->assertCount(1, $readModelCards);
         $this->assertArrayHasKey('Welcome', $cardContent);
         $this->assertEquals($this->organization->getId(), $cardContent['Welcome']['orgId']);
+        $this->assertNotEmpty($cardContent['Welcome']['text']);
+        $this->assertEquals($this->organization->getParams()->get('flow_welcome_card_text'), $cardContent['Welcome']['text']);
     }
 
 }

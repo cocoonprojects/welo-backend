@@ -64,10 +64,10 @@ class EventSourcingFlowService extends AggregateRepository implements FlowServic
 	 * (non-PHPdoc)
 	 * @see \FlowManagement\Service\FlowService::createLazyMajorityVoteCard()
 	 */
-	public function createWelcomeCard(BasicUser $recipient, $organizationId){
+	public function createWelcomeCard(BasicUser $recipient, $organizationId, $welcomeText){
 		$content = [
             "orgId" => $organizationId,
-            "text" => "Welcome to our fantastic organization"
+            "text" => $welcomeText
 		];
 		$card = null;
 		$this->eventStore->beginTransaction();

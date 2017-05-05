@@ -22,7 +22,7 @@ class OrganizationParams
             'org_transaction_limit_per_page' => 10,
             'org_members_limit_per_page' => 20,
 
-            'flow_welcome_card_text' => 'Welcome to our organization!'
+            'flow_welcome_card_text' => 'Welcome to our organization.'
         ];
     }
 
@@ -48,7 +48,7 @@ class OrganizationParams
             return;
         }
 
-        $this->params[$textName] = $data;
+        $this->params[$textName] = $data[$textName];
     }
 
     private function setIntValue($data, $intName)
