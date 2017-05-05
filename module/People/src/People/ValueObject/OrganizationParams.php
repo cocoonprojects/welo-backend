@@ -21,6 +21,8 @@ class OrganizationParams
             'personal_transaction_limit_per_page' => 10,
             'org_transaction_limit_per_page' => 10,
             'org_members_limit_per_page' => 20,
+
+            'flow_welcome_card_text' => 'Welcome to our organization!'
         ];
     }
 
@@ -38,6 +40,15 @@ class OrganizationParams
         }
 
         $this->params[$intervalName] = $interval;
+    }
+
+    private function setTextValue($data, $textName)
+    {
+        if (!isset($data[$textName])) {
+            return;
+        }
+
+        $this->params[$textName] = $data;
     }
 
     private function setIntValue($data, $intName)
@@ -94,6 +105,7 @@ class OrganizationParams
         $settings->setIntValue($data, 'org_transaction_limit_per_page');
         $settings->setIntValue($data, 'org_members_limit_per_page');
 
+        $settings->setTextValue($data, 'flow_welcome_card_text');
         return $settings;
     }
 }
