@@ -3,6 +3,7 @@
 namespace FlowManagement\Service;
 
 use Application\Service\UserService;
+use People\OrganizationMemberAdded;
 use People\Service\OrganizationService;
 use Prooph\EventStore\EventStore;
 use TaskManagement\TaskArchived;
@@ -51,8 +52,9 @@ class OrganizationCommandsListener implements ListenerAggregateInterface {
 	}
 	
 	public function attach(EventManagerInterface $events) {
-		$this->listeners[] = $events->getSharedManager()->attach(Application::class, OrganizationMemberRoleChanged::class, array($this, 'processOrganizationMemberRoleChange'));
-	}
+        $this->listeners[] = $events->getSharedManager()->attach(Application::class, OrganizationMemberRoleChanged::class, array($this, 'processOrganizationMemberRoleChange'));
+        $this->listeners[] = $events->getSharedManager()->attach(Application::class, OrganizationMemberAdded::class, array($this, 'processMemberAdded'));
+    }
 	
 	public function processOrganizationMemberRoleChange(Event $event){
 
@@ -75,8 +77,21 @@ class OrganizationCommandsListener implements ListenerAggregateInterface {
 			$flowService->createOrganizationMemberRoleChangedCard($member->getMember(), $changedUser, $organization->getId(), $oldRole, $newRole, $changedBy);
 		});
 	}
-	
-	public function detach(EventManagerInterface $events){
+
+    public function processMemberAdded(Event $event) {
+        $streamEvent = $event->getTarget();
+        $organizationId = $streamEvent->metadata()['aggregate_id'];
+
+        $organization = $this->organizationService->getOrganization($organizationId);
+
+        $userId = $event->getParam ( 'userId' );
+
+        $user = $this->userService->findUser($userId);
+
+        $this->flowService->createWelcomeCard($user, $organization->getId(), $user);
+    }
+
+    public function detach(EventManagerInterface $events){
 		foreach ( $this->listeners as $index => $listener ) {
 			if ($events->detach ( $listener )) {
 				unset ( $this->listeners [$index] );

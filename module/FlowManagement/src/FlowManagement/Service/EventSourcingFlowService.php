@@ -64,13 +64,15 @@ class EventSourcingFlowService extends AggregateRepository implements FlowServic
 	 * (non-PHPdoc)
 	 * @see \FlowManagement\Service\FlowService::createLazyMajorityVoteCard()
 	 */
-	public function createWelcomeCard(BasicUser $recipient, $organizationid){
+	public function createWelcomeCard(BasicUser $recipient, $organizationId){
 		$content = [
-				"orgId" => $organizationid
+            "orgId" => $organizationId,
+            "text" => "Welcome to our fantastic organization"
 		];
+		$card = null;
 		$this->eventStore->beginTransaction();
 		try {
-			$card = WelcomeCard::create($recipient, $content);
+			$card = WelcomeCard::create($recipient, $content, $recipient);
 			$this->addAggregateRoot($card);
 			$this->eventStore->commit();
 		} catch (\Exception $e) {
@@ -119,6 +121,7 @@ class EventSourcingFlowService extends AggregateRepository implements FlowServic
 		}
 		return $card;
 	}
+
 	/**
 	 * (non-PHPdoc)
 	 * @see \FlowManagement\Service\FlowService::createLazyMajorityVoteCard()

@@ -101,7 +101,6 @@ class UsersSecondaryEmailsTest extends BaseIntegrationTest
             $result->getVariables()
         );
 
-
         $result   = $this->controller->replaceList([ $testEmail, $existingUser->getEmail() ]);
         $response = $this->controller->getResponse();
 
