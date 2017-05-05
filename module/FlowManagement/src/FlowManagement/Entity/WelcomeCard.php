@@ -19,7 +19,7 @@ class WelcomeCard extends FlowCard
 		$rv['type'] = $type;
 		$rv['createdAt'] = date_format($this->getCreatedAt(), 'c');
 		$rv['id'] = $this->getId();
-		$rv['title'] = "Welcome to ''";
+		$rv['title'] = "Welcome to our organization";
 		$rv['content'] = [
 			'description' => $content['text'],
 			'actions' => [
