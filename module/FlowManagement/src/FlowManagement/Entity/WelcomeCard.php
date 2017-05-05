@@ -2,8 +2,11 @@
 
 namespace FlowManagement\Entity;
 
+use Application\Entity\User;
 use Doctrine\ORM\Mapping AS ORM;
 use FlowManagement\FlowCardInterface;
+use People\Entity\Organization;
+use Rhumsaa\Uuid\Uuid;
 
 /**
  * @ORM\Entity
@@ -28,4 +31,19 @@ class WelcomeCard extends FlowCard
 
 		return $rv;
 	}
+
+    public static function create(Uuid $uuid, Organization $org, User $to, $welcomeText)
+    {
+        $data = [
+            'orgId'   => $org->getId(),
+            'text'    => $welcomeText
+        ];
+
+        $flowCard = new static($uuid, $to);
+        $flowCard->setContent(FlowCardInterface::WELCOME_CARD, $data);
+        $flowCard->setCreatedBy($to);
+
+        return $flowCard;
+    }
+
 }
