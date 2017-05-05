@@ -58,10 +58,6 @@ class CardCommandsListener extends ReadModelProjector {
 		$type = $event->metadata()['aggregate_type'];
 
 		switch ($type){
-			case 'FlowManagement\WelcomeCard':
-                $entity = new WelcomeCard($id, $recipient);
-                $entity->setContent(FlowCardInterface::WELCOME_CARD, $content);
-				break;
 			case 'FlowManagement\VoteIdeaCard':
 				$entity = new VoteIdeaCard($id, $recipient);
 				$item = $this->entityManager->find(Task::class, $event->payload()['item']);
