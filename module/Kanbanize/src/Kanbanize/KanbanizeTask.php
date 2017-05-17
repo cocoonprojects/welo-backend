@@ -80,6 +80,7 @@ class KanbanizeTask extends Task
             'organizationId' => $stream->getOrganizationId(),
             'streamId' => $stream->getId(),
             'by' => $createdBy->getId(),
+            'userName' => $createdBy->getFirstname().' '.$createdBy->getLastname(),
             'columnname' => $options['columnname'],
             'lane' => isset($options['lane']) ? $options['lane'] : null,
             'subject' => $subject,

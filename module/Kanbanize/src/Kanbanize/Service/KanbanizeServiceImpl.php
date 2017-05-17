@@ -410,6 +410,10 @@ class KanbanizeServiceImpl implements KanbanizeService
      */
     public function getLaneName($laneId, $boardId)
     {
+        if (!$laneId || !$this->kanbanizeLanes) {
+            return '';
+        }
+
         $lanePos = array_search($laneId, array_column($this->kanbanizeLanes, 'lcid'));
         return $lanePos!==false ? $this->kanbanizeLanes[$lanePos]['lcname'] : '';
     }
@@ -422,6 +426,10 @@ class KanbanizeServiceImpl implements KanbanizeService
      */
     public function laneExists($laneId, $boardId)
     {
+        if (!$laneId || !$this->kanbanizeLanes) {
+            return false;
+        }
+
         return array_search($laneId, array_column($this->kanbanizeLanes, 'lcid'))!==false;
     }
 }
