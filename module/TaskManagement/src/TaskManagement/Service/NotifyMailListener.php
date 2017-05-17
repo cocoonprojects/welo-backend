@@ -142,6 +142,7 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
 			$member = is_null($task->getMember($memberId)) ? null : $task->getMember($memberId)->getUser();
 			$org = $task->getStream()->getOrganization();
 			$memberships = $this->orgService->findOrganizationMemberships($org,null,null);
+
 			$this->sendWorkItemIdeaCreatedMail ( $task, $member, $memberships);
 		}
 	}
@@ -408,10 +409,17 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
 		$rv = [];
 		$org = $task->getStream()->getOrganization();
 		$stream = $task->getStream();
-		
-		foreach ($memberships as $m) {
+
+        $authorId = $task->getAuthor()->getId();
+
+        foreach ($memberships as $m) {
 			$recipient = $m->getMember();
-			
+
+			if ($authorId == $recipient->getId()) {
+			    // do not send creation notification to the creator
+                continue;
+            }
+
 			$message = $this->mailService->getMessage();
 			$message->setTo($recipient->getEmail());
 			$message->setSubject('A new idea proposed into the "' . $stream->getSubject() . '" stream');

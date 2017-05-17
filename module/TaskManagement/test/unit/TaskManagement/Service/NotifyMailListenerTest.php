@@ -61,6 +61,7 @@ class NotifyMailListenerTest extends \PHPUnit_Framework_TestCase
 
         $this->task = new Task('1', $this->stream);
         $this->task->setSubject('Lorem Ipsum Sic Dolor Amit');
+        $this->task->setCreatedBy($this->owner);
         $this->task->addMember($this->owner, TaskMember::ROLE_OWNER, $this->owner, new \DateTime());
         $this->task->addMember($this->member, TaskMember::ROLE_MEMBER, $this->member, new \DateTime());
 
@@ -172,26 +173,15 @@ class NotifyMailListenerTest extends \PHPUnit_Framework_TestCase
     public function testSendWorkItemIdeaCreatedMail()
     {
         $this->orgService->method('findOrganization')->with($this->task->getOrganizationId())->willReturn($this->organization);
-        
+
         $m1 = new \People\Entity\OrganizationMembership($this->owner, $this->organization);
         $m2 = new \People\Entity\OrganizationMembership($this->member, $this->organization);
         $memberships = array($m1, $m2);
 
-        $this->service->getMailService()
-        ->expects($this->at(1))
-        ->method('setTemplate')
-        ->with('mail/work-item-idea-created.phtml', [
-                'task' => $this->task,
-                'member' =>$this->owner,
-                'recipient'=> $this->owner,
-                'organization'=> $this->organization,
-                'stream'=> $this->stream,
-            'host' => 'http://example.com',
-            'router' => $this->feRouter
-        ]);
+        // the author of the card should not be notified
 
         $this->service->getMailService()
-        ->expects($this->at(4))
+        ->expects($this->at(1))
         ->method('setTemplate')
         ->with('mail/work-item-idea-created.phtml', [
                 'task' => $this->task,
@@ -202,7 +192,7 @@ class NotifyMailListenerTest extends \PHPUnit_Framework_TestCase
             'host' => 'http://example.com',
             'router' => $this->feRouter
         ]);
-        
+
         $this->service->sendWorkItemIdeaCreatedMail($this->task, $this->owner, $memberships);
     }
 }
