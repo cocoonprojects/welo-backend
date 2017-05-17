@@ -67,7 +67,8 @@ class TaskCommandsListener extends ReadModelProjector {
 	}
 
 	protected function onTaskUpdated(StreamEvent $event) {
-		$id = $event->metadata ()['aggregate_id'];
+
+        $id = $event->metadata ()['aggregate_id'];
 		$entity = $this->entityManager->find ( Task::class, $id );
 
 		if (is_null ( $entity )) {
@@ -75,15 +76,23 @@ class TaskCommandsListener extends ReadModelProjector {
 		}
 
 		$updatedBy = $this->entityManager->find ( User::class, $event->payload ()['by'] );
+
 		if (isset ( $event->payload ()['subject'] )) {
 			$entity->setSubject ( $event->payload ()['subject'] );
 		}
+
 		if (isset ( $event->payload ()['description'] )) {
 			$entity->setDescription ( $event->payload ()['description'] );
 		}
+
 		if(isset($event->payload()['attachments'])) {
 			$entity->setAttachments($event->payload()['attachments']);
 		}
+
+		if(isset($event->payload()['position'])) {
+			$entity->setPosition($event->payload()['position']);
+		}
+
 		if(isset($event->payload()['lane']) && $entity->getLane() !== $event->payload()['lane']) {
             $entity->setLane($event->payload()['lane']);
 
@@ -102,13 +111,10 @@ class TaskCommandsListener extends ReadModelProjector {
                 $status = array_search($entity->getStatus(), $mapping);
 
                 $this->kanbanizeService->initApi ( $kanbanizeSettings ['apiKey'], $kanbanizeSettings ['accountSubdomain'] );
-                $this->kanbanizeService->moveTaskonKanbanize($entity, null, $kanbanizeBoardId);
+                $this->kanbanizeService->loadLanesFromKanbanize($kanbanizeBoardId);
+                $this->kanbanizeService->moveTaskonKanbanize($entity, $status, $kanbanizeBoardId);
             }
 
-		}
-
-		if(isset($event->payload()['position'])) {
-			$entity->setPosition($event->payload()['position']);
 		}
 
 		$entity->setMostRecentEditAt ( $event->occurredOn () );
@@ -484,7 +490,8 @@ class TaskCommandsListener extends ReadModelProjector {
 
 		// Init KanbanizeAPI on kanbanizeService
 		$this->kanbanizeService->initApi ( $kanbanizeSettings ['apiKey'], $kanbanizeSettings ['accountSubdomain'] );
-
+        $this->kanbanizeService->loadLanesFromKanbanize($kanbanizeBoardId);
+        
 		$mapping = $kanbanizeSettings ['boards'] [$kanbanizeBoardId] ['columnMapping'];
 
 		$key = array_search($task->getStatus(), $mapping);

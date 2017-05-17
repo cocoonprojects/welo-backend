@@ -151,7 +151,6 @@ class KanbanizeServiceImpl implements KanbanizeService
             unset($options['lane']);
 //            throw new OperationFailedException('Unable to move the task ' . $taskId . ' in board ' . $boardId . ' to the column ' . $status . ' because that lane does not exists on Kanbanize', 400);
         }
-
         $response = $this->kanbanize
             ->moveTask($boardId, $taskId, $status, $options);
 

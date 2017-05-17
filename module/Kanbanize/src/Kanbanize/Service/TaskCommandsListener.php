@@ -76,11 +76,14 @@ class TaskCommandsListener extends ReadModelProjector {
 					$id = $streamEvent->metadata()['aggregate_id'];
 					$entity = $this->taskService->findTask($id);
 					$by = $this->entityManager->find(User::class, $streamEvent->payload()['by']);
+
 					$entity = $this->updateEntity($entity, $by, $streamEvent);
+
 					$this->entityManager->persist($entity);
 					$this->entityManager->flush($entity);
-			}
-		}, 200 );
+			    }
+		    }, 200
+        );
 
 
 		$this->listeners [] = $events->getSharedManager ()->attach ( Application::class, TaskMemberAdded::class, function (Event $event) {

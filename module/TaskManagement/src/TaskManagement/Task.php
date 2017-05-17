@@ -182,7 +182,6 @@ class Task extends DomainEntity implements TaskInterface
         if (isset($data['lane'])) {
             $eventData['lane'] = $data['lane'];
         }
-
         $this->recordThat(TaskUpdated::occur($this->id->toString(), $eventData));
     }
 
