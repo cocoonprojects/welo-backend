@@ -1,4 +1,5 @@
 <?php
+
 return [
 	'mail_domain' => 'http://welo.dev/',
 	'acmailer_options' => [

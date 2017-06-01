@@ -1,11 +1,11 @@
 <?php
 return [
-    'mail_domain' => 'http://welo.ideato.it/',
+    'mail_domain' => getenv('MAIL_DOMAIN'),
     'acmailer_options' => [
 		'default' => [
 			'mail_adapter' => '\Zend\Mail\Transport\Sendmail',
 			'message_options' => [
-				'from' => 'no-reply@weloproject.org',
+				'from' => 'no-reply@getwelo.com',
 				'from_name' => 'Welo',
 				//'to' => [],
 				//'cc' => [],
