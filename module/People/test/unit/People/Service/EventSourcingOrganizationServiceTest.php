@@ -6,25 +6,21 @@ use Prooph\EventStore\Stream\Stream;
 use Prooph\EventStore\Stream\StreamName;
 use Application\Entity\User;
 use Rhumsaa\Uuid\Uuid;
+use Doctrine\ORM\EntityManager;
 
 class EventSourcingOrganizationServiceTest extends TestCase
 {
-    
-    /**
-     *
-     * @var OrganizationService
-     */
     private $organizationService;
-    /**
-     *
-     * @var User
-     */
+
     private $user;
     
     protected function setUp()
     {
         parent::setUp();
-        $entityManager = $this->createMock('\Doctrine\ORM\EntityManager', array('getRepository', 'getClassMetadata', 'persist', 'flush'), array(), '', false);
+        $entityManager = $this->getMockBuilder(EntityManager::class)
+            ->setMethods(array('getRepository', 'getClassMetadata', 'persist', 'flush'))
+            ->disableOriginalConstructor()
+            ->getMock();
 
         $this->eventStore->beginTransaction();
         $this->eventStore->create(new Stream(new StreamName('event_stream'), array()));
