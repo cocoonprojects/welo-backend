@@ -182,7 +182,7 @@ class KanbanizeServiceImpl implements KanbanizeService
 				   ->createNewTask($boardId, $all_options);
 
 		if (is_null ( $id )) {
-			throw OperationFailedException("Cannot create task on Kanbanize");
+			throw new OperationFailedException("Cannot create task on Kanbanize");
 		}
 		return $id;
 	}
