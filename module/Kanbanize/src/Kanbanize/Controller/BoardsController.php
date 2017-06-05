@@ -139,6 +139,12 @@ class BoardsController extends OrganizationAwareController{
 				$this->identity()
 			);
 
+			$lanes = [];
+            foreach ($data['structure']['lanes'] as $lane) {
+                $lanes[$lane['lcid']] = $lane['lcname'];
+            }
+			$organization->setLanes($lanes, $this->identity());
+
 			$this->transaction()->commit();
 			$this->response->setStatusCode(201);
 
@@ -152,7 +158,7 @@ class BoardsController extends OrganizationAwareController{
 			$this->transaction()->rollback();
 			$this->response->setStatusCode(422);
 			$error->setCode(ErrorJsonModel::$ERROR_INPUT_VALIDATION);
-			$error->setDescription($e->getMessage());
+			$error->setDescription($ex->getMessage());
 			return $error;
 		}
 	}
@@ -171,7 +177,7 @@ class BoardsController extends OrganizationAwareController{
 		$error = new ErrorJsonModel();
 		try{
 			$client = $this->initApi($kanbanizeSettings['apiKey'], $kanbanizeSettings['accountSubdomain']);
-			$structure = $client->getBoardStructure($id);
+			$structure = $client->getFullBoardStructure($id);
 			if(is_string($structure)){
 				//TODO: il metodo getProjectsAndBoards, se va a buon fine, restituisce un array; in caso di errore non restituisce un messaggio completo ma solamente il primo carattere
 				//migliorare questo comportamento

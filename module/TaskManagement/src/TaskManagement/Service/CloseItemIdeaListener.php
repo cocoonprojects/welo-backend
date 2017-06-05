@@ -130,6 +130,8 @@ class CloseItemIdeaListener implements ListenerAggregateInterface {
 			}
 		}
 	}
+
+
 	public function detach(EventManagerInterface $events) {
 		if ($events->getSharedManager ()->detach ( 'TaskManagement\TaskService', $this->listeners [0] )) {
 			unset ( $this->listeners [0] );
