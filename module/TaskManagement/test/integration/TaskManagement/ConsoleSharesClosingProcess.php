@@ -3,27 +3,18 @@
 namespace TaskManagement;
 
 use BaseTaskProcessTest;
-use TaskManagement\Controller\Console\SharesRemindersController;
-use PHPUnit_Framework_TestCase;
-use Guzzle\Http\Client;
-use IntegrationTest\Bootstrap;
-use Prooph\EventStore\EventStore;
 use Application\Entity\User;
 use People\Organization;
 use People\Entity\OrganizationEntity;
-use People\Service\OrganizationService;
-use TaskManagement\Entity\Task as EntityTask;
-use TaskManagement\Entity\TaskMember;
-use TaskManagement\Entity\Vote;
-use TaskManagement\Service\TaskService;
 use Test\Mailbox;
 use Test\TestFixturesHelper;
 use Zend\Console\Request as ConsoleRequest;
 use TaskManagement\Service\MailService;
-use Zend\Form\Element\DateTime;
 
-
-class ConsoleSharesClosingProcessTest extends BaseTaskProcessTest
+/**
+ * FIXME: gira singolarmente ma non in gruppo
+ */
+class ConsoleSharesClosingProcess extends BaseTaskProcessTest
 {
 	protected $admin;
 	protected $organization;
@@ -35,8 +26,6 @@ class ConsoleSharesClosingProcessTest extends BaseTaskProcessTest
 
 	protected function setUp()
 	{
-
-
         $this->admin = $this->createUser(['given_name' => 'Admin', 'family_name' => 'Uber', 'email' => TestFixturesHelper::generateRandomEmail()], User::ROLE_ADMIN);
         $this->owner = $this->createUser([ 'given_name' => 'John', 'family_name' => 'Doe', 'email' => TestFixturesHelper::generateRandomEmail() ], User::ROLE_USER );
         $this->member01 = $this->createUser([ 'given_name' => 'Jane', 'family_name' => 'Doe', 'email' => TestFixturesHelper::generateRandomEmail() ], User::ROLE_USER );
@@ -87,7 +76,6 @@ class ConsoleSharesClosingProcessTest extends BaseTaskProcessTest
             throw $e;
         }
 
-
 		$this->controller = $this->serviceManager->get("ControllerManager")->get('TaskManagement\Controller\Console\SharesClosing');
 
         $task = $this->taskService->findTask($this->task->getId());
@@ -97,7 +85,6 @@ class ConsoleSharesClosingProcessTest extends BaseTaskProcessTest
 
         $this->mailbox = Mailbox::create();
     }
-
 
     public function testCloseTaskWhereNotAllUsersAssignedShares()
 	{
@@ -141,13 +128,13 @@ class ConsoleSharesClosingProcessTest extends BaseTaskProcessTest
             $this->task->getId(),
             $mail
         );
+
         $this->assertContains(
             "in which you are the owner has been closed, 2 members on 3 assigned shares for it",
             $mail
         );
 
 	}
-
 
 	public function testCannotCloseTaskWhereNotMinimumSharesReached()
 	{
@@ -195,7 +182,6 @@ class ConsoleSharesClosingProcessTest extends BaseTaskProcessTest
 
 	}
 
-
 	public function testCannotCloseTaskWhenNoTimeboxReached()
 	{
         $this->setSharesTimebox($this->organization, 10);
@@ -226,10 +212,6 @@ class ConsoleSharesClosingProcessTest extends BaseTaskProcessTest
         $this->assertContains('found 0 accepted items to process in '.$this->organization->getId(), $result);
 	}
 
-    /**
-     * @param $this->admin
-     * @throws \Exception
-     */
     protected function setSharesTimebox($organization, $days)
     {
         $orgData = $organization->getParams();

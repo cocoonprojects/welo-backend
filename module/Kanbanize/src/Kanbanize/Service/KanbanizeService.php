@@ -13,7 +13,7 @@ interface KanbanizeService {
 
 	public function createNewTask($taskSubject, $taskTitle, $boardId, $options);
 
-	public function deleteTask(KanbanizeTask $kanbanizeTask);
+	public function deleteTask(Kanbanize\Entity\KanbanizeTask $kanbanizeTask, $boardId);
 
 	public function getTasks($boardId, $status = null);
 

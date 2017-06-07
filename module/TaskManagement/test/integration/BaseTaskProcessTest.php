@@ -48,7 +48,9 @@ class BaseTaskProcessTest extends \PHPUnit_Framework_TestCase
         $this->routeMatch = new RouteMatch(array('controller' => $actionName));
         $this->event      = new MvcEvent();
         $config = $this->serviceManager->get('Config');
+
         $routerConfig = isset($config['router']) ? $config['router'] : array();
+
         $router = $this->serviceManager->get('HttpRouter');
         $router->setRequestUri(new Http("http://example.com"));
 
@@ -61,21 +63,11 @@ class BaseTaskProcessTest extends \PHPUnit_Framework_TestCase
         $this->controller->setPluginManager($pluginManager);
     }
 
-    /**
-     * @param array $data
-     * @param $role
-     * @return User
-     */
     protected function createUser($data, $role)
     {
         return $this->userService->subscribeUser($data, $role);
     }
 
-    /**
-     * @param string $name
-     * @param \Application\Entity\User $user
-     * @return Organization
-     */
     protected function createOrganization($name, $admin)
     {
         return $this->organizationService->createOrganization($name, $admin);
@@ -83,7 +75,6 @@ class BaseTaskProcessTest extends \PHPUnit_Framework_TestCase
 
     protected function createStream($name, $organization, $admin, $serviceManager)
     {
-        $stream = null;
         $streamService = $serviceManager->get('TaskManagement\StreamService');
 
         return $streamService->createStream($organization, $name, $admin);

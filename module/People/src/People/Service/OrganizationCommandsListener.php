@@ -9,8 +9,10 @@ use Application\Service\ReadModelProjector;
 
 class OrganizationCommandsListener extends ReadModelProjector {
 	
-	protected function onOrganizationCreated(StreamEvent $event) {
-		$id = $event->metadata()['aggregate_id'];
+	protected function onOrganizationCreated(StreamEvent $event)
+    {
+	    $id = $event->metadata()['aggregate_id'];
+
 		$createdBy = $this->entityManager->find(User::class, $event->payload()['by']);
 
 		$entity = new Organization($id);
@@ -18,9 +20,10 @@ class OrganizationCommandsListener extends ReadModelProjector {
 		$entity->setCreatedBy($createdBy);
 		$entity->setMostRecentEditAt($event->occurredOn());
 		$entity->setMostRecentEditBy($createdBy);
+
 		$this->entityManager->persist($entity);
 	}
-	
+
 	protected function onOrganizationUpdated(StreamEvent $event) {
 		$id = $event->metadata()['aggregate_id'];
 		$entity = $this->entityManager->find(Organization::class, $id);
@@ -52,6 +55,7 @@ class OrganizationCommandsListener extends ReadModelProjector {
 		  ->setCreatedBy($createdBy)
 		  ->setMostRecentEditAt($event->occurredOn())
 		  ->setMostRecentEditBy($createdBy);
+
 		$this->entityManager->persist($m);
 	}
 	

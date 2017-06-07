@@ -42,7 +42,6 @@ class CreatePersonalAccountListener implements ListenerAggregateInterface
 		}
 	}
 
-
     public function processMemberAdded(Event $event) {
         $streamEvent = $event->getTarget();
         $organizationId = $streamEvent->metadata()['aggregate_id'];

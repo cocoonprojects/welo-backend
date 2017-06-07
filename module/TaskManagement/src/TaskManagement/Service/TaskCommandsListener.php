@@ -3,6 +3,7 @@ namespace TaskManagement\Service;
 
 use Application\Entity\User;
 use Application\Service\ReadModelProjector;
+use Doctrine\ORM\EntityManager;
 use Prooph\EventStore\Stream\StreamEvent;
 use TaskManagement\Task as WriteModelTask;
 use TaskManagement\Entity\Estimation;
@@ -10,34 +11,32 @@ use TaskManagement\Entity\Stream;
 use TaskManagement\Entity\Task;
 use TaskManagement\Entity\TaskMember;
 use TaskManagement\Entity\Vote;
-use TaskManagement\Entity\ItemIdeaApproval;
-use TaskManagement\Entity\ItemCompletedAcceptance;
 use Kanbanize\Service\KanbanizeService;
 use People\Service\OrganizationService;
-use People\Entity\Organization;
-use Kanbanize;
 
 class TaskCommandsListener extends ReadModelProjector {
+
 	CONST KANBANIZE_SETTINGS = 'kanbanize';
-	/**
-	 *
-	 * @var KanbanizeService
-	 */
+
 	private $kanbanizeService;
-	/**
-	 *
-	 * @var OrganizationService
-	 */
+
 	private $orgService;
 
-	public function __construct($entityManager, $kanbanizeService, $orgService) {
-		$this->entityManager = $entityManager;
+	public function __construct(
+	    EntityManager $entityManager,
+        KanbanizeService $kanbanizeService,
+        OrganizationService $orgService) {
+
+	    parent::__construct($entityManager);
+
 		$this->kanbanizeService = $kanbanizeService;
 		$this->orgService = $orgService;
 	}
+
 	protected function onTaskCreated(StreamEvent $event) {
 		$id = $event->metadata ()['aggregate_id'];
 		$type = $event->metadata ()['aggregate_type'];
+
 		if ($type == WriteModelTask::class) {
 
 			$stream = $this->entityManager
@@ -63,7 +62,6 @@ class TaskCommandsListener extends ReadModelProjector {
 
 			$this->entityManager->persist($entity);
 		}
-		return;
 	}
 
 	protected function onTaskUpdated(StreamEvent $event) {
@@ -77,11 +75,11 @@ class TaskCommandsListener extends ReadModelProjector {
 
 		$updatedBy = $this->entityManager->find ( User::class, $event->payload ()['by'] );
 
-		if (isset ( $event->payload ()['subject'] )) {
+		if (isset ( $event->payload()['subject'] )) {
 			$entity->setSubject ( $event->payload ()['subject'] );
 		}
 
-		if (isset ( $event->payload ()['description'] )) {
+		if (isset ( $event->payload()['description'] )) {
 			$entity->setDescription ( $event->payload ()['description'] );
 		}
 
@@ -145,7 +143,6 @@ class TaskCommandsListener extends ReadModelProjector {
 
 	protected function onTaskMemberAdded(StreamEvent $event) {
 		$id = $event->metadata ()['aggregate_id'];
-		$type = $event->metadata ()['aggregate_type'];
 
 		$entity = $this->entityManager->find ( Task::class, $id );
 
@@ -169,13 +166,19 @@ class TaskCommandsListener extends ReadModelProjector {
 		$this->entityManager->persist ( $entity );
 	}
 
-	protected function onTaskDeleted(StreamEvent $event) {
-		$id = $event->metadata ()['aggregate_id'];
-		$entity = $this->entityManager->find ( Task::class, $id );
-		if (is_null ( $entity )) {
+	protected function onTaskDeleted(StreamEvent $event)
+    {
+        $task = $this->entityManager->find(Task::class, $event->metadata()['aggregate_id']);
+
+		if ($task === null) {
 			return;
 		}
-		$this->entityManager->remove ( $entity ); // TODO: Solo con l'id no?
+
+		$this->entityManager->remove($task);
+
+		if ($task->getType() == 'kanbanizetask') {
+		    $this->deleteOnKanbanize($task);
+        }
 	}
 
 	protected function onTaskOpened(StreamEvent $event) {
@@ -498,5 +501,23 @@ class TaskCommandsListener extends ReadModelProjector {
 
 		$this->kanbanizeService
 			 ->moveTaskonKanbanize($task, $key, $kanbanizeBoardId);
+	}
+
+	private function deleteOnKanbanize($task)
+    {
+		$kanbanizeStream = $task->getStream();
+		$kanbanizeBoardId = $kanbanizeStream->getBoardId();
+
+		$org = $this->orgService->findOrganization($task->getOrganizationId());
+		$kanbanizeSettings = $org->getSettings($this::KANBANIZE_SETTINGS);
+
+		if (is_null ( $kanbanizeSettings ) || empty ( $kanbanizeSettings )) {
+			return;
+		}
+
+		$this->kanbanizeService->initApi($kanbanizeSettings['apiKey'], $kanbanizeSettings ['accountSubdomain']);
+
+		$this->kanbanizeService
+			 ->deleteTask($task, $kanbanizeBoardId);
 	}
 }

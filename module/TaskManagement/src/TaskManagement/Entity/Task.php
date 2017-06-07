@@ -6,10 +6,12 @@ use Application\Entity\EditableEntity;
 use Application\Entity\User;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
+use FlowManagement\FlowCardInterface;
 use TaskManagement\TaskInterface;
 
 /**
- * @ORM\Entity @ORM\Table(name="tasks")
+ * @ORM\Entity
+ * @ORM\Table(name="tasks")
  * @ORM\InheritanceType("JOINED")
  * @ORM\DiscriminatorColumn(name="type", type="string")
  * TODO: If no DiscriminatorMap annotation is specified, doctrine uses lower-case class name as default values. Remove
@@ -63,6 +65,12 @@ class Task extends EditableEntity implements TaskInterface
 	 */
 	private $acceptances;
 
+    /**
+     * @ORM\OneToMany(targetEntity="FlowManagement\Entity\FlowCard", mappedBy="item", cascade={"PERSIST", "REMOVE"}, orphanRemoval=TRUE)
+     * @var Task
+     */
+    protected $flowcards;
+
 	/**
  	 * @ORM\Column(type="datetime", nullable=true)
 	 * @var \DateTime
@@ -100,10 +108,13 @@ class Task extends EditableEntity implements TaskInterface
 
 	public function __construct($id, Stream $stream, $is_decision = false) {
 		parent::__construct($id);
+
 		$this->stream = $stream;
 		$this->members = new ArrayCollection();
 		$this->approvals = new ArrayCollection();
 		$this->acceptances = new ArrayCollection();
+		$this->flowcards = new ArrayCollection();
+
 		$this->is_decision = $is_decision;
 	}
 
@@ -197,7 +208,20 @@ class Task extends EditableEntity implements TaskInterface
 	public function getAuthor() {
 	    return $this->createdBy;
     }
-	
+
+    public function isAuthor(User $creator)
+    {
+	    return $this->createdBy !== null && $this->createdBy->getId() === $creator->getId();
+    }
+
+    /**
+     * Doctrine ti odio
+     */
+    public function addFlowCard(FlowCardInterface $flowCard)
+    {
+        $this->flowcards->add($flowCard);
+    }
+
 	public function addMember(User $user, $role, BasicUser $by, \DateTime $when) {
 		$taskMember = new TaskMember($this, $user, $role);
 		$taskMember->setCreatedAt($when)
@@ -208,7 +232,7 @@ class Task extends EditableEntity implements TaskInterface
 		return $this;
 	}
 
-	public function addApproval (Vote $vote, BasicUser $by, \DateTime $when ,$description){
+	public function addApproval(Vote $vote, BasicUser $by, \DateTime $when ,$description){
 		$approval = new ItemIdeaApproval($vote, $when);
 		$approval->setCreatedBy($by);
 		$approval->setCreatedAt($when);

@@ -15,6 +15,9 @@ chdir(dirname(__DIR__));
 $path = __DIR__ . '/../../vendor/zendframework/zendframework/library';
 putenv("ZF2_PATH=".$path);
 
+$app_root_dir = realpath(__DIR__ . '/../../');
+putenv("APP_ROOT_DIR=".$app_root_dir);
+
 include __DIR__ . '/../../init_autoloader.php';
 
 /**

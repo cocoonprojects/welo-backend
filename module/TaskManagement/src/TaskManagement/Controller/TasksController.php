@@ -41,19 +41,10 @@ class TasksController extends OrganizationAwareController
 			'PUT'
 	];
 
-	/**
-	 * @var TaskService
-	 */
 	private $taskService;
-	/**
-	 *
-	 * @var StreamService
-	 */
+
 	private $streamService;
-	/**
-	 *
-	 * @var KanbanizeService
-	 */
+
 	private $kanbanizeService;
 
 	public function __construct(
@@ -474,34 +465,41 @@ class TasksController extends OrganizationAwareController
 	 * @author Giannotti Fabio
 	 */
 	public function delete($id) {
-		if (is_null ( $this->identity () )) {
-			$this->response->setStatusCode ( 401 );
+
+		if ($this->identity() === null) {
+		    $this->response->setStatusCode(401);
+
+		    return $this->response;
+		}
+
+		$task = $this->taskService->getTask($id);
+
+		if ($task === null) {
+		    $this->response->setStatusCode(404);
+
+		    return $this->response;
+		}
+
+		if (!$this->isAllowed($this->identity(), $task, 'TaskManagement.Task.delete')) {
+			$this->response->setStatusCode(403);
+
 			return $this->response;
 		}
 
-		$task = $this->taskService->getTask ( $id );
-		if (is_null ( $task )) {
-			$this->response->setStatusCode ( 404 );
-			return $this->response;
-		}
-		if ($task->getStatus () == Task::STATUS_DELETED) {
-			$this->response->setStatusCode ( 204 );
-			return $this->response;
-		}
-		if (! $this->isAllowed ( $this->identity (), $task, 'TaskManagement.Task.delete' )) {
-			$this->response->setStatusCode ( 403 );
-			return $this->response;
-		}
+		$this->transaction()->begin();
 
-		$this->transaction ()->begin ();
 		try {
-			$task->delete ( $this->identity () );
-			$this->transaction ()->commit ();
-			$this->response->setStatusCode ( 200 );
+
+		    $task->delete($this->identity());
+
+			$this->transaction()->commit();
+
+			$this->response->setStatusCode(200);
 		} catch ( IllegalStateException $e ) {
-			$this->transaction ()->rollback ();
-			$this->response->setStatusCode ( 412 ); // Preconditions failed
+			$this->transaction()->rollback();
+			$this->response->setStatusCode(412);
 		}
+
 		return $this->response;
 	}
 

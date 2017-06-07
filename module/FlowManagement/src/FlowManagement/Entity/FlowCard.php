@@ -43,8 +43,8 @@ abstract class FlowCard extends DomainEntity implements FlowCardInterface{
 	private $content;
 	
 	/**
-	 * @ORM\ManyToOne(targetEntity="TaskManagement\Entity\Task")
-	 * @ORM\JoinColumn(name="item_id", referencedColumnName="id", nullable=TRUE)
+	 * @ORM\ManyToOne(targetEntity="TaskManagement\Entity\Task", inversedBy="flowcards")
+	 * @ORM\JoinColumn(name="item_id", referencedColumnName="id", nullable=TRUE, onDelete="CASCADE")
 	 * @var Task
 	 */
 	protected $item;
@@ -101,6 +101,9 @@ abstract class FlowCard extends DomainEntity implements FlowCardInterface{
 	
 	public function setItem(Task $item){
 		$this->item = $item;
+
+		$item->addFlowCard($this);
+
 		return $this;
 	}
 	

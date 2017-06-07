@@ -187,10 +187,14 @@ class KanbanizeServiceImpl implements KanbanizeService
 		return $id;
 	}
 
-	public function deleteTask(KanbanizeTask $task) {
-		$ans = $this->kanbanize->deleteTask($task->getKanbanizeBoardId(), $task->getKanbanizeTaskId());
-		if (isset($ans["Error"]))
+	public function deleteTask(ReadModelKanbanizeTask $task, $boardId) {
+
+		$ans = $this->kanbanize->deleteTask($boardId, $task->getTaskId());
+
+		if (isset($ans["Error"])) {
 			throw new OperationFailedException($ans["Error"]);
+        }
+
 		return $ans;
 	}
 

@@ -267,7 +267,12 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
 					$entityManager = $locator->get('doctrine.entitymanager.orm_default');
 					$kanbanizeService = $locator->get('Kanbanize\KanbanizeService');
 					$orgService = $locator->get('People\OrganizationService');
-					return new TaskCommandsListener($entityManager,$kanbanizeService,$orgService);
+
+					return new TaskCommandsListener(
+					    $entityManager,
+                        $kanbanizeService,
+                        $orgService
+                    );
 				},
 				'TaskManagement\StreamCommandsListener' => function ($locator) {
 					$entityManager = $locator->get('doctrine.entitymanager.orm_default');

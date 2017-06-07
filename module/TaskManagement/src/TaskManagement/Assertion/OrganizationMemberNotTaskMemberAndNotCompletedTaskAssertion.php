@@ -5,7 +5,6 @@ namespace TaskManagement\Assertion;
 use Zend\Permissions\Acl\Acl;
 use Zend\Permissions\Acl\Resource\ResourceInterface;
 use Zend\Permissions\Acl\Role\RoleInterface;
-use Application\Entity\User;
 use TaskManagement\Entity\Task;
 
 class OrganizationMemberNotTaskMemberAndNotCompletedTaskAssertion extends NotCompletedTaskAssertion

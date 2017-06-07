@@ -7,8 +7,10 @@ use Doctrine\ORM\Mapping AS ORM;
 use Application\Entity\EditableEntity;
 use People\ValueObject\OrganizationParams;
 use People\Organization as OrganizationAggregate;
+
 /**
- * @ORM\Entity @ORM\Table(name="organizations")
+ * @ORM\Entity
+ * @ORM\Table(name="organizations")
  */
 class Organization extends EditableEntity implements ResourceInterface
 {

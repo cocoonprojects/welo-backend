@@ -7,8 +7,8 @@ use Application\Entity\User;
 use TaskManagement\Entity\Estimation;
 
 /**
- * @ORM\Entity @ORM\Table(name="task_members")
- *
+ * @ORM\Entity
+ * @ORM\Table(name="task_members")
  */
 class TaskMember
 {
@@ -17,7 +17,7 @@ class TaskMember
 	
 	/** 
 	 * @ORM\Id 
-	 * @ORM\ManyToOne(targetEntity="TaskManagement\Entity\Task") 
+	 * @ORM\ManyToOne(targetEntity="TaskManagement\Entity\Task", inversedBy="members")
 	 * @ORM\JoinColumn(name="task_id", referencedColumnName="id", onDelete="CASCADE")
 	 */
 	private $task;

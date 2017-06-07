@@ -56,6 +56,7 @@ class EventSourcingFlowService extends AggregateRepository implements FlowServic
 			->setFirstResult($offset)
 			->setMaxResults($limit)
 			->setParameter(':recipient', $recipient);
+
 		return $query->getQuery()->getResult();
 	}
 

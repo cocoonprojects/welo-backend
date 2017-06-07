@@ -6,8 +6,6 @@ use Application\Service\ReadModelProjector;
 use Doctrine\ORM\EntityManager;
 use Kanbanize\KanbanizeTask;
 use Kanbanize\Entity\KanbanizeTask as ReadModelKanbanizeTask;
-use People\Service\OrganizationService;
-use Prooph\EventStore\Stream\StreamEvent;
 use TaskManagement\Entity\Stream;
 use TaskManagement\Service\TaskService;
 use TaskManagement\TaskCreated;
@@ -19,23 +17,12 @@ use TaskManagement\TaskMemberAdded;
 
 class TaskCommandsListener extends ReadModelProjector {
 
-	/**
-	 *
-	 * @var TaskService
-	 */
 	private $taskService;
-	/**
-	 *
-	 * @var OrganizationService
-	 */
-	private $organizationService;
-	/**
-	 *
-	 * @var NotificationService
-	 */
-	private $notificationService;
-	public function __construct(EntityManager $entityManager, TaskService $taskService) {
-		parent::__construct ( $entityManager );
+
+	public function __construct(EntityManager $entityManager, TaskService $taskService)
+    {
+		parent::__construct($entityManager);
+
 		$this->taskService = $taskService;
 	}
 

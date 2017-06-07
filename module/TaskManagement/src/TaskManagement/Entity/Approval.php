@@ -9,12 +9,13 @@ use Application\Entity\BasicUser;
 use TaskManagement\Entity\Task;
 
 /**
- * @ORM\Entity @ORM\Table(name="item_approvals")
+ * @ORM\Entity
+ * @ORM\Table(name="item_approvals")
  * @ORM\MappedSuperclass
  * @ORM\InheritanceType("SINGLE_TABLE")
  * @ORM\DiscriminatorColumn(name="type", type="string")
  */
-abstract class Approval{
+abstract class Approval {
 
 	/**
 	 * @ORM\Id
@@ -23,12 +24,7 @@ abstract class Approval{
 	 * @var bigint
 	 */
 	protected $id;
-	/**
-	 * @ORM\ManyToOne(targetEntity="TaskManagement\Entity\Task" , inversedBy="approvals")
-	 * @ORM\JoinColumn(name="item_id", referencedColumnName="id", onDelete="CASCADE")
-	 */
-	protected $item;
-	
+
 	/**
 	 * @ORM\ManyToOne(targetEntity="Application\Entity\User")
 	 * @ORM\JoinColumn(name="voter_id", referencedColumnName="id", onDelete="CASCADE")
@@ -66,6 +62,7 @@ abstract class Approval{
 	 * @var BasicUser
 	 */
 	protected $mostRecentEditBy;
+
 	/**
 	 * @ORM\Column(type="string", nullable=true)
 	 * @var description
@@ -74,14 +71,6 @@ abstract class Approval{
 	
 	public function getId(){
 		return $this->id;
-	}
-	
-	public function getItem(){
-		return $this->item;
-	}
-		public function setItem(Task $item){
-		$this->item=$item;
-		return $this;	
 	}
 	
 	public function getVoter(){
@@ -138,7 +127,8 @@ abstract class Approval{
 		$this->mostRecentEditBy = $user;
 		return $this;
 	}
-public function getDescription(){
+
+    public function getDescription(){
 		return $this->description;
 	}
 	

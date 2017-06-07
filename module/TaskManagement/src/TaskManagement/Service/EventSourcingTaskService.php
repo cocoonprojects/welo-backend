@@ -20,10 +20,6 @@ use TaskManagement\Entity\ItemIdeaApproval;
 
 class EventSourcingTaskService extends AggregateRepository implements TaskService
 {
-	/**
-	 *
-	 * @var EntityManager
-	 */
 	private $entityManager;
 
 	public function __construct(EventStore $eventStore, EntityManager $entityManager)

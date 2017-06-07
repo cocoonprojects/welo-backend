@@ -20,7 +20,7 @@ class Share {
 	
 	/**
 	 * 
-	 * @ORM\ManyToOne(targetEntity="TaskMember", inversedBy="$shares")
+	 * @ORM\ManyToOne(targetEntity="TaskMember", inversedBy="shares")
 	 * @ORM\JoinColumns({
 	 * 		@ORM\JoinColumn(name="evaluator_id", referencedColumnName="member_id", onDelete="CASCADE", nullable=FALSE),
 	 * 		@ORM\JoinColumn(name="task_id", referencedColumnName="task_id", onDelete="CASCADE", nullable=FALSE)
@@ -28,6 +28,7 @@ class Share {
 	 * @var TaskMember
 	 */
 	private $evaluator;
+
 	/**
 	 * 
 	 * @ORM\ManyToOne(targetEntity="TaskMember")
@@ -38,11 +39,13 @@ class Share {
 	 * @var TaskMember
 	 */
 	private $valued;
+
 	/**
 	 * @ORM\Column(type="float", precision=10, scale=4, nullable=true)
 	 * @var float
 	 */
 	private $value;
+
 	/**
 	 * @ORM\Column(type="datetime")
 	 * @var DateTime

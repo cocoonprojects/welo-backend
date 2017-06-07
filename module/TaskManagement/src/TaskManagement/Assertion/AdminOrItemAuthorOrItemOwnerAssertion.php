@@ -8,10 +8,14 @@ use Zend\Permissions\Acl\Role\RoleInterface;
 use Zend\Permissions\Acl\Assertion\AssertionInterface;
 use TaskManagement\Entity\Task;
 
-class ItemOwnerAssertion implements AssertionInterface{
+class AdminOrItemAuthorOrItemOwnerAssertion implements AssertionInterface{
 	
 	public function assert(Acl $acl, RoleInterface $user = null, ResourceInterface $resource = null, $privilege = null)
 	{
-		return $resource->getMemberRole($user) === Task::ROLE_OWNER;
+	    $isOwner = $resource->getMemberRole($user) === Task::ROLE_OWNER;
+	    $isAuthor = $resource->isAuthor($user) && in_array($resource->getStatus(), [Task::STATUS_IDEA, Task::STATUS_OPEN]);
+        $isAdmin = $user->isOwnerOf($resource->getOrganizationId());
+
+		return $isAdmin || $isAuthor || $isOwner;
 	}
 }

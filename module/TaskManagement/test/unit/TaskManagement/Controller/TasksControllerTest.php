@@ -9,8 +9,6 @@ use TaskManagement\Entity\Task;
 use TaskManagement\Service\StreamService;
 use TaskManagement\Service\TaskService;
 use ZFX\Test\Controller\ControllerTest;
-use TaskManagement\Entity\TaskMember;
-use People\Entity\OrganizationMembership;
 use Rhumsaa\Uuid\Uuid;
 use Kanbanize\Service\KanbanizeService;
 
@@ -25,8 +23,6 @@ class TasksControllerTest extends ControllerTest
     private $stream;
 
     private $organization;
-    
-    
 
     protected function setupController()
     {
@@ -34,6 +30,7 @@ class TasksControllerTest extends ControllerTest
         $streamServiceStub = $this->getMockBuilder(StreamService::class)->getMock();
         $organizationServiceStub = $this->getMockBuilder(OrganizationService::class)->getMock();
         $kanbanizeServiceStub = $this->getMockBuilder(KanbanizeService::class)->getMock();
+
         return new TasksController($taskServiceStub, $streamServiceStub, $organizationServiceStub, $kanbanizeServiceStub);
     }
 
@@ -541,43 +538,5 @@ class TasksControllerTest extends ControllerTest
         
         $t2 = $arrayResult['_embedded']['ora:task'][1];
         $this->assertEquals(Task::STATUS_OPEN, $t2['status']);
-    }
-
-    public function testSuccessfullyDeleteTask()
-    {
-        $this->user->addMembership($this->organization);
-        $this->setupLoggedUser($this->user);
-
-        $this->controller->getOrganizationService()
-        ->expects($this->once())
-        ->method('findOrganization')
-        ->with($this->organization->getId())
-        ->willReturn($this->organization);
-
-        $stream = $this->getMockBuilder(\TaskManagement\Stream::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $stream->method('getId')
-            ->willReturn(Uuid::fromString('00000000-1000-0000-0000-000000000000'));
-        $stream->method('getOrganizationId')
-            ->willReturn(Uuid::fromString($this->organization->getId()));
-
-        $task = \TaskManagement\Task::create($stream, null, $this->user);
-        $task->addMember($this->user, Task::ROLE_OWNER);
-
-        $this->controller->getTaskService()
-        ->expects($this->once())
-        ->method('getTask')
-        ->willReturn($task);
-
-        $this->request->setMethod('delete');
-        $this->routeMatch->setParam('orgId', $this->organization->getId());
-        $this->routeMatch->setParam('id', $task->getId());
-
-        $result   = $this->controller->dispatch($this->request);
-        $response = $this->controller->getResponse();
-
-        $this->assertEquals(200, $response->getStatusCode());
-        $this->assertEquals($task->getStatus(), Task::STATUS_DELETED);
     }
 }

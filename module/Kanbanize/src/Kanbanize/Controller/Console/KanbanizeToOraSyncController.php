@@ -62,6 +62,7 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
         $orgs = $this->organizationService
                      ->findOrganizations();
 
+        $this->write("SYNC START");
         foreach($orgs as $org) {
             $this->write("-------------------");
             $this->write("org {$org->getName()} ({$org->getId()})");
@@ -168,6 +169,7 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
 
             $this->write("");
         }
+        $this->write("SYNC END");
     }
 
     private function write($msg)
@@ -206,7 +208,7 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
         $board = $this->kanbanizeService
                       ->getBoardStructure($boardId);
 
-        if (!is_array($board)) {
+        if (!is_array($board) && !isset($board['columns'])) {
             $this->write("  error retrieving board $boardId");
 
             return false;
@@ -214,6 +216,11 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
 
         $mappedColumns = array_keys($mapping);
         $kanbanizeColumns = array_column($board['columns'], 'lcname');
+
+        if (is_null($kanbanizeColumns)) {
+            return false;
+        }
+
         array_pop($kanbanizeColumns); //removes temp archive column
 
         if ($mappedColumns == $kanbanizeColumns) {

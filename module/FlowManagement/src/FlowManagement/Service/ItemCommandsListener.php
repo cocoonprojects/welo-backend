@@ -301,7 +301,6 @@ class ItemCommandsListener implements ListenerAggregateInterface {
 
         $this->entityManager->persist($flowCard);
         $this->entityManager->flush();
-
     }
 
 	public function detach(EventManagerInterface $events){

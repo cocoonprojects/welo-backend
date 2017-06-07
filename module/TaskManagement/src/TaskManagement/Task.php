@@ -112,9 +112,17 @@ class Task extends DomainEntity implements TaskInterface
 
     public function delete(BasicUser $deletedBy)
     {
-        if ($this->getStatus() >= self::STATUS_COMPLETED) {
+        $allowed_delete = [
+            self::STATUS_IDEA,
+            self::STATUS_OPEN,
+            self::STATUS_ONGOING,
+            self::STATUS_ARCHIVED
+        ];
+
+        if (!in_array($this->getStatus(), $allowed_delete, false)) {
             throw new IllegalStateException('Cannot delete a task in state '.$this->getStatus().'. Task '.$this->getId().' won\'t be deleted');
         }
+
         $this->recordThat(TaskDeleted::occur($this->id->toString(), array(
             'prevStatus' => $this->getStatus(),
             'by'  => $deletedBy->getId(),
@@ -182,6 +190,7 @@ class Task extends DomainEntity implements TaskInterface
         if (isset($data['lane'])) {
             $eventData['lane'] = $data['lane'];
         }
+
         $this->recordThat(TaskUpdated::occur($this->id->toString(), $eventData));
     }
 
@@ -396,7 +405,6 @@ class Task extends DomainEntity implements TaskInterface
     }
 
     /**
-     *
      * @param User $user
      * @param string $role
      * @param BasicUser $addedBy
@@ -755,6 +763,11 @@ class Task extends DomainEntity implements TaskInterface
             }
         }
         return null;
+    }
+
+    public function isAuthor(User $creator)
+    {
+        return $this->createdBy->getId() === $creator->getId();
     }
 
     public function isDecision()
