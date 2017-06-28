@@ -26,7 +26,7 @@ class Task extends EditableEntity implements TaskInterface
 	private $subject;
 
 	/**
-	 * @ORM\Column(type="string", length=420, nullable=true)
+	 * @ORM\Column(type="string", length=800, nullable=true)
 	 * @var string
 	 */
 	private $description;
