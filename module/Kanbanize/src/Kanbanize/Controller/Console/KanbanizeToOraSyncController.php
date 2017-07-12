@@ -64,7 +64,7 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
 
         $this->write("SYNC START");
         foreach($orgs as $org) {
-            $this->write("-------------------");
+            $this->write('-------------------');
             $this->write("org {$org->getName()} ({$org->getId()})");
 
             $stream = $this->kanbanizeService
@@ -80,27 +80,41 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
                  ->initApi($kanbanize['apiKey'], $kanbanize['accountSubdomain'])
             ;
 
-            $this->kanbanizeService->loadLanesFromKanbanize($stream->getBoardId());
+            try {
 
-            $lanes = $this->getLanesDiffWithKanbanize(
-                $this->kanbanizeService->getFullBoardStructure($stream->getBoardId()),
-                $org
-            );
+                $this->kanbanizeService->loadLanesFromKanbanize($stream->getBoardId());
 
-            try{
-                $lanes['app'] = $this->updateLanesNames($lanes['app'], $lanes['kanbanize']);
-                $lanes['app'] = $this->addLanes($lanes['app'], $lanes['toAdd']);
-                $lanes['app'] = $this->removeLanes($lanes['app'], $lanes['toRemove']);
+                $lanes = $this->getLanesDiffWithKanbanize(
+                    $this->kanbanizeService->getFullBoardStructure($stream->getBoardId()),
+                    $org
+                );
+
+            } catch (\Exception $e) {
+                $this->write("ERROR {$e->getMessage()}");
+                continue;
+            }
+
+
+            $lanes['app'] = $this->updateLanesNames($lanes['app'], $lanes['kanbanize']);
+            $lanes['app'] = $this->addLanes($lanes['app'], $lanes['toAdd']);
+            $lanes['app'] = $this->removeLanes($lanes['app'], $lanes['toRemove']);
+
+
+            try {
+                $this->transaction()->begin();
 
                 $organization = $this->organizationService->getOrganization($org->getId());
-                $this->transaction()->begin();
                 $organization->setLanes($lanes['app'], $systemUser);
+
                 $this->transaction()->commit();
+
                 $this->write('saved lanes: '.str_replace(PHP_EOL, '', var_export($lanes['app'], 1)));
-            }catch(\Exception $e){
-                $this->transaction()->rollback();
+
+            } catch(\Exception $e) {
                 $this->write("ERROR updating organization {$organization->getId()} lanes");
+                $this->transaction()->rollback();
             }
+
             $this->write("organization {$organization->getId()} lanes UPDATED");
 
 

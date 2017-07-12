@@ -308,12 +308,12 @@ class EventSourcingTaskService extends AggregateRepository implements TaskServic
 			->where("DATE_ADD(t.createdAt,".$interval->format('%d').", 'DAY') <= :referenceDate")
 			->setParameter('referenceDate', $referenceDate->format('Y-m-d H:i:s'));
 
-		if(!is_null($status)) {
+		if($status !== null) {
 			$query->andWhere('t.status = :taskStatus')
 				->setParameter('taskStatus', $status);
 		}
 
-		if(!is_null($orgId)) {
+		if($orgId !== null) {
 			$query->innerjoin('t.stream', 's', 'WITH', 's.organization = :organization')
 				  ->setParameter('organization', $orgId);
 		}

@@ -401,7 +401,14 @@ class KanbanizeServiceImpl implements KanbanizeService
 
 	public function loadLanesFromKanbanize($boardId)
     {
-        $this->kanbanizeLanes = $this->kanbanize->getFullBoardStructure($boardId)['lanes'];
+        $boardStructure = $this->kanbanize->getFullBoardStructure($boardId);
+
+        if (!isset($boardStructure['lanes'])) {
+            throw new \Exception($boardStructure['error']);
+        }
+
+        $this->kanbanizeLanes = $boardStructure['lanes'];
+
         return $this;
     }
 
@@ -418,7 +425,8 @@ class KanbanizeServiceImpl implements KanbanizeService
         }
 
         $lanePos = array_search($laneId, array_column($this->kanbanizeLanes, 'lcid'));
-        return $lanePos!==false ? $this->kanbanizeLanes[$lanePos]['lcname'] : '';
+
+        return $lanePos !== false ? $this->kanbanizeLanes[$lanePos]['lcname'] : '';
     }
 
     /**
