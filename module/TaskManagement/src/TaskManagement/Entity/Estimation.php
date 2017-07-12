@@ -7,7 +7,6 @@ use Doctrine\ORM\Mapping AS ORM;
 /**
  * @ORM\Embeddable
  */
-
 class Estimation {
 
 	CONST NOT_ESTIMATED = -1;

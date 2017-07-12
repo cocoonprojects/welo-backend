@@ -286,6 +286,7 @@ class TasksController extends OrganizationAwareController
 
 				$opt['column'] = $column;
 
+
 				$kanbanizeTaskID = $this->kanbanizeService
 					->createNewTask(
 						$description,

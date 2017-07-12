@@ -55,7 +55,7 @@ class VotingResultsController extends AbstractConsoleController {
 			exit(1);
         }
 
-        $this->write("loaded system user {$systemUser->getName()}");
+        $this->write("loaded system user");
 
 		$orgs = $this->organizationService->findOrganizations();
 
@@ -114,8 +114,9 @@ class VotingResultsController extends AbstractConsoleController {
 				}
 				$this->transaction()->commit();
 			}catch (\Exception $e) {
-				$this->transaction()->rollback();
 				$this->write("error: {$e->getMessage()}");
+
+				$this->transaction()->rollback();
 			}
 		});
 	}
@@ -159,8 +160,9 @@ class VotingResultsController extends AbstractConsoleController {
 				}
 				$this->transaction()->commit();
 			}catch (\Exception $e) {
-				$this->transaction()->rollback();
 				$this->write("error: {$e->getMessage()}");
+
+				$this->transaction()->rollback();
 			}
 		});
 	}

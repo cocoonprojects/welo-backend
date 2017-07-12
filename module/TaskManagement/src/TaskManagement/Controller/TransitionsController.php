@@ -57,6 +57,7 @@ class TransitionsController extends HATEOASRestfulController
 		}
 
 		$action = $data ["action"];
+
 		switch ($action) {
 			case "complete":
 				if($task->getStatus() == Task::STATUS_COMPLETED) {
