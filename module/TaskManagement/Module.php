@@ -164,7 +164,8 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
 					$controller = new ConsoleRemindersController(
 						$taskService,
 						$mailService,
-						$orgService
+						$orgService,
+                        $locator->get('Application\FrontendRouter')
 					);
 
 					$config = $locator->get('Config');
