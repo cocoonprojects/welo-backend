@@ -163,10 +163,6 @@ class KanbanizeServiceImpl implements KanbanizeService
 
 
 	public function createNewTask($taskSubject, $taskTitle, $boardId, $options, array $mapping = null) {
-		$createdAt = new \DateTime ();
-
-		// TODO: Modificare createdBy per inserire User
-		$createdBy = "NOME UTENTE INVENTATO";
 
 		$all_options = array_merge($options, [
 			'title' => $taskTitle,
@@ -174,9 +170,13 @@ class KanbanizeServiceImpl implements KanbanizeService
 		]);
 
         if ($options['lane']) {
-            $options['lane'] = $this->getLaneName($options['lane'], $boardId);
-        }
 
+            if (!$this->kanbanizeLanes) {
+                $this->loadLanesFromKanbanize($boardId);
+            }
+
+            $all_options['lane'] = $this->getLaneName($options['lane'], $boardId);
+        }
 
         $id = $this->kanbanize
 				   ->createNewTask($boardId, $all_options);
