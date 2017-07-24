@@ -1,6 +1,7 @@
 <?php
 namespace TaskManagement;
 
+use Test\Mailbox;
 use Test\ZFHttpClient;
 
 class CascadeDeleteTaskTest extends \PHPUnit_Framework_TestCase
@@ -28,14 +29,23 @@ class CascadeDeleteTaskTest extends \PHPUnit_Framework_TestCase
         $userService = $serviceManager->get('Application\UserService');
         $admin = $userService->findUserByEmail('bruce.wayne@ora.local');
         $member = $userService->findUserByEmail('phil.toledo@ora.local');
+        $mailbox = Mailbox::create();
 
         $res = $this->createOrganization($serviceManager,'my org', $admin, [$member]);
         $task = $this->createTask($serviceManager, 'Lorem Ipsum Sic Dolor Amit', $res['stream'], $admin, [$member]);
+
+        $mailbox->clean();
 
         $response = $this->client
                          ->delete("/{$res['org']->getId()}/task-management/tasks/{$task->getId()}");
 
         $this->assertEquals('200', $response->getStatusCode());
+
+        $messages = $mailbox->getMessages();
+
+        $this->assertEquals("Item 'Lorem Ipsum Sic Dolor Amit' was deleted", $messages[0]->subject);
+        $this->assertEquals('<phil.toledo@ora.local>', $messages[0]->recipients[0]);
+        $this->assertEquals('<bruce.wayne@ora.local>', $messages[1]->recipients[0]);
 
         $response = $this->client
                          ->get("/{$res['org']->getId()}/task-management/tasks/{$task->getId()}");

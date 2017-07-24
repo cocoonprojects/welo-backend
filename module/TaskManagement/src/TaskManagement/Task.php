@@ -126,6 +126,9 @@ class Task extends DomainEntity implements TaskInterface
         $this->recordThat(TaskDeleted::occur($this->id->toString(), array(
             'prevStatus' => $this->getStatus(),
             'by'  => $deletedBy->getId(),
+            'subject' => $this->getSubject(),
+            'partecipants' => $this->getMembers(),
+            'organization' => $this->getOrganizationId()
         )));
     }
 
@@ -929,6 +932,7 @@ class Task extends DomainEntity implements TaskInterface
         $this->members[$id]['id'] = $id;
         $this->members[$id]['role'] = $p['role'];
         $this->members[$id]['createdAt'] = $event->occurredOn();
+
         $this->mostRecentEditAt = $event->occurredOn();
     }
 

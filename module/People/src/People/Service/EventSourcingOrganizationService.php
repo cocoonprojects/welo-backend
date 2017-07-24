@@ -115,6 +115,27 @@ class EventSourcingOrganizationService extends AggregateRepository implements Or
 
 	}
 
+    /**
+     * Returns all admins for a given organization
+     */
+	public function findOrganizationAdmins($orgId)
+    {
+        $org = $this->findOrganization($orgId);
+
+        if ($org === null) {
+            return [];
+        }
+
+        $orgMembers = $this->findOrganizationMemberships(
+            $org,
+            null,
+            null,
+            [ OrganizationMembership::ROLE_ADMIN ]
+        );
+
+        return array_map(function($item) { return $item->getMember(); }, $orgMembers);
+    }
+
 	/**
 	 * @param ReadModelOrg $organization
 	 * @return integer

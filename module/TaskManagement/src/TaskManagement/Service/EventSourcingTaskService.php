@@ -171,6 +171,7 @@ class EventSourcingTaskService extends AggregateRepository implements TaskServic
 		return $this->entityManager->find(ReadModelTask::class, $id);
 	}
 
+
 	public function findTaskByKanbanizeId($id) {
 		return $this->entityManager
 					->getRepository(ReadModelKanbanizeTask::class)

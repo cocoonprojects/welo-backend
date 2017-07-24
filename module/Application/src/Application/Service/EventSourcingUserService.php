@@ -54,7 +54,20 @@ class EventSourcingUserService implements UserService, EventManagerAwareInterfac
 
         return $user;
     }
-    
+
+    public function findByIds(array $ids)
+    {
+        $query = $this->entityManager
+            ->createQueryBuilder()
+            ->select('u')
+            ->from(User::class, 'u')
+            ->where('u.id IN (:ids)')
+            ->setParameter('ids', $ids)
+            ->getQuery();
+
+        return $query->getResult();
+    }
+
     public function findUserByEmail($email)
     {
         $query = $this->entityManager

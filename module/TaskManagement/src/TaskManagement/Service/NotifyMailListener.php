@@ -17,6 +17,7 @@ use TaskManagement\SharesAssigned;
 use TaskManagement\SharesSkipped;
 use TaskManagement\TaskClosed;
 use TaskManagement\TaskClosedByTimebox;
+use TaskManagement\TaskDeleted;
 use TaskManagement\TaskNotClosedByTimebox;
 use TaskManagement\TaskCreated;
 use TaskManagement\TaskAccepted;
@@ -83,6 +84,7 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
 		$this->listeners [] = $events->getSharedManager ()->attach (Application::class, TaskAccepted::class, array($this, 'processTaskAccepted'));
 		$this->listeners [] = $events->getSharedManager ()->attach (Application::class, TaskOpened::class, array($this, 'processTaskOpened'));
 		$this->listeners [] = $events->getSharedManager ()->attach (Application::class, TaskArchived::class, array($this, 'processTaskArchived'));
+		$this->listeners [] = $events->getSharedManager ()->attach (Application::class, TaskDeleted::class, array($this, 'processTaskDeleted'));
 	}
 	
 	public function detach(EventManagerInterface $events) {
@@ -172,12 +174,54 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
 		$taskId = $streamEvent->metadata ()['aggregate_id'];
 		$task = $this->taskService->findTask ( $taskId );
 	
-		$memberId = $event->getParam ( 'by' );
 		$org = $task->getStream()->getOrganization();
 		$memberships = $this->orgService->findOrganizationMemberships($org,null,null);
 		$this->sendTaskArchivedInfoMail($task, $memberships);
 	
 	}
+
+	public function processTaskDeleted(Event $event) {
+
+        $streamEvent = $event->getTarget();
+        $payload = $streamEvent->payload();
+        $partecipants = $this->userService->findByIds(array_keys($payload['partecipants']));
+        $admins = $this->orgService->findOrganizationAdmins($payload['organization']);
+
+        $recipients = [];
+
+        foreach ($partecipants as $partecipant) {
+            $recipients[$partecipant->getId()] = $partecipant;
+        }
+
+        foreach ($admins as $admin) {
+            $recipients[$admin->getId()] = $admin;
+        }
+
+        $this->sendTaskDeletedInfoMail($payload['subject'], $recipients);
+    }
+
+    public function sendTaskDeletedInfoMail($subject, array $recipients)
+    {
+        $rv = [];
+
+        foreach ($recipients as $recipent) {
+
+            $message = $this->mailService->getMessage();
+            $message->setTo($recipent->getEmail());
+            $message->setSubject("Item '$subject' was deleted");
+
+            $this->mailService->setTemplate( 'mail/task-deleted-info.phtml', [
+                'recipient' => $recipent,
+                'subject' => $subject,
+            ]);
+
+            $this->mailService->send();
+
+            $rv[] = $recipent;
+        }
+
+        return $rv;
+    }
 
 	/**
 	 * @param Task $task
