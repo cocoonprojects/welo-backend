@@ -77,16 +77,6 @@ class CreditsTransferNotifiedViaFlowCardListener implements ListenerAggregateInt
 
         $flowCard = CreditsSubtractedCard::create(Uuid::uuid4(), $data['amount'], $payer, $org, $by);
 
-        $data = [
-            'userName' => $by->getFirstName() . ' ' . $by->getLastName(),
-            'orgName'  => $org->getName(),
-            'amount'   => abs($data['amount']),
-        ];
-
-        $flowCard = new CreditsSubtractedCard(Uuid::uuid4(), $payer);
-        $flowCard->setContent(FlowCardInterface::CREDITS_SUBTRACTED_CARD, $data);
-        $flowCard->setCreatedBy($by);
-
         $this->entityManager->persist($flowCard);
         $this->entityManager->flush();
 	}

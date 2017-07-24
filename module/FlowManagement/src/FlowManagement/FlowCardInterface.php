@@ -2,7 +2,7 @@
 
 namespace FlowManagement;
 
-interface FlowCardInterface{
+interface FlowCardInterface {
 	
 	const WELCOME_CARD = 'Welcome';
 	const VOTE_IDEA_CARD = 'VoteIdea';
@@ -15,6 +15,7 @@ interface FlowCardInterface{
 	const CREDITS_ADDED_CARD = 'CreditsAdded';
 	const CREDITS_SUBTRACTED_CARD = 'CreditsSubtracted';
 	const ITEM_CLOSED_CARD = 'ItemClosed';
+	const ITEM_DELETED_CARD = 'ItemDeleted';
 
 	public function getId();
 	

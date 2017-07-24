@@ -3,13 +3,16 @@
 namespace FlowManagement\Service;
 
 use Application\Service\UserService;
+use ClassesWithParents\E;
 use Doctrine\ORM\EntityManager;
+use FlowManagement\Entity\ItemDeletedCard;
 use People\Service\OrganizationService;
 use Prooph\EventStore\EventStore;
 use TaskManagement\TaskArchived;
 use TaskManagement\TaskClosed;
 use TaskManagement\TaskCreated;
 use TaskManagement\TaskCompleted;
+use TaskManagement\TaskDeleted;
 use TaskManagement\TaskOpened;
 use TaskManagement\TaskAccepted;
 use TaskManagement\TaskReopened;
@@ -83,6 +86,7 @@ class ItemCommandsListener implements ListenerAggregateInterface {
 		$this->listeners [] = $events->getSharedManager()->attach(Application::class, OwnerAdded::class, array($this, 'processItemOwnerChanged'));
 		$this->listeners [] = $events->getSharedManager()->attach(Application::class, TaskMemberRemoved::class, array($this, 'processItemMemberRemoved'));
 		$this->listeners [] = $events->getSharedManager()->attach(Application::class, TaskClosed::class, array($this, 'processItemClosed'));
+		$this->listeners [] = $events->getSharedManager()->attach(Application::class, TaskDeleted::class, array($this, 'processItemDeleted'));
 	}
 	
 	public function processItemCreated(Event $event){
@@ -300,6 +304,32 @@ class ItemCommandsListener implements ListenerAggregateInterface {
         $flowCard->setCreatedBy($by);
 
         $this->entityManager->persist($flowCard);
+        $this->entityManager->flush();
+    }
+
+    public function processItemDeleted(Event $event) {
+        $payload = $event->getTarget()->payload();
+
+        $by = $this->userService->findUser($event->getParam('by'));
+
+        $partecipants = $this->userService->findByIds(array_keys($payload['partecipants']));
+        $admins = $this->organizationService->findOrganizationAdmins($payload['organization']);
+
+        $recipients = [];
+
+        foreach ($partecipants as $partecipant) {
+            $recipients[$partecipant->getId()] = $partecipant;
+        }
+
+        foreach ($admins as $admin) {
+            $recipients[$admin->getId()] = $admin;
+        }
+
+        foreach ($recipients as $recipient) {
+            $flowCard = ItemDeletedCard::create(Uuid::uuid4(), $payload['subject'], $recipient, $by);
+            $this->entityManager->persist($flowCard);
+        }
+
         $this->entityManager->flush();
     }
 

@@ -41,6 +41,7 @@ class CascadeDeleteTaskTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals('200', $response->getStatusCode());
 
+        // users get notified via mail
         $messages = $mailbox->getMessages();
 
         $this->assertEquals("Item 'Lorem Ipsum Sic Dolor Amit' was deleted", $messages[0]->subject);
@@ -51,6 +52,13 @@ class CascadeDeleteTaskTest extends \PHPUnit_Framework_TestCase
                          ->get("/{$res['org']->getId()}/task-management/tasks/{$task->getId()}");
 
         $this->assertEquals('404', $response->getStatusCode());
+
+        //users get notified via flowcard
+        $response = $this->client
+                         ->get('/flow-management/cards?limit=1&offset=0');
+
+        $data = json_decode($response->getContent(), true);
+        $this->assertEquals('Item deleted', current($data['_embedded']['ora:flowcard'])['title']);
 	}
 
 	protected function createOrganization($serviceManager, $name, $admin, array $members)
