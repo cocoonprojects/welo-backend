@@ -403,7 +403,11 @@ class KanbanizeServiceImpl implements KanbanizeService
     {
         $boardStructure = $this->kanbanize->getFullBoardStructure($boardId);
 
-        if (!isset($boardStructure['lanes'])) {
+        if (isset($boardStructure['Error'])) {
+            throw new \Exception($boardStructure['Error']);
+        }
+
+        if (isset($boardStructure['error'])) {
             throw new \Exception($boardStructure['error']);
         }
 
