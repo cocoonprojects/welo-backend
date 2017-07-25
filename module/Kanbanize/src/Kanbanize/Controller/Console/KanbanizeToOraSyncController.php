@@ -13,7 +13,6 @@ use People\Organization;
 use TaskManagement\Service\TaskService;
 use TaskManagement\TaskInterface;
 use Kanbanize\Service\KanbanizeService;
-use AcMailer\Service\MailService;
 use Kanbanize\Service\NotificationService;
 
 /**
@@ -63,6 +62,7 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
                      ->findOrganizations();
 
         $this->write("SYNC START");
+
         foreach($orgs as $org) {
             $this->write('-------------------');
             $this->write("org {$org->getName()} ({$org->getId()})");

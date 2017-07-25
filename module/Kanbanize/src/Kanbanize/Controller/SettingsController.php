@@ -29,6 +29,8 @@ class SettingsController extends OrganizationAwareController
 
 	private $kanbanizeService;
 
+    CONST API_URL_FORMAT = "https://%s.kanbanize.com/index.php/api/kanbanize";
+
 	public function __construct(
 		OrganizationService $orgService,
 		KanbanizeAPI $client,
@@ -249,8 +251,9 @@ class SettingsController extends OrganizationAwareController
 		if(is_null($subdomain)){
 			throw new KanbanizeApiException("Cannot connect to Kanbanize due to missing account subdomain");
 		}
+
 		$this->client->setApiKey($apiKey);
-		$this->client->setUrl(sprintf(Importer::API_URL_FORMAT, $subdomain));
+		$this->client->setUrl(sprintf(self::API_URL_FORMAT, $subdomain));
 	}
 
 	public function getKanbanizeClient(){

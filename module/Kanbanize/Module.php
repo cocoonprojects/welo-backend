@@ -26,25 +26,6 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
 			'invokables' => array(
 			),
 			'factories' => array(
-				'Kanbanize\Controller\Imports' => function($sm){
-
-					throw new Exception("not mantained anymore");
-
-					// $locator = $sm->getServiceLocator();
-					// $config = $locator->get('Config');
-					// $organizationService = $locator->get('People\OrganizationService');
-					// $client = $locator->get('Kanbanize\KanbanizeAPI');
-					// $kanbanizeService = $locator->get('Kanbanize\KanbanizeService');
-					// $taskService = $locator->get('TaskManagement\TaskService');
-					// $userService = $locator->get('Application\UserService');
-					// $streamService = $locator->get('TaskManagement\StreamService');
-					// $controller = new ImportsController($organizationService, $client, $kanbanizeService, $taskService, $userService, $streamService);
-					// if(array_key_exists('assignment_of_shares_timebox', $locator->get('Config'))){
-					// 	$assignmentOfSharesTimebox = $locator->get('Config')['assignment_of_shares_timebox'];
-					// 	$controller->setIntervalForAssignShares($assignmentOfSharesTimebox);
-					// }
-					// return $controller;
-				},
 				'Kanbanize\Controller\Console\KanbanizeToOraSync' => function($sm) {
 					$locator = $sm->getServiceLocator();
 					$taskService = $locator->get('TaskManagement\TaskService');
@@ -82,6 +63,7 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
 					$organizationService = $locator->get('People\OrganizationService');
 					$client = $locator->get('Kanbanize\KanbanizeAPI');
 					$controller = new OrgSettingsController($organizationService, $client);
+
 					return $controller;
 				},
 				'Kanbanize\Controller\Boards' => function($sm){
@@ -90,7 +72,14 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
 					$streamService = $locator->get('TaskManagement\StreamService');
 					$client = $locator->get('Kanbanize\KanbanizeAPI');
 					$kanbanizeService = $locator->get('Kanbanize\KanbanizeService');
-					$controller = new BoardsController($organizationService, $streamService, $client, $kanbanizeService);
+
+					$controller = new BoardsController(
+					    $organizationService,
+                        $streamService,
+                        $client,
+                        $kanbanizeService
+                    );
+
 					return $controller;
 				},
 				'Kanbanize\Controller\Stats' => function($sm){
@@ -110,37 +99,26 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
 			),
 			'factories' => array (
 				'Kanbanize\KanbanizeService' => function ($locator) {
-					$config = $locator->get('Config');
 					$entityManager = $locator->get('doctrine.entitymanager.orm_default');
 					$api = $locator->get('Kanbanize\KanbanizeAPI');
+
 					return new KanbanizeServiceImpl($entityManager, $api);
-				},
-				'Kanbanize\SyncTaskListener' => function ($locator) {
-					$kanbanizeService = $locator->get('Kanbanize\KanbanizeService');
-					$taskService = $locator->get('TaskManagement\TaskService');
-					return new SyncTaskListener($kanbanizeService, $taskService);
-				},
-				'Kanbanize\ImportTasksListener' => function ($locator) {
-					$notificationService = $locator->get('Kanbanize\MailNotificationService');
-					$organizationService = $locator->get('People\OrganizationService');
-					return new ImportTasksListener($organizationService, $notificationService);
 				},
 				'Kanbanize\TaskCommandsListener' => function ($locator) {
 					$entityManager = $locator->get('doctrine.entitymanager.orm_default');
 					$taskService = $locator->get('TaskManagement\TaskService');
+
 					return new TaskCommandsListener($entityManager, $taskService);
 				},
-				'Kanbanize\StreamCommandsListener' => function ($locator) {
-					$entityManager = $locator->get('doctrine.entitymanager.orm_default');
-					return new StreamCommandsListener($entityManager);
-				},
 				'Kanbanize\KanbanizeAPI' => function ($locator) {
-					return new KanbanizeAPI();
+
+				    return new KanbanizeAPI();
 				},
 				'Kanbanize\MailNotificationService'=> function ($locator){
 					$mailService = $locator->get('AcMailer\Service\MailService');
 					$orgService = $locator->get('People\OrganizationService');
 					$rv = new MailNotificationService($mailService, $orgService);
+
 					return $rv;
 				},
 			),

@@ -20,6 +20,7 @@ use FlowManagement\Entity\FlowCard;
 class User extends BasicUser implements RoleInterface, ResourceInterface
 {
     const STATUS_ACTIVE = 1;
+
     const ROLE_ADMIN = 'admin';
     const ROLE_GUEST = 'guest';
     const ROLE_USER = 'user';
