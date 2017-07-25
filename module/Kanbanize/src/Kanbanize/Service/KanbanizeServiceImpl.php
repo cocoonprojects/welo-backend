@@ -26,16 +26,12 @@ class KanbanizeServiceImpl implements KanbanizeService
 	private $entityManager;
 
 	/**
-	 *
 	 * @var KanbanizeAPI
 	 */
 	private $kanbanize;
 
 	private $kanbanizeLanes;
 
-	/*
-	 * Constructs service
-	 */
 	public function __construct(EntityManager $em, KanbanizeAPI $api) {
 		$this->kanbanize = $api;
 		$this->entityManager = $em;

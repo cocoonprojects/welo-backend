@@ -4,7 +4,6 @@ namespace Kanbanize\Controller;
 
 use People\Entity\Organization;
 use TaskManagement\Entity\Task;
-use TaskManagement\Entity\Stream;
 use Application\Entity\User;
 
 use Zend\Mvc\Controller\AbstractActionController;

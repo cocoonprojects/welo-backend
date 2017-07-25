@@ -5,18 +5,14 @@ use Zend\ModuleManager\Feature\AutoloaderProviderInterface;
 use Zend\ModuleManager\Feature\ConfigProviderInterface;
 use Kanbanize\Controller\OrgSettingsController;
 use Kanbanize\Controller\BoardsController;
-use Kanbanize\Controller\ImportsController;
 use Kanbanize\Controller\SettingsController;
 use Kanbanize\Controller\StatsController;
+use Kanbanize\Controller\SyncController;
 use Kanbanize\Controller\Console\KanbanizeToOraSyncController;
 use Kanbanize\Service\KanbanizeAPI;
 use Kanbanize\Service\KanbanizeServiceImpl;
-use Kanbanize\Service\SyncTaskListener;
-use Kanbanize\Service\ImportTasksListener;
 use Kanbanize\Service\TaskCommandsListener;
-use Kanbanize\Service\StreamCommandsListener;
 use Kanbanize\Service\MailNotificationService;
-use Kanbanize\Service\Kanbanize\Service;
 
 class Module implements AutoloaderProviderInterface, ConfigProviderInterface
 {

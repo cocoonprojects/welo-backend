@@ -11,12 +11,11 @@ use Zend\EventManager\EventManagerInterface;
 
 abstract class OrganizationAwareController extends HATEOASRestfulController
 {
-
     /**
-     *
      * @var OrganizationService
      */
     private $organizationService;
+
     /**
      *
      * @var Organization
