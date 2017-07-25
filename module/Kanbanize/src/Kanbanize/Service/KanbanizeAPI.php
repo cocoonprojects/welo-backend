@@ -8,7 +8,9 @@ class KanbanizeAPI {
 	 * @var string YOUR API CALL
 	 */
 	// protected $kanbanize_url = 'http://kanbanize.com/index.php/api/kanbanize';
-	
+
+    CONST API_URL_FORMAT = "https://%s.kanbanize.com/index.php/api/kanbanize";
+
 	/**
 	 *
 	 * @param string $k        	

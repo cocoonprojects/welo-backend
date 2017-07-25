@@ -64,8 +64,8 @@ return array(
 				'options' => array(
 					'route'    => '/kanbanize/sync',
                     'defaults' => array(
-                        'action' => 'stats',
-                        'controller' => 'Kanbanize\Controller\Sync',
+                        '__NAMESPACE__' => 'Kanbanize\Controller',
+                        'controller' => 'Sync',
                     ),
 				),
 			),

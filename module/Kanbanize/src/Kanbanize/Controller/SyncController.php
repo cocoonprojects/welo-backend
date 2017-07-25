@@ -2,11 +2,12 @@
 
 namespace Kanbanize\Controller;
 
-use Application\Controller\OrganizationAwareController;
+use ZFX\Rest\Controller\HATEOASRestfulController;
+use Zend\View\Model\ViewModel;
 
-class SyncController extends OrganizationAwareController
+class SyncController extends HATEOASRestfulController
 {
-	protected static $resourceOptions = [];
+	protected static $resourceOptions = ['GET'];
 	protected static $collectionOptions= ['GET'];
 
 	public function getList()
@@ -22,11 +23,14 @@ class SyncController extends OrganizationAwareController
 			return $this->response;
 		}
 
-		$rootDir = __DIR__ . '../../../../../public';
+		$rootDir = __DIR__ . '/../../../../../public';
 
         $result = shell_exec("php $rootDir/index.php sync");
 
-        return $result;
+        $view = new ViewModel(['result' => $result]);
+        $view->setTemplate('sync.phtml');
+
+        return $view;
 	}
 
 	protected function getCollectionOptions() {

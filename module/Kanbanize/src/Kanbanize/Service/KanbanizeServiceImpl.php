@@ -390,7 +390,7 @@ class KanbanizeServiceImpl implements KanbanizeService
 			throw new KanbanizeApiException("Cannot connect to Kanbanize due to missing account subdomain");
 		}
 		$this->kanbanize->setApiKey($apiKey);
-		$this->kanbanize->setUrl(sprintf(Importer::API_URL_FORMAT, $subdomain));
+		$this->kanbanize->setUrl(sprintf(KanbanizeAPI::API_URL_FORMAT, $subdomain));
 
 		return $this;
 	}

@@ -22,6 +22,10 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
 			'invokables' => array(
 			),
 			'factories' => array(
+                'Kanbanize\Controller\Sync' => function($sm) {
+
+                    return new SyncController();
+                },
 				'Kanbanize\Controller\Console\KanbanizeToOraSync' => function($sm) {
 					$locator = $sm->getServiceLocator();
 					$taskService = $locator->get('TaskManagement\TaskService');
