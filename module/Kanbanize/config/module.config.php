@@ -59,17 +59,14 @@ return array(
 					),
 				),
 			),
-			'kanbanize-import' => array(
+			'kanbanize-sync' => array(
 				'type' => 'Segment',
 				'options' => array(
-					'route'    => '/:orgId/kanbanize/imports',
-					'defaults' => array(
-						'__NAMESPACE__' => 'Kanbanize\Controller',
-						'controller' => 'Imports',
-					),
-					'constraints' => array(
-						'orgId' => '([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})',
-					),
+					'route'    => '/kanbanize/sync',
+                    'defaults' => array(
+                        'action' => 'stats',
+                        'controller' => 'Kanbanize\Controller\Sync',
+                    ),
 				),
 			),
 			'kanbanize-settings' => array(

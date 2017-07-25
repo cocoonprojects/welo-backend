@@ -288,6 +288,11 @@ class User extends BasicUser implements RoleInterface, ResourceInterface
         return $this->role;
     }
 
+    public function isAdmin()
+    {
+        return $this->getRole() === self::ROLE_ADMIN;
+    }
+
     public function getOrganizationMemberships()
     {
         return $this->memberships->toArray();
