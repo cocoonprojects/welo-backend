@@ -71,6 +71,11 @@ class OrganizationMembership
 		$this->createdAt = $this->mostRecentEditAt = new \DateTime();
 	}
 
+	public function isContributor()
+    {
+        return $this->getRole() === self::ROLE_CONTRIBUTOR;
+    }
+
 	public function setRole($role)
 	{
 		$this->role = $role;

@@ -426,8 +426,9 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
 			
 			$this->mailService->setTemplate( 'mail/work-item-idea-created.phtml', [
 				'task' => $task,
-				'member' =>$member,
+				'member' => $member,
 				'recipient'=> $recipient,
+				'isRecipientContributor' => $m->isContributor(),
 				'organization'=> $org,
 				'stream'=> $stream,
 				'host' => $this->host,

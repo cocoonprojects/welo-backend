@@ -187,6 +187,7 @@ class NotifyMailListenerTest extends \PHPUnit_Framework_TestCase
                 'task' => $this->task,
                 'member' =>$this->owner,
                 'recipient'=> $this->member,
+                'isRecipientContributor' => $m1->isContributor(),
                 'organization'=> $this->organization,
                 'stream'=> $this->stream,
             'host' => 'http://example.com',

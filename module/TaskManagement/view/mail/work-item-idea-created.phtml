@@ -5,8 +5,14 @@
 	echo 'an organization member';
 } else {
 	echo '<b>'.$this->member->getFirstname().' '.$this->member->getLastname().'</b>';
-}?> proposed a new work item idea into the "<?= $this->stream->getSubject()?>" stream: <b><a href="<?= $link ?>"><?= $this->task->getSubject()?></a></b>.</p>
-<p>Check it out and vote for accepting or rejecting it!</p>
+}?> proposed a new work item idea into the "<?= $this->stream->getSubject()?>" stream: <b><a href="<?= $link ?>"><?= $this->task->getSubject()?></a></b>.
+</p>
+
+<?php if ($this->isRecipientContributor): ?>
+    <p>Check it out while the governance members vote for accepting or rejecting it!</p>
+<?php else: ?>
+    <p>Check it out and vote for accepting or rejecting it!</p>
+<?php endif; ?>
 <p>Welo</p>
 <hr>
 <p style="font-size: 12px">You are receiving this e-mail because you are a member of the "<?= $this->organization->getName() ?>" organization.</p>
