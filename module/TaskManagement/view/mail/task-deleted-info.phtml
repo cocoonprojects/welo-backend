@@ -1,5 +1,5 @@
 <p>Hi <?php echo $this->recipient->getFirstname()?>,<br>
-    "<?= $subject ?>" item was deleted
+    "<?= $subject ?>" item was deleted by <?= $this->by->getDislayedName(); ?>
 <p>Welo</p>
 <hr>
 <p style="font-size: 12px">You are receiving this e-mail because you are involved in the "<?= $subject ?>" item.</p>

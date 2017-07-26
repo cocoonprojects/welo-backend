@@ -16,6 +16,7 @@ class ItemDeletedCard extends FlowCard
     {
 	    $type = FlowCardInterface::ITEM_DELETED_CARD;
 		$content = $this->getContent()[$type];
+        $by = $this->getCreatedBy();
 
 		$rv = [];
 		$rv['type'] = $type;
@@ -23,7 +24,7 @@ class ItemDeletedCard extends FlowCard
 		$rv['id'] = $this->getId();
 		$rv['title'] = 'Item deleted';
 		$rv['content'] = [
-			'description' => "The item '{$content['subject']}' was deleted",
+			'description' => "The item '{$content['subject']}' was deleted by {$by->getDislayedName()}",
 			'actions' => [
 			],
 		];
@@ -34,7 +35,7 @@ class ItemDeletedCard extends FlowCard
     public static function create(Uuid $uuid, $subject, User $to, User $by)
     {
         $data = [
-            'subject' => $subject
+            'subject' => $subject,
         ];
 
         $flowCard = new static($uuid, $to);

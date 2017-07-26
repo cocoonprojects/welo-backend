@@ -184,6 +184,10 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
 
         $streamEvent = $event->getTarget();
         $payload = $streamEvent->payload();
+
+        $userId = $event->getParam('by');
+        $user = $this->userService->findUser($userId);
+
         $partecipants = $this->userService->findByIds(array_keys($payload['partecipants']));
         $admins = $this->orgService->findOrganizationAdmins($payload['organization']);
 
@@ -197,10 +201,10 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
             $recipients[$admin->getId()] = $admin;
         }
 
-        $this->sendTaskDeletedInfoMail($payload['subject'], $recipients);
+        $this->sendTaskDeletedInfoMail($payload['subject'], $recipients, $user);
     }
 
-    public function sendTaskDeletedInfoMail($subject, array $recipients)
+    public function sendTaskDeletedInfoMail($subject, array $recipients, User $by)
     {
         $rv = [];
 
@@ -213,6 +217,7 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
             $this->mailService->setTemplate( 'mail/task-deleted-info.phtml', [
                 'recipient' => $recipent,
                 'subject' => $subject,
+                'by' => $by
             ]);
 
             $this->mailService->send();
