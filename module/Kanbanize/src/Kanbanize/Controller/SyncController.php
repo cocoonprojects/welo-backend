@@ -2,8 +2,8 @@
 
 namespace Kanbanize\Controller;
 
+use Zend\View\Model\JsonModel;
 use ZFX\Rest\Controller\HATEOASRestfulController;
-use Zend\View\Model\ViewModel;
 
 class SyncController extends HATEOASRestfulController
 {
@@ -27,10 +27,7 @@ class SyncController extends HATEOASRestfulController
 
         $result = shell_exec("php $rootDir/index.php sync");
 
-        $view = new ViewModel(['result' => $result]);
-        $view->setTemplate('sync.phtml');
-
-        return $view;
+        return new JsonModel(['result' => $result]);
 	}
 
 	protected function getCollectionOptions() {
