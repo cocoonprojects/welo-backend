@@ -453,71 +453,93 @@ class TaskCommandsListener extends ReadModelProjector {
 
 	private function updateAssigneeOnKanbanize($task)
 	{
-		$org = $this->orgService
+        try {
+
+            $org = $this->orgService
 					->findOrganization($task->getOrganizationId());
 
-		$settings = $org->getSettings($this::KANBANIZE_SETTINGS);
+            $settings = $org->getSettings($this::KANBANIZE_SETTINGS);
 
-		if (is_null($settings) || empty($settings)) {
-			return;
-		}
+            if (is_null($settings) || empty($settings)) {
+                return;
+            }
 
-		$this->kanbanizeService
-			 ->initApi($settings['apiKey'], $settings['accountSubdomain']);
+            $this->kanbanizeService
+                 ->initApi($settings['apiKey'], $settings['accountSubdomain']);
 
-		$boardId = $task->getStream()->getBoardId();
-		$taskId = $task->getTaskId();
+            $boardId = $task->getStream()->getBoardId();
+            $taskId = $task->getTaskId();
 
-		$kanbanizeTask = $this->kanbanizeService
-							  ->getTaskDetails($boardId, $taskId);
+            $kanbanizeTask = $this->kanbanizeService
+                                  ->getTaskDetails($boardId, $taskId);
 
-		$this->kanbanizeService
-             ->updateTask(
-					$task,
-					$kanbanizeTask,
-					$boardId
-        );
+            $this->kanbanizeService
+                 ->updateTask(
+                        $task,
+                        $kanbanizeTask,
+                        $boardId
+            );
+
+        } catch (\Exception $e) {
+            error_log($e->getMessage() . "\n" .  $e->getTraceAsString());
+        }
+
 	}
 
-	private function updateOnKanbanize($task) {
-		$kanbanizeStream = $task->getStream();
-		$kanbanizeBoardId = $kanbanizeStream->getBoardId();
+	private function updateOnKanbanize($task)
+    {
+        try {
 
-		// getting organization
-		$org = $this->orgService->findOrganization($task->getOrganizationId());
-		$kanbanizeSettings = $org->getSettings($this::KANBANIZE_SETTINGS);
+            $kanbanizeStream = $task->getStream();
+            $kanbanizeBoardId = $kanbanizeStream->getBoardId();
 
-		if (is_null ( $kanbanizeSettings ) || empty ( $kanbanizeSettings )) {
-			return;
-		}
+            // getting organization
+            $org = $this->orgService->findOrganization($task->getOrganizationId());
+            $kanbanizeSettings = $org->getSettings($this::KANBANIZE_SETTINGS);
 
-		// Init KanbanizeAPI on kanbanizeService
-		$this->kanbanizeService->initApi ( $kanbanizeSettings ['apiKey'], $kanbanizeSettings ['accountSubdomain'] );
-        $this->kanbanizeService->loadLanesFromKanbanize($kanbanizeBoardId);
+            if (is_null ( $kanbanizeSettings ) || empty ( $kanbanizeSettings )) {
+                return;
+            }
 
-		$mapping = $kanbanizeSettings ['boards'] [$kanbanizeBoardId] ['columnMapping'];
+            // Init KanbanizeAPI on kanbanizeService
+            $this->kanbanizeService->initApi ( $kanbanizeSettings ['apiKey'], $kanbanizeSettings ['accountSubdomain'] );
+            $this->kanbanizeService->loadLanesFromKanbanize($kanbanizeBoardId);
 
-		$key = array_search($task->getStatus(), $mapping);
+            $mapping = $kanbanizeSettings ['boards'] [$kanbanizeBoardId] ['columnMapping'];
 
-		$this->kanbanizeService
-			 ->moveTaskonKanbanize($task, $key, $kanbanizeBoardId);
+            $key = array_search($task->getStatus(), $mapping);
+
+            $this->kanbanizeService
+                 ->moveTaskonKanbanize($task, $key, $kanbanizeBoardId);
+
+        } catch (\Exception $e) {
+            error_log($e->getMessage() . "\n" .  $e->getTraceAsString());
+        }
 	}
 
 	private function deleteOnKanbanize($task)
     {
-		$kanbanizeStream = $task->getStream();
-		$kanbanizeBoardId = $kanbanizeStream->getBoardId();
+        try {
 
-		$org = $this->orgService->findOrganization($task->getOrganizationId());
-		$kanbanizeSettings = $org->getSettings($this::KANBANIZE_SETTINGS);
+            $kanbanizeStream = $task->getStream();
+            $kanbanizeBoardId = $kanbanizeStream->getBoardId();
 
-		if (is_null ( $kanbanizeSettings ) || empty ( $kanbanizeSettings )) {
-			return;
-		}
+            $org = $this->orgService->findOrganization($task->getOrganizationId());
+            $kanbanizeSettings = $org->getSettings($this::KANBANIZE_SETTINGS);
 
-		$this->kanbanizeService->initApi($kanbanizeSettings['apiKey'], $kanbanizeSettings ['accountSubdomain']);
+            if ($kanbanizeSettings === null || empty($kanbanizeSettings)) {
+                return;
+            }
 
-		$this->kanbanizeService
-			 ->deleteTask($task, $kanbanizeBoardId);
+            $this->kanbanizeService
+                 ->initApi($kanbanizeSettings['apiKey'], $kanbanizeSettings ['accountSubdomain']);
+
+            $this->kanbanizeService
+                ->deleteTask($task, $kanbanizeBoardId);
+
+        } catch (\Exception $e) {
+            error_log($e->getMessage() . "\n" .  $e->getTraceAsString());
+        }
+
 	}
 }
