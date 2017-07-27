@@ -34,7 +34,7 @@ class TransitionsController extends HATEOASRestfulController
 		$this->taskService = $taskService;
 		$this->organizationService = $organizationService;
 		$this->validator = new InArray(
-			['haystack' => array('complete', 'accept', 'execute', 'close')]
+			['haystack' => array('complete', 'accept', 'execute', 'close', 'open')]
 		);
 	}
 

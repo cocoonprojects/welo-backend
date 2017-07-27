@@ -1,109 +1,113 @@
 <?php
 namespace TaskManagement;
 
-use Application\Entity\User;
-use People\Organization;
-use Test\TestFixturesHelper;
-use ZFX\Test\Authentication\OAuth2AdapterMock;
+use PHPUnit_Framework_TestCase;
+use Test\ZFHttpClient;
 
-class RollbackStateTransitionProcessTest extends \BaseTaskProcessTest
+
+class RollbackStateTransitionProcessTest extends PHPUnit_Framework_TestCase
 {
-    protected $admin;
-    protected $organization;
-    protected $owner;
-    protected $member01;
-    protected $member02;
+    protected $client;
 
-    /**
-     * @var Task $task
-     */
-    protected $task;
+    private static $tokens = [
+        'bruce.wayne@ora.local' => 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXUyJ9.eyJ1aWQiOiI4MDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJpYXQiOiIxNDM4NzgzMzE0In0.PFaRVhV_us6hLMjCyfVcA1GdhoSDlZDInOa-g7Ks2HMLYqiaOwzoRjxhLObBY8KQZ4h9mkBbhycnO6HsX6QtXlxdqB4jGACGAQzGxfS9l4kIUJzHacQxVO0SW58U-XITpKZL6tAnLo_rpfnWFdTKUWZ1lBx0Z7ymPiHIqmlrBSdXW9JJTP4OVCq4CsxfUpT65DcLCJebJ7rDbMgCGy6C2SvP676IjBqKeAf44_XjolvBvqHWbYx6WrgbQfZQpPmaqhggyKRRcivgsp8bd1GOuxM9bvXRagdqF1suac5SXZG8vgv-V3UjxyZpmu7XsJeWO085pPsOvG3i7EvIRKgqbg',
+    ];
 
+    public function setUp()
+    {
+        $config = getenv('APP_ROOT_DIR') . '/config/application.test.config.php';
+        $this->client = ZFHttpClient::create($config);
+        $this->client->enableErrorTrace();
+        $this->client->setJWTToken(static::$tokens['bruce.wayne@ora.local']);
+    }
 
-	protected function setUp()
-	{
-
-        $this->admin = $this->createUser(['given_name' => 'Admin', 'family_name' => 'Uber', 'email' => TestFixturesHelper::generateRandomEmail()], User::ROLE_ADMIN);
-        $this->owner = $this->createUser([ 'given_name' => 'John', 'family_name' => 'Doe', 'email' => TestFixturesHelper::generateRandomEmail() ], User::ROLE_USER );
-        $this->member01 = $this->createUser([ 'given_name' => 'Jane', 'family_name' => 'Doe', 'email' => TestFixturesHelper::generateRandomEmail() ], User::ROLE_USER );
-        $this->member02 = $this->createUser([ 'given_name' => 'Jack', 'family_name' => 'Doe', 'email' => TestFixturesHelper::generateRandomEmail() ], User::ROLE_USER );
-
-        $this->organization = $this->createOrganization(TestFixturesHelper::generateRandomName(), $this->admin);
-        $stream = $this->createStream(TestFixturesHelper::generateRandomName(), $this->organization, $this->admin, $this->serviceManager);
-
-
-        $this->transactionManager->beginTransaction();
-        try {
-            $this->organization->addMember($this->owner, Organization::ROLE_MEMBER);
-            $this->organization->addMember($this->member01, Organization::ROLE_MEMBER);
-            $this->organization->addMember($this->member02, Organization::ROLE_MEMBER);
-            $this->transactionManager->commit();
-
-        } catch (\Exception $e) {
-            var_dump($e->getMessage());
-            $this->transactionManager->rollback();
-            throw $e;
-        }
-
-        // reload users to refresh memberships inside user entities
-        $this->userService->refreshEntity($this->owner);
-        $this->userService->refreshEntity($this->member01);
-        $this->userService->refreshEntity($this->member02);
-
-        $this->transactionManager->beginTransaction();
-        try {
-            $this->task = Task::create($stream, 'Lorem Ipsum Sic Dolor Amit', $this->owner);
-            $this->taskService->addTask($this->task);
-
-            $this->transactionManager->commit();
-        }catch (\Exception $e) {
-            var_dump($e->getMessage());
-            $this->transactionManager->rollback();
-            throw $e;
-        }
-	}
 
 	public function testRevertOngoingToOpen() {
-        $this->transactionManager->beginTransaction();
+
+        $serviceManager = $this->client->getServiceManager();
+        $userService = $serviceManager->get('Application\UserService');
+        $admin = $userService->findUserByEmail('bruce.wayne@ora.local');
+        $member1 = $userService->findUserByEmail('phil.toledo@ora.local');
+        $member2 = $userService->findUserByEmail('paul.smith@ora.local');
+
+        $res = $this->createOrganization($serviceManager,'my org', $admin, [$member1, $member2]);
+        $task = $this->createTask($serviceManager, 'Lorem Ipsum Sic Dolor Amit', $res['stream'], $admin, [$member1, $member2]);
+
+
+        $response = $this->client
+            ->post(
+                "/{$res['org']->getId()}/task-management/tasks/{$task->getId()}/transitions",
+                [ "action" => "open" ]
+            );
+
+        $task = json_decode($response->getContent(), true);
+
+        $this->assertEquals('200', $response->getStatusCode());
+        $this->assertEquals(TASK::STATUS_OPEN, $task['status']);
+        $this->assertEmpty($task['members']);
+    }
+
+
+    protected function createOrganization($serviceManager, $name, $admin, array $members)
+    {
+        $orgService = $serviceManager->get('People\OrganizationService');
+        $streamService = $serviceManager->get('TaskManagement\StreamService');
+        $transactionManager = $serviceManager->get('prooph.event_store');
+
+        $org = $orgService->createOrganization($name, $admin);
+        $stream = $streamService->createStream($org, 'banana', $admin);
+
+        $transactionManager->beginTransaction();
+
         try {
 
-            $this->task->addMember($this->owner, Task::ROLE_MEMBER);
-            $this->task->addMember($this->member01, Task::ROLE_MEMBER);
-            $this->task->addMember($this->member02, Task::ROLE_MEMBER);
-            $this->task->open($this->owner);
-            $this->task->execute($this->owner);
+            foreach ($members as $member) {
+                $org->addMember($member);
+            }
 
-            $this->transactionManager->commit();
+            $transactionManager->commit();
         } catch (\Exception $e) {
-            var_dump($e->getMessage());
-            $this->transactionManager->rollback();
+            $transactionManager->rollback();
             throw $e;
         }
 
-        $this->transactionManager->beginTransaction();
-        try {
-            $this->task->revertToOpen($this->owner);
+        return ['org' => $org, 'stream' => $stream];
+    }
 
-            $this->transactionManager->commit();
-        } catch (\Exception $e) {
-            var_dump($e->getMessage());
-            $this->transactionManager->rollback();
+    protected function createTask($serviceManager, $subject, $stream, $admin, array $members)
+    {
+        $taskService = $serviceManager->get('TaskManagement\TaskService');
+        $transactionManager = $serviceManager->get('prooph.event_store');
+
+        $transactionManager->beginTransaction();
+
+        try {
+
+            $task = Task::create($stream, $subject, $admin);
+            $task->addMember($admin, Task::ROLE_OWNER);
+
+            foreach ($members as $member) {
+                $task->addMember($member, Task::ROLE_MEMBER);
+            }
+
+            $task->open($admin);
+            $task->execute($admin);
+
+            $task->addEstimation(1500, $admin);
+
+            foreach ($members as $member) {
+                $task->addEstimation(2050, $member);
+            }
+
+            $taskService->addTask($task);
+
+            $transactionManager->commit();
+        }catch (\Exception $e) {
+            $transactionManager->rollback();
             throw $e;
         }
 
-
-        $readModelTask = $this->taskService->findTask($this->task->getId());
-        $this->taskService->refreshEntity($readModelTask);
-
-        $this->assertEquals(TASK::STATUS_OPEN, $this->task->getStatus());
-        $this->assertEquals(TASK::STATUS_OPEN, $readModelTask->getStatus());
-
-        foreach ($readModelTask->getMembers() as $member) {
-            var_dump($member->getUser()->getFirstName());
-        }
-
-        $this->assertEquals(0, $readModelTask->countMembers());
-        $this->assertCount(0, $this->task->getMembers());
+        return $task;
     }
 
 }
