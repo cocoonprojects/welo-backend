@@ -536,6 +536,11 @@ class Task extends EditableEntity implements TaskInterface
 	}
 
 
+	public function removeAllParticipants()
+    {
+        $this->members->clear();
+    }
+
 	/**
 	 * Retrieve members that haven't assigned any share
 	 *
@@ -629,4 +634,12 @@ class Task extends EditableEntity implements TaskInterface
 		}
 		return $ref > $this->sharesAssignmentExpiresAt;
 	}
+
+	public function revertToOpen(User $user, \DateTime $time)
+    {
+        $this->setStatus( Task::STATUS_OPEN );
+        $this->setMostRecentEditBy( $user );
+        $this->setMostRecentEditAt( $time );
+        $this->removeAllParticipants();
+    }
 }

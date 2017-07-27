@@ -174,6 +174,26 @@ class TransitionsController extends HATEOASRestfulController
 					$view->setDescription($e->getMessage());
 				}
 				break;
+            case "open":
+                if($task->getStatus() == Task::STATUS_OPEN) {
+                    $this->response->setStatusCode ( 204 );
+                    return $this->response;
+                }
+                $this->transaction()->begin();
+                try {
+                    $task->revertToOpen($this->identity());
+					$this->transaction()->commit();
+                    $this->response->setStatusCode ( 200 );
+                    $view = new TaskJsonModel($this);
+                    $view->setVariable('resource', $task);
+                }catch ( IllegalStateException $e ) {
+                    $this->transaction()->rollback();
+                    $this->response->setStatusCode ( 412 ); // Preconditions failed
+                    $view = new ErrorJsonModel();
+                    $view->setCode(412);
+                    $view->setDescription($e->getMessage());
+                }
+                break;
 			default :
 				$this->response->setStatusCode ( 400 );
 				$view = new ErrorJsonModel();
