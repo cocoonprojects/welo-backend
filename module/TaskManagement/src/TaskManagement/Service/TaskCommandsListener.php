@@ -209,6 +209,20 @@ class TaskCommandsListener extends ReadModelProjector {
 		}
 	}
 
+	protected function onTaskRevertedToIdea(StreamEvent $event) {
+		$id = $event->metadata()['aggregate_id'];
+		$task = $this->entityManager->find( Task::class, $id );
+		$user = $this->entityManager->find( User::class, $event->payload ()['by'] );
+
+		$task->revertToIdea($user, $event->occurredOn());
+
+		$this->entityManager->persist( $task );
+
+		if ($task->getType() == "kanbanizetask") {
+			$this->updateOnKanbanize($task);
+		}
+	}
+
 	protected function onTaskArchived(StreamEvent $event) {
 		$id = $event->metadata ()['aggregate_id'];
 		$task = $this->entityManager->find ( Task::class, $id );

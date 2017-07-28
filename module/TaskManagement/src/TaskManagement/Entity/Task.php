@@ -246,6 +246,11 @@ class Task extends EditableEntity implements TaskInterface
 		return $this;
 	}
 
+	public function removeApprovals(){
+		$this->approvals->clear();
+		return $this;
+	}
+
 	public function addAcceptance (Vote $vote, BasicUser $by, \DateTime $when ,$description){
 		$acceptance = new ItemCompletedAcceptance($vote, $when);
 		$acceptance->setCreatedBy($by);
@@ -641,5 +646,13 @@ class Task extends EditableEntity implements TaskInterface
         $this->setMostRecentEditBy( $user );
         $this->setMostRecentEditAt( $time );
         $this->removeAllParticipants();
+    }
+
+	public function revertToIdea(User $user, \DateTime $time)
+    {
+        $this->setStatus( Task::STATUS_IDEA );
+        $this->setMostRecentEditBy( $user );
+        $this->setMostRecentEditAt( $time );
+        $this->removeApprovals();
     }
 }
