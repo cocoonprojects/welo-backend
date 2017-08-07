@@ -110,7 +110,7 @@ class VotingResultsController extends AbstractConsoleController {
 					$item->open($systemUser);
 				}else{
 					$this->write("archiving task $itemId: {$results['votesFor']} votes for, {$results['votesAgainst']} against");
-					$item->archive($systemUser);
+					$item->reject($systemUser);
 				}
 				$this->transaction()->commit();
 			}catch (\Exception $e) {

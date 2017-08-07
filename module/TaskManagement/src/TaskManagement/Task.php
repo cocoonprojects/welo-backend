@@ -354,10 +354,10 @@ class Task extends DomainEntity implements TaskInterface
         return $this;
     }
 
-    public function archive(BasicUser $executedBy)
+    public function reject(BasicUser $executedBy)
     {
         if (!in_array($this->status, [self::STATUS_IDEA])) {
-            throw new IllegalStateException('Cannot archive a task in state '.$this->getStatus().'. Task '.$this->getId().' won\'t be archived');
+            throw new IllegalStateException('Cannot reject a task in state '.$this->getStatus().'. Task '.$this->getId().' won\'t be archived');
         }
         $this->recordThat(TaskArchived::occur($this->id->toString(), array(
                 'prevStatus' => $this->getStatus(),

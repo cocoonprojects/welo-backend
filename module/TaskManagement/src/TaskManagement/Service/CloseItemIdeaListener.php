@@ -99,7 +99,7 @@ class CloseItemIdeaListener implements ListenerAggregateInterface {
 			
 			$this->transactionManager->beginTransaction ();
 			try {
-				$task->archive ( $owner );
+				$task->reject( $owner );
 				$this->transactionManager->commit ();
 			} catch ( \Exception $e ) {
 				var_dump ( $e );
@@ -121,7 +121,7 @@ class CloseItemIdeaListener implements ListenerAggregateInterface {
 			} else {
 				$this->transactionManager->beginTransaction ();
 				try {
-					$task->archive ( $owner );
+					$task->reject( $owner );
 					$this->transactionManager->commit ();
 				} catch ( \Exception $e ) {
 					$this->transactionManager->rollback ();
