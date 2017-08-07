@@ -83,4 +83,31 @@ class RollbackStateTransitionProcessTest extends PHPUnit_Framework_TestCase
         $this->assertEmpty($responseTask['approvals']);
     }
 
+    public function testRevertRejectedToIdea()
+    {
+        $admin = $this->fixtures->findUserByEmail('bruce.wayne@ora.local');
+        $member1 = $this->fixtures->findUserByEmail('phil.toledo@ora.local');
+        $member2 = $this->fixtures->findUserByEmail('paul.smith@ora.local');
+
+        $res = $this->fixtures->createOrganization('my org', $admin, [$member1, $member2]);
+        $task = $this->fixtures->createRejectedTask('Lorem Ipsum Sic Dolor Amit', $res['stream'], $admin);
+
+        $response = $this->client
+            ->post(
+                "/{$res['org']->getId()}/task-management/tasks/{$task->getId()}/transitions",
+                [ "action" => "idea" ]
+            );
+
+        $this->assertEquals('200', $response->getStatusCode());
+
+        $response = $this->client
+            ->get("/{$res['org']->getId()}/task-management/tasks/{$task->getId()}");
+        $responseTask = json_decode($response->getContent(), true);
+
+        $this->assertEquals('200', $response->getStatusCode());
+        $this->assertEquals(TASK::STATUS_IDEA, $responseTask['status']);
+        $this->assertEmpty($responseTask['approvals']);
+
+    }
+
 }

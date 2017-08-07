@@ -343,7 +343,7 @@ class Task extends DomainEntity implements TaskInterface
 
     public function revertToIdea(BasicUser $executedBy)
     {
-        if (!in_array($this->status, [self::STATUS_OPEN])) {
+        if (!in_array($this->status, [self::STATUS_OPEN, self::STATUS_ARCHIVED])) {
             throw new IllegalStateException('Cannot revert to idea a task in '.$this->status.' state');
         }
 
