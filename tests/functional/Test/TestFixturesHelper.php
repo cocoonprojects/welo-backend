@@ -25,18 +25,15 @@ class TestFixturesHelper
         return round(microtime(true) * 1000).'_'.rand(0,10000).'@foo.com';
     }
 
-
     public function __construct(ServiceManager $serviceManager)
     {
         $this->serviceManager = $serviceManager;
     }
 
-
     public function getJWTToken($email)
     {
         return static::$tokens[$email];
     }
-
 
     public function createOrganization($name, $admin, array $members)
     {
@@ -206,6 +203,37 @@ class TestFixturesHelper
         try {
             $task = Task::create($stream, $subject, $admin);
             $task->reject($admin);
+
+            $taskService->addTask($task);
+            $transactionManager->commit();
+        } catch (\Exception $e) {
+            var_dump($e->getMessage());
+            var_dump($e->getTraceAsString());
+            $transactionManager->rollback();
+            throw $e;
+        }
+
+        return $task;
+    }
+
+    public function createCompletedTask($subject, $stream, $admin, $member1, $member2)
+    {
+        $taskService = $this->serviceManager->get('TaskManagement\TaskService');
+        $transactionManager = $this->serviceManager->get('prooph.event_store');
+
+        $transactionManager->beginTransaction();
+
+        try {
+            $task = Task::create($stream, $subject, $admin);
+            $task->open($admin);
+            $task->execute($admin);
+            $task->addMember($admin);
+            $task->addMember($member1);
+            $task->addMember($member2);
+            $task->addEstimation(100, $admin);
+            $task->addEstimation(100, $member1);
+            $task->addEstimation(100, $member2);
+            $task->complete($admin);
 
             $taskService->addTask($task);
             $transactionManager->commit();

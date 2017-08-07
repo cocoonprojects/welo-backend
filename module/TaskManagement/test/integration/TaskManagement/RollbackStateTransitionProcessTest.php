@@ -23,8 +23,34 @@ class RollbackStateTransitionProcessTest extends PHPUnit_Framework_TestCase
         $this->client->setJWTToken($this->fixtures->getJWTToken('bruce.wayne@ora.local'));
     }
 
+    public function testRevertFromRejectedToIdea()
+    {
+        $admin = $this->fixtures->findUserByEmail('bruce.wayne@ora.local');
+        $member1 = $this->fixtures->findUserByEmail('phil.toledo@ora.local');
+        $member2 = $this->fixtures->findUserByEmail('paul.smith@ora.local');
 
-	public function testRevertOngoingToOpen() {
+        $res = $this->fixtures->createOrganization('my org', $admin, [$member1, $member2]);
+        $task = $this->fixtures->createRejectedTask('Lorem Ipsum Sic Dolor Amit', $res['stream'], $admin);
+
+        $response = $this->client
+            ->post(
+                "/{$res['org']->getId()}/task-management/tasks/{$task->getId()}/transitions",
+                [ "action" => "backToIdea" ]
+            );
+
+        $this->assertEquals('200', $response->getStatusCode());
+
+        $response = $this->client
+            ->get("/{$res['org']->getId()}/task-management/tasks/{$task->getId()}");
+        $responseTask = json_decode($response->getContent(), true);
+
+        $this->assertEquals('200', $response->getStatusCode());
+        $this->assertEquals(TASK::STATUS_IDEA, $responseTask['status']);
+        $this->assertEmpty($responseTask['approvals']);
+
+    }
+
+    public function testRevertFromOngoingToOpen() {
 
         $admin = $this->fixtures->findUserByEmail('bruce.wayne@ora.local');
         $member1 = $this->fixtures->findUserByEmail('phil.toledo@ora.local');
@@ -36,7 +62,7 @@ class RollbackStateTransitionProcessTest extends PHPUnit_Framework_TestCase
         $response = $this->client
             ->post(
                 "/{$res['org']->getId()}/task-management/tasks/{$task->getId()}/transitions",
-                [ "action" => "open" ]
+                [ "action" => "backToOpen" ]
             );
         $task = json_decode($response->getContent(), true);
 
@@ -45,8 +71,7 @@ class RollbackStateTransitionProcessTest extends PHPUnit_Framework_TestCase
         $this->assertEmpty($task['members']);
     }
 
-
-	public function testRevertOpenToIdea() {
+    public function testRevertFromOpenToIdea() {
 
         $admin = $this->fixtures->findUserByEmail('bruce.wayne@ora.local');
         $member1 = $this->fixtures->findUserByEmail('phil.toledo@ora.local');
@@ -54,7 +79,6 @@ class RollbackStateTransitionProcessTest extends PHPUnit_Framework_TestCase
 
         $res = $this->fixtures->createOrganization('my org', $admin, [$member1, $member2]);
         $task = $this->fixtures->createTask(Task::STATUS_OPEN, 'Lorem Ipsum Sic Dolor Amit', $res['stream'], $admin, [$member1, $member2]);
-
 
         $response = $this->client
             ->get("/{$res['org']->getId()}/task-management/tasks/{$task->getId()}");
@@ -68,11 +92,10 @@ class RollbackStateTransitionProcessTest extends PHPUnit_Framework_TestCase
         $response = $this->client
             ->post(
                 "/{$res['org']->getId()}/task-management/tasks/{$task->getId()}/transitions",
-                [ "action" => "idea" ]
+                [ "action" => "backToIdea" ]
             );
 
         $this->assertEquals('200', $response->getStatusCode());
-
 
         $response = $this->client
             ->get("/{$res['org']->getId()}/task-management/tasks/{$task->getId()}");
@@ -83,31 +106,26 @@ class RollbackStateTransitionProcessTest extends PHPUnit_Framework_TestCase
         $this->assertEmpty($responseTask['approvals']);
     }
 
-    public function testRevertRejectedToIdea()
+    public function testRevertFromCompletedToOngoing()
     {
         $admin = $this->fixtures->findUserByEmail('bruce.wayne@ora.local');
         $member1 = $this->fixtures->findUserByEmail('phil.toledo@ora.local');
         $member2 = $this->fixtures->findUserByEmail('paul.smith@ora.local');
 
         $res = $this->fixtures->createOrganization('my org', $admin, [$member1, $member2]);
-        $task = $this->fixtures->createRejectedTask('Lorem Ipsum Sic Dolor Amit', $res['stream'], $admin);
+        $task = $this->fixtures->createCompletedTask('Lorem Ipsum Sic Dolor Amit', $res['stream'], $admin, $member1, $member2);
 
         $response = $this->client
             ->post(
                 "/{$res['org']->getId()}/task-management/tasks/{$task->getId()}/transitions",
-                [ "action" => "idea" ]
-            );
+                [ "action" => "backToOngoing" ]
+        );
 
-        $this->assertEquals('200', $response->getStatusCode());
-
-        $response = $this->client
-            ->get("/{$res['org']->getId()}/task-management/tasks/{$task->getId()}");
         $responseTask = json_decode($response->getContent(), true);
 
         $this->assertEquals('200', $response->getStatusCode());
-        $this->assertEquals(TASK::STATUS_IDEA, $responseTask['status']);
-        $this->assertEmpty($responseTask['approvals']);
-
+        $this->assertEquals(TASK::STATUS_ONGOING, $responseTask['status']);
+        $this->assertEmpty($responseTask['acceptances']);
     }
 
 }

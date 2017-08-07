@@ -655,4 +655,12 @@ class Task extends EditableEntity implements TaskInterface
         $this->setMostRecentEditAt( $time );
         $this->removeApprovals();
     }
+
+    public function revertToOngoing(User $user, \DateTime $time)
+    {
+        $this->setStatus(Task::STATUS_ONGOING);
+        $this->setMostRecentEditBy($user);
+        $this->setMostRecentEditAt($time);
+        $this->removeAcceptances();
+    }
 }

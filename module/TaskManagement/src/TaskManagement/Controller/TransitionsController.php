@@ -16,21 +16,27 @@ class TransitionsController extends HATEOASRestfulController
 	protected static $resourceOptions = ['POST'];
 	protected static $collectionOptions = ['POST'];
 
+	protected static $validTransitions = [
+	    'complete',
+        'accept',
+        'execute',
+        'close',
+        'backToOpen',
+        'backToIdea',
+        'backToOngoing',
+    ];
+
 	private $taskService;
 
 	private $organizationService;
 
 	private $validator;
 
-	public function __construct(
-		TaskService $taskService,
-		OrganizationService $organizationService)
+	public function __construct(TaskService $taskService, OrganizationService $organizationService)
 	{
 		$this->taskService = $taskService;
 		$this->organizationService = $organizationService;
-		$this->validator = new InArray(
-			['haystack' => array('complete', 'accept', 'execute', 'close', 'open', 'idea')]
-		);
+		$this->validator = new InArray(['haystack' => self::$validTransitions]);
 	}
 
 	public function invoke($id, $data)
@@ -169,7 +175,7 @@ class TransitionsController extends HATEOASRestfulController
 					$view->setDescription($e->getMessage());
 				}
 				break;
-            case "open":
+            case "backToOpen":
                 if($task->getStatus() == Task::STATUS_OPEN) {
                     $this->response->setStatusCode ( 204 );
                     return $this->response;
@@ -189,7 +195,7 @@ class TransitionsController extends HATEOASRestfulController
                     $view->setDescription($e->getMessage());
                 }
                 break;
-            case "idea":
+            case "backToIdea":
                 if($task->getStatus() == Task::STATUS_IDEA) {
                     $this->response->setStatusCode ( 204 );
                     return $this->response;
@@ -197,6 +203,26 @@ class TransitionsController extends HATEOASRestfulController
                 $this->transaction()->begin();
                 try {
                     $task->revertToIdea($this->identity());
+					$this->transaction()->commit();
+                    $this->response->setStatusCode ( 200 );
+                    $view = new TaskJsonModel($this);
+                    $view->setVariable('resource', $task);
+                }catch ( IllegalStateException $e ) {
+                    $this->transaction()->rollback();
+                    $this->response->setStatusCode ( 412 ); // Preconditions failed
+                    $view = new ErrorJsonModel();
+                    $view->setCode(412);
+                    $view->setDescription($e->getMessage());
+                }
+                break;
+            case "backToOngoing":
+                if($task->getStatus() === Task::STATUS_ONGOING) {
+                    $this->response->setStatusCode ( 204 );
+                    return $this->response;
+                }
+                $this->transaction()->begin();
+                try {
+                    $task->revertToOngoing($this->identity());
 					$this->transaction()->commit();
                     $this->response->setStatusCode ( 200 );
                     $view = new TaskJsonModel($this);

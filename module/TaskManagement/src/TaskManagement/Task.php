@@ -354,6 +354,20 @@ class Task extends DomainEntity implements TaskInterface
         return $this;
     }
 
+    public function revertToOngoing(BasicUser $executedBy)
+    {
+        if ($this->status !== self::STATUS_COMPLETED) {
+            throw new IllegalStateException('Cannot revert to open a task in '.$this->status.' state');
+        }
+
+        $this->recordThat(TaskRevertedToOngoing::occur($this->id->toString(), array(
+                'prevStatus' => $this->getStatus(),
+                'by' => $executedBy->getId(),
+        )));
+
+        return $this;
+    }
+
     public function reject(BasicUser $executedBy)
     {
         if (!in_array($this->status, [self::STATUS_IDEA])) {
@@ -525,10 +539,8 @@ class Task extends DomainEntity implements TaskInterface
 
     public function addAcceptance($vote, BasicUser $member, $description)
     {
-        if (! in_array($this->status, [
-                self::STATUS_COMPLETED
-        ])) {
-            throw new IllegalStateException('Cannot add an acceptance to item in a status different from closed');
+        if ($this->status !== self::STATUS_COMPLETED) {
+            throw new IllegalStateException('Cannot add an acceptance to item in a status different from completed');
         }
 
         if (array_key_exists($member->getId(), $this->organizationMembersAcceptances)) {
@@ -936,6 +948,13 @@ class Task extends DomainEntity implements TaskInterface
         $this->organizationMembersApprovals = [];
 
         $this->status = self::STATUS_IDEA;
+        $this->mostRecentEditAt = $event->occurredOn();
+    }
+
+    protected function whenTaskRevertedToOngoing(TaskRevertedToOngoing $event)
+    {
+        $this->status = self::STATUS_ONGOING;
+        $this->organizationMembersAcceptances = [];
         $this->mostRecentEditAt = $event->occurredOn();
     }
 
