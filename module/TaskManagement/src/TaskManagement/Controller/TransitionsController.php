@@ -14,15 +14,10 @@ use People\Service\OrganizationService;
 class TransitionsController extends HATEOASRestfulController
 {
 	protected static $resourceOptions = ['POST'];
-	protected static $collectionOptions= ['POST'];
+	protected static $collectionOptions = ['POST'];
 
-	/**
-	 * @var TaskService
-	 */
 	private $taskService;
-	/**
-	 * @var TaskService
-	 */
+
 	private $organizationService;
 
 	private $validator;
