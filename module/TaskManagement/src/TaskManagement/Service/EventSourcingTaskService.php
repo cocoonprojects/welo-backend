@@ -360,6 +360,7 @@ class EventSourcingTaskService extends AggregateRepository implements TaskServic
 	public function getTaskHistory($aggregateId) {
 		$streamEvents = $this->streamStrategy->read($this->aggregateType, $aggregateId);
 		$events = [];
+
 		foreach($streamEvents as $k => $v) {
 			$payload = $v->payload();
 			$type = explode('\\', $v->eventName()->toString());

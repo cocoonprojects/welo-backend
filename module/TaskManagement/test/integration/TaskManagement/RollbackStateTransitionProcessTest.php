@@ -126,6 +126,16 @@ class RollbackStateTransitionProcessTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('200', $response->getStatusCode());
         $this->assertEquals(TASK::STATUS_ONGOING, $responseTask['status']);
         $this->assertEmpty($responseTask['acceptances']);
+
+        $response = $this->client
+            ->get("/{$res['org']->getId()}/task-management/tasks/{$task->getId()}/history");
+
+        $responseTask = json_decode($response->getContent(), true);
+
+        $events = array_column($responseTask, 'name');
+        $event = array_pop($events);
+
+        $this->assertEquals('TaskRevertedToOngoing', $event);
     }
 
 }
