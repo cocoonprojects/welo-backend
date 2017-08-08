@@ -61,21 +61,23 @@ class TestFixturesHelper
         return ['org' => $org, 'stream' => $stream];
     }
 
-
-    public function createTask($state, $subject, $stream, $admin, array $members)
+    public function createOngoingTask($subject, $stream, $admin, $member)
     {
         $taskService = $this->serviceManager->get('TaskManagement\TaskService');
         $transactionManager = $this->serviceManager->get('prooph.event_store');
 
         $transactionManager->beginTransaction();
 
-        if (!in_array($state, [Task::STATUS_OPEN, Task::STATUS_ONGOING, Task::STATUS_COMPLETED, Task::STATUS_ACCEPTED, Task::STATUS_CLOSED])) {
-            throw new \Exception("Task status not managed yet, please modify TestFixturesHelper->createTask method");
-        }
-
         try {
 
             $task = Task::create($stream, $subject, $admin);
+            $task->open($admin);
+            $task->execute($admin);
+            $task->addMember($admin, Task::ROLE_OWNER);
+            $task->addMember($member, Task::ROLE_MEMBER);
+            $task->addEstimation(100, $admin);
+            $task->addEstimation(100, $member);
+
             $taskService->addTask($task);
 
             $transactionManager->commit();
@@ -86,101 +88,22 @@ class TestFixturesHelper
             throw $e;
         }
 
+        return $task;
+    }
 
-        $voters = array_merge([$admin], $members);
-
-        if ($state>=0 && $state>=Task::STATUS_OPEN) {
-            $transactionManager->beginTransaction();
-
-            try {
-
-                $task->addApproval(Vote::VOTE_FOR, $admin, 'Voto a favore '.$admin->getId());
-//                    foreach ($voters as $voter) {
-//                        $task->addApproval(Vote::VOTE_FOR, $voter, 'Voto a favore '.$voter->getId());
-//                    }
-
-                $transactionManager->commit();
-            } catch (\Exception $e) {
-                var_dump($e->getMessage());
-                var_dump($e->getTraceAsString());
-                $transactionManager->rollback();
-                throw $e;
-            }
-        }
-
-
+    public function createOpenTask($subject, $stream, $admin)
+    {
+        $taskService = $this->serviceManager->get('TaskManagement\TaskService');
+        $transactionManager = $this->serviceManager->get('prooph.event_store');
 
         $transactionManager->beginTransaction();
-        try {
-            if ($state>=0 && $state>=Task::STATUS_ONGOING) {
-                $task->execute($admin);
 
-                $task->addMember($admin, Task::ROLE_OWNER);
-
-                foreach ($members as $member) {
-                    $task->addMember($member, Task::ROLE_MEMBER);
-                }
-
-                $task->addEstimation(1500, $admin);
-                foreach ($members as $member) {
-                    $task->addEstimation(2050, $member);
-                }
-            }
-
-            $transactionManager->commit();
-        } catch (\Exception $e) {
-            var_dump($e->getMessage());
-            var_dump($e->getTraceAsString());
-            $transactionManager->rollback();
-            throw $e;
-        }
-
-
-        $transactionManager->beginTransaction();
-        try {
-            if ($state>=0 && $state>=Task::STATUS_COMPLETED) {
-                $task->complete($admin);
-            }
-
-            $transactionManager->commit();
-        } catch (\Exception $e) {
-            var_dump($e->getMessage());
-            var_dump($e->getTraceAsString());
-            $transactionManager->rollback();
-            throw $e;
-        }
-
-
-        $transactionManager->beginTransaction();
         try {
 
-            if ($state>=0 && $state>=Task::STATUS_ACCEPTED) {
-                $task->accept($admin, new \DateInterval('P7D'));
+            $task = Task::create($stream, $subject, $admin);
+            $task->addApproval(Vote::VOTE_FOR, $admin, 'Voto a favore '.$admin->getId());
 
-                $shares = $this->calculateSharesForMembers($task);
-                foreach ($task->getMembers() as $member) {
-                    $task->assignShares($shares, $member);
-                }
-            }
-
-            $transactionManager->commit();
-        } catch (\Exception $e) {
-            var_dump($e->getMessage());
-            var_dump($e->getTraceAsString());
-            $transactionManager->rollback();
-            throw $e;
-        }
-
-
-        $transactionManager->beginTransaction();
-        try {
-
-            if ($state>=0 && $state>=Task::STATUS_CLOSED) {
-                $task->close($admin);
-            }
-
-//            if ($state>=0 && $state<=Task::STATUS_COMPLETED) {
-//            }
+            $taskService->addTask($task);
 
             $transactionManager->commit();
         } catch (\Exception $e) {
@@ -254,26 +177,4 @@ class TestFixturesHelper
         return $userService->findUserByEmail($email);
     }
 
-    /**
-     * @param $task
-     */
-    public function calculateSharesForMembers($task)
-    {
-        $membersCount = $task->countMembers();
-
-        $shares = [];
-        $sharesTotal = 0;
-
-        foreach ($task->getMembers() as $k => $member) {
-            $shares[$member->getId()] = round(1 / $membersCount, 1);
-
-            if ($membersCount-1 == $k) {
-                $shares[$member->getId()] = 1.0 - $sharesTotal;
-            }
-
-            $sharesTotal += $shares[$member->getId()];
-        }
-
-        return $shares;
-    }
 }
