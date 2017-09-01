@@ -74,6 +74,15 @@ return array(
 							'action' => 'close'
                         ]
                     ]
+                ],
+                'sendtoproxy' => [
+                    'options' => [
+                        'route'    => 'send <eventId> [--verbose|-v]',
+                        'defaults' => [
+							'controller' => 'TaskManagement\Controller\Console\Send',
+							'action' => 'send'
+                        ]
+                    ]
                 ]
             ]
         ]

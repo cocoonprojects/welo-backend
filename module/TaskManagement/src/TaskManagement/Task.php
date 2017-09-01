@@ -1176,7 +1176,9 @@ class Task extends DomainEntity implements TaskInterface
     {
         $this->recordThat(CreditsAssigned::occur($this->id->toString(), array(
                 'credits' => $this->getMembersCredits(),
-                'by'=>$by->getId()
+                'taskId' => $this->getId(),
+                'organizationId' => $this->getOrganizationId(),
+                'by' => $by->getId()
         )));
         return $this;
     }

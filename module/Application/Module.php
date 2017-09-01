@@ -9,6 +9,11 @@ use Application\Controller\UsersSecondaryEmailsController;
 use Application\Service\DomainEventDispatcher;
 use Application\Service\EventSourcingUserService;
 use Application\Service\FrontendRouter;
+use Application\Service\SendEventToProxyListener;
+use Application\Service\EventProxyService;
+
+use Guzzle\Http\Client;
+use Application\Controller\Console\SendToProxyController;
 use Zend\Authentication\AuthenticationService;
 use Zend\Authentication\Storage\NonPersistent;
 use Zend\Http\Request;
@@ -110,7 +115,7 @@ class Module
                             $orgService = $locator->get('People\OrganizationService');
                             $controller = new UsersSecondaryEmailsController($userService, $orgService);
                             return $controller;
-                        }
+                        },
                 )
         ];
     }
@@ -203,6 +208,18 @@ class Module
                             }
 
                             return $rv;
+                        },
+                        EventProxyService::class => function() {
+
+                            $client = new Client(getenv('PROXY_URL'));
+
+                            return new EventProxyService($client);
+                        },
+                        SendEventToProxyListener::class => function($serviceLocator) {
+
+                            return new SendEventToProxyListener(
+                                $serviceLocator->get(EventProxyService::class)
+                            );
                         }
                 )
         );

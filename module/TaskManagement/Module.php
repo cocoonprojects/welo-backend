@@ -4,6 +4,7 @@ namespace TaskManagement;
 use TaskManagement\Controller\AcceptancesController;
 use TaskManagement\Controller\ApprovalsController;
 use TaskManagement\Controller\AttachmentsController;
+use TaskManagement\Controller\Console\SendController;
 use TaskManagement\Controller\Console\SharesRemindersController;
 use TaskManagement\Controller\Console\SharesClosingController;
 use TaskManagement\Controller\EstimationsController;
@@ -31,7 +32,7 @@ use TaskManagement\Service\CloseItemIdeaListener;
 use TaskManagement\Service\AcceptCompletedItemListener;
 use Zend\ModuleManager\Feature\AutoloaderProviderInterface;
 use Zend\ModuleManager\Feature\ConfigProviderInterface;
-use Kanbanize\Service;
+use Application\Service\EventProxyService;
 
 class Module implements AutoloaderProviderInterface, ConfigProviderInterface
 {
@@ -217,6 +218,14 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
                     );
 
                     return $controller;
+                },
+                'TaskManagement\Controller\Console\Send' => function ($sm) {
+                    $locator = $sm->getServiceLocator();
+
+                    return new SendController(
+                        $locator->get('prooph.event_store'),
+                        $locator->get(EventProxyService::class)
+                    );
                 },
                 'TaskManagement\Controller\History' => function ($sm) {
 					$locator = $sm->getServiceLocator();
