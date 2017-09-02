@@ -60,17 +60,23 @@ class AcceptCompletedItemListener implements ListenerAggregateInterface
 		) );
 	}
 	public function processEvent(Event $event) {
+
+
 		$streamEvent = $event->getTarget ();
 		$taskId = $streamEvent->metadata ()['aggregate_id'];
 		$task = $this->taskService->getTask ( $taskId );
 		$ownerid = $task->getOwner ();
 		$owner = $this->userService->findUser ( $ownerid );
+
 		$byId = $event->getParam ( 'by' );
+        $operator = $this->userService->findUser ( $byId );
+
 		$organization = $this->organizationService->findOrganization ( $task->getOrganizationId () );
 		$memberhipcount = $this->organizationService->countOrganizationMemberships ( $organization,
 			[ OrganizationMembership::ROLE_ADMIN, OrganizationMembership::ROLE_MEMBER ] );
 		$taskReadModel = $this->taskService->findTask ( $taskId );
 		$acceptances = $taskReadModel->getAcceptances ();
+
 
 		$accept = 0;
 		$reject = 0;
@@ -105,14 +111,13 @@ class AcceptCompletedItemListener implements ListenerAggregateInterface
 			}
 		} elseif ($reject > $memberhipcount / 2) {
 
-			$task->removeAcceptances($owner);
+			$task->removeAcceptances($operator);
 
 			$this->transactionManager->beginTransaction ();
 			try {
-				$task->reopen($owner);
+				$task->reopen($operator);
 				$this->transactionManager->commit ();
 			} catch ( \Exception $e ) {
-				var_dump ( $e );
 				$this->transactionManager->rollback ();
 				throw $e;
 			}
@@ -129,11 +134,11 @@ class AcceptCompletedItemListener implements ListenerAggregateInterface
 					throw $e;
 				}
 			} else {
-				$task->removeAcceptances($owner);
+				$task->removeAcceptances($operator);
 
 				$this->transactionManager->beginTransaction ();
 				try {
-					$task->reopen( $owner );
+					$task->reopen($operator);
 					$this->transactionManager->commit ();
 				} catch ( \Exception $e ) {
 					$this->transactionManager->rollback ();
