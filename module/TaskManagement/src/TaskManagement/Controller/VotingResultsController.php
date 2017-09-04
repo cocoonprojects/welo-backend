@@ -66,7 +66,7 @@ class VotingResultsController extends HATEOASRestfulController {
 							if($results['votesFor'] > $results['votesAgainst']){
 								$item->open($this->identity());
 							}else{
-								$item->archive($this->identity());
+								$item->reject($this->identity());
 							}
 							$this->transaction()->commit();
 						}catch (\Exception $e) {

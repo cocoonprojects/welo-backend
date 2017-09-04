@@ -246,6 +246,11 @@ class Task extends EditableEntity implements TaskInterface
 		return $this;
 	}
 
+	public function removeApprovals(){
+		$this->approvals->clear();
+		return $this;
+	}
+
 	public function addAcceptance (Vote $vote, BasicUser $by, \DateTime $when ,$description){
 		$acceptance = new ItemCompletedAcceptance($vote, $when);
 		$acceptance->setCreatedBy($by);
@@ -536,6 +541,11 @@ class Task extends EditableEntity implements TaskInterface
 	}
 
 
+	public function removeAllParticipants()
+    {
+        $this->members->clear();
+    }
+
 	/**
 	 * Retrieve members that haven't assigned any share
 	 *
@@ -629,4 +639,28 @@ class Task extends EditableEntity implements TaskInterface
 		}
 		return $ref > $this->sharesAssignmentExpiresAt;
 	}
+
+	public function revertToOpen(User $user, \DateTime $time)
+    {
+        $this->setStatus( Task::STATUS_OPEN );
+        $this->setMostRecentEditBy( $user );
+        $this->setMostRecentEditAt( $time );
+        $this->removeAllParticipants();
+    }
+
+	public function revertToIdea(User $user, \DateTime $time)
+    {
+        $this->setStatus( Task::STATUS_IDEA );
+        $this->setMostRecentEditBy( $user );
+        $this->setMostRecentEditAt( $time );
+        $this->removeApprovals();
+    }
+
+    public function revertToOngoing(User $user, \DateTime $time)
+    {
+        $this->setStatus(Task::STATUS_ONGOING);
+        $this->setMostRecentEditBy($user);
+        $this->setMostRecentEditAt($time);
+        $this->removeAcceptances();
+    }
 }

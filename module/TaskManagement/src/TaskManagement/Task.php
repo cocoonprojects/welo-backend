@@ -328,10 +328,50 @@ class Task extends DomainEntity implements TaskInterface
         return $this;
     }
 
-    public function archive(BasicUser $executedBy)
+    public function revertToOpen(BasicUser $executedBy)
+    {
+        if (!in_array($this->status, [self::STATUS_ONGOING])) {
+            throw new IllegalStateException('Cannot revert to open a task in '.$this->status.' state');
+        }
+
+        $this->recordThat(TaskRevertedToOpen::occur($this->id->toString(), array(
+                'prevStatus' => $this->getStatus(),
+                'by' => $executedBy->getId(),
+        )));
+        return $this;
+    }
+
+    public function revertToIdea(BasicUser $executedBy)
+    {
+        if (!in_array($this->status, [self::STATUS_OPEN, self::STATUS_ARCHIVED])) {
+            throw new IllegalStateException('Cannot revert to idea a task in '.$this->status.' state');
+        }
+
+        $this->recordThat(TaskRevertedToIdea::occur($this->id->toString(), array(
+                'prevStatus' => $this->getStatus(),
+                'by' => $executedBy->getId(),
+        )));
+        return $this;
+    }
+
+    public function revertToOngoing(BasicUser $executedBy)
+    {
+        if ($this->status !== self::STATUS_COMPLETED) {
+            throw new IllegalStateException('Cannot revert to open a task in '.$this->status.' state');
+        }
+
+        $this->recordThat(TaskRevertedToOngoing::occur($this->id->toString(), array(
+                'prevStatus' => $this->getStatus(),
+                'by' => $executedBy->getId(),
+        )));
+
+        return $this;
+    }
+
+    public function reject(BasicUser $executedBy)
     {
         if (!in_array($this->status, [self::STATUS_IDEA])) {
-            throw new IllegalStateException('Cannot archive a task in state '.$this->getStatus().'. Task '.$this->getId().' won\'t be archived');
+            throw new IllegalStateException('Cannot reject a task in state '.$this->getStatus().'. Task '.$this->getId().' won\'t be archived');
         }
         $this->recordThat(TaskArchived::occur($this->id->toString(), array(
                 'prevStatus' => $this->getStatus(),
@@ -499,10 +539,8 @@ class Task extends DomainEntity implements TaskInterface
 
     public function addAcceptance($vote, BasicUser $member, $description)
     {
-        if (! in_array($this->status, [
-                self::STATUS_COMPLETED
-        ])) {
-            throw new IllegalStateException('Cannot add an acceptance to item in a status different from closed');
+        if ($this->status !== self::STATUS_COMPLETED) {
+            throw new IllegalStateException('Cannot add an acceptance to item in a status different from completed');
         }
 
         if (array_key_exists($member->getId(), $this->organizationMembersAcceptances)) {
@@ -894,6 +932,29 @@ class Task extends DomainEntity implements TaskInterface
     protected function whenTaskOpened(TaskOpened $event)
     {
         $this->status = self::STATUS_OPEN;
+        $this->mostRecentEditAt = $event->occurredOn();
+    }
+
+    protected function whenTaskRevertedToOpen(TaskRevertedToOpen $event)
+    {
+        $this->members = [];
+
+        $this->status = self::STATUS_OPEN;
+        $this->mostRecentEditAt = $event->occurredOn();
+    }
+
+    protected function whenTaskRevertedToIdea(TaskRevertedToIdea $event)
+    {
+        $this->organizationMembersApprovals = [];
+
+        $this->status = self::STATUS_IDEA;
+        $this->mostRecentEditAt = $event->occurredOn();
+    }
+
+    protected function whenTaskRevertedToOngoing(TaskRevertedToOngoing $event)
+    {
+        $this->status = self::STATUS_ONGOING;
+        $this->organizationMembersAcceptances = [];
         $this->mostRecentEditAt = $event->occurredOn();
     }
 
