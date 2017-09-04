@@ -75,8 +75,10 @@ class RollbackStateTransitionProcessTest extends PHPUnit_Framework_TestCase
         $member1 = $this->fixtures->findUserByEmail('phil.toledo@ora.local');
         $member2 = $this->fixtures->findUserByEmail('paul.smith@ora.local');
 
-        $res = $this->fixtures->createOrganization('my org', $admin, [$member1, $member2]);
+        $res = $this->fixtures->createOrganization('my org', $admin, [], [$member1, $member2]);
         $task = $this->fixtures->createOpenTask('Lorem Ipsum Sic Dolor Amit', $res['stream'], $admin);
+
+        $this->assertEquals(TASK::STATUS_OPEN, $task->getStatus());
 
         $response = $this->client
             ->get("/{$res['org']->getId()}/task-management/tasks/{$task->getId()}");
@@ -111,7 +113,7 @@ class RollbackStateTransitionProcessTest extends PHPUnit_Framework_TestCase
         $member2 = $this->fixtures->findUserByEmail('paul.smith@ora.local');
 
         $res = $this->fixtures->createOrganization('my org', $admin, [$member1, $member2]);
-        $task = $this->fixtures->createCompletedTask('Lorem Ipsum Sic Dolor Amit', $res['stream'], $admin, $member1, $member2);
+        $task = $this->fixtures->createCompletedTask('Lorem Ipsum Sic Dolor Amit', $res['stream'], $admin, [$member1, $member2]);
 
         $response = $this->client
             ->post(
