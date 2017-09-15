@@ -118,6 +118,7 @@ class AcceptCompletedItemListener implements ListenerAggregateInterface
 				$task->reopen($operator);
 				$this->transactionManager->commit ();
 			} catch ( \Exception $e ) {
+			    var_dump($e->getTraceAsString());
 				$this->transactionManager->rollback ();
 				throw $e;
 			}
