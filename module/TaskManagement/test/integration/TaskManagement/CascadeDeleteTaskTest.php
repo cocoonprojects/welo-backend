@@ -29,7 +29,7 @@ class CascadeDeleteTaskTest extends \PHPUnit_Framework_TestCase
         $mailbox = Mailbox::create();
 
         $res = $this->fixtures->createOrganization('my org', $admin, [$member]);
-        $task = $this->fixtures->createOngoingTask('Lorem Ipsum Sic Dolor Amit', $res['stream'], $admin, $member);
+        $task = $this->fixtures->createOngoingTask('Lorem Ipsum Sic Dolor Amit', $res['stream'], $admin, [$member]);
 
         $mailbox->clean();
 

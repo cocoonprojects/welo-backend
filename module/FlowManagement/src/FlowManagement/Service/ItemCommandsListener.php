@@ -246,10 +246,22 @@ class ItemCommandsListener implements ListenerAggregateInterface {
 		$streamEvent = $event->getTarget();
 		$itemId = $streamEvent->metadata()['aggregate_id'];
 
+        $item = $this->taskService->getTask($itemId);
+        $itemMembers = $item->getMembers();
+
+		$newOwner = $this->userService->findUser($event->getParam('new_owner'));
 		$exOwner = $this->userService->findUser($event->getParam('ex_owner'));
 		$changedBy = $this->userService->findUser($event->getParam('by'));
 
-		$this->flowService->createItemOwnerChangedCard($exOwner, $itemId, $organization->getId(), $changedBy);		
+
+        $this->flowService->createItemOwnerChangedCard($exOwner, $itemId, $organization->getId(), $changedBy);
+        $this->flowService->createItemOwnerChangedCard($newOwner, $itemId, $organization->getId(), $changedBy);
+        foreach ($itemMembers as $member) {
+            $recipient = $this->userService->findUser($member['id']);
+
+            $this->flowService->createItemOwnerChangedCard($recipient, $itemId, $organization->getId(), $changedBy);
+
+        }
 	}
 
 	public function processItemMemberRemoved(Event $event) {
