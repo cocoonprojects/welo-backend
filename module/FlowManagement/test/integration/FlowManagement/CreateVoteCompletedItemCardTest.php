@@ -1,6 +1,7 @@
 <?php
 namespace FlowManagement;
 
+use FlowManagement\Entity\VoteCompletedItemCard;
 use IntegrationTest\Bootstrap;
 use TaskManagement\Task;
 use TaskManagement\Service\TaskService;
@@ -46,7 +47,6 @@ class CreateVoteCompletedItemCardTest extends \PHPUnit_Framework_TestCase{
 	public function testCreateCompletedItemVoteCard(){
 
 		$previousCompletedItems = $this->taskService->findTasks(Uuid::fromString($this->stream->getOrganizationId()), null, null, ['status' => Task::STATUS_COMPLETED]);
-
 		$this->transactionManager->beginTransaction();
 		try {
 			$task = Task::create($this->stream, "foo stream", $this->owner);
@@ -75,7 +75,21 @@ class CreateVoteCompletedItemCardTest extends \PHPUnit_Framework_TestCase{
 		$this->assertEquals(Task::STATUS_COMPLETED, $task->getStatus());
 		$this->assertNotEmpty($ownerFlowCards);
 		$this->assertNotEmpty($memberFlowCards);
-		$this->assertEquals($newCompletedItemsCount, count($memberFlowCards));
-		$this->assertEquals($newCompletedItemsCount+1, count($ownerFlowCards));
+		$this->assertGreaterThanOrEqual($newCompletedItemsCount, count($memberFlowCards));
+		$this->assertGreaterThanOrEqual($newCompletedItemsCount+1, count($ownerFlowCards));
+		$this->assertGreaterThanOrEqual(1, $this->countVoteCompletedFlowCard($this->owner));
+		$this->assertGreaterThanOrEqual(1, $this->countVoteCompletedFlowCard($this->member));
 	}
+
+
+    protected function countVoteCompletedFlowCard($member) {
+        $flowCards = $this->flowService->findFlowCards($member, null, null, null);
+        $count = 0;
+        foreach ($flowCards as $idx => $flowCard) {
+            if (get_class($flowCard) == VoteCompletedItemCard::class) {
+                $count++;
+            }
+        }
+        return $count;
+    }
 }

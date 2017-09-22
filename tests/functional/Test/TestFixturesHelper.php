@@ -66,7 +66,7 @@ class TestFixturesHelper
         return ['org' => $org, 'stream' => $stream];
     }
 
-    public function createOngoingTask($subject, $stream, $admin, $members)
+    public function createOngoingTask($subject, $stream, $admin, $members=[])
     {
         $taskService = $this->serviceManager->get('TaskManagement\TaskService');
         $transactionManager = $this->serviceManager->get('prooph.event_store');
