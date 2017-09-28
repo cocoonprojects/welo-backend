@@ -1,6 +1,7 @@
 <?php
 namespace People;
 
+use People\Controller\HistoryController;
 use People\Controller\MembersController;
 use People\Controller\OrganizationsController;
 use People\Controller\InvitesController;
@@ -49,6 +50,13 @@ class Module
 					$userService = $locator->get('Application\UserService');
 
 					$controller = new MembersController($orgService, $userService);
+
+					return $controller;
+				},
+				'People\Controller\History' => function ($sm) {
+					$locator = $sm->getServiceLocator();
+                    $entityManager = $locator->get('doctrine.entitymanager.orm_default');
+					$controller = new HistoryController($entityManager);
 
 					return $controller;
 				}
