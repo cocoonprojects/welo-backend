@@ -1,6 +1,7 @@
 <?php
 namespace TaskManagement;
 
+use FlowManagement\Entity\ItemMemberRemovedCard;
 use FlowManagement\Entity\ItemOwnerChangedCard;
 use IntegrationTest\Bootstrap;
 use Test\TestFixturesHelper;
@@ -31,34 +32,27 @@ class RemoveItemMemberCardTest extends \PHPUnit_Framework_TestCase
     public function testRemoveMemberCard()
     {
         $admin = $this->fixtures->findUserByEmail('bruce.wayne@ora.local');
-        $oldOwner = $this->fixtures->findUserByEmail('phil.toledo@ora.local');
-        $newOwner = $this->fixtures->findUserByEmail('paul.smith@ora.local');
+        $owner = $this->fixtures->findUserByEmail('phil.toledo@ora.local');
+        $member = $this->fixtures->findUserByEmail('paul.smith@ora.local');
 
-        $res = $this->fixtures->createOrganization('my org', $admin, [$oldOwner, $newOwner]);
-        $task = $this->fixtures->createOngoingTask('Lorem Ipsum Sic Dolor Amit', $res['stream'], $oldOwner, [$admin, $newOwner]);
+        $res = $this->fixtures->createOrganization('my org', $admin, [$owner, $member]);
+        $task = $this->fixtures->createOngoingTask('Lorem Ipsum Sic Dolor Amit', $res['stream'], $owner, [$admin, $member]);
 
         $response = $this->client
-            ->delete("/{$res['org']->getId()}/task-management/tasks/{$task->getId()}/members");
+            ->delete("/{$res['org']->getId()}/task-management/tasks/{$task->getId()}/members", ['memberId' => $member->getId()]);
 
         $this->assertEquals('200', $response->getStatusCode());
 
-        $data = json_decode($response->getContent(), true);
-
-//        $this->assertEquals('member', $data['members'][$oldOwner->getId()]['role']);
-//        $this->assertEquals('owner', $data['members'][$newOwner->getId()]['role']);
-//
-//        $this->assertEquals(1, $this->countOwnerChangedFlowCard($oldOwner));
-//        $this->assertEquals(1, $this->countOwnerChangedFlowCard($newOwner));
-//        $this->assertEquals(1, $this->countOwnerChangedFlowCard($admin));
-
+//        $data = json_decode($response->getContent(), true);
+        $this->assertEquals(1, $this->countOwnerRemovedFlowCard($owner));
     }
 
 
-    protected function countOwnerChangedFlowCard($member) {
+    protected function countOwnerRemovedFlowCard($member) {
         $flowCards = $this->flowService->findFlowCards($member, null, null, null);
         $count = 0;
         foreach ($flowCards as $idx => $flowCard) {
-            if (get_class($flowCard) == ItemOwnerChangedCard::class) {
+            if (get_class($flowCard) == ItemMemberRemovedCard::class) {
                 $count++;
             }
         }

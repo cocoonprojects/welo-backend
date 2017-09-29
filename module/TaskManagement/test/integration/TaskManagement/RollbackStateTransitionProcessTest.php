@@ -55,7 +55,7 @@ class RollbackStateTransitionProcessTest extends PHPUnit_Framework_TestCase
         $member1 = $this->fixtures->findUserByEmail('phil.toledo@ora.local');
 
         $res = $this->fixtures->createOrganization('my org', $admin, [$member1]);
-        $task = $this->fixtures->createOngoingTask('Lorem Ipsum Sic Dolor Amit', $res['stream'], $admin, $member1);
+        $task = $this->fixtures->createOngoingTask('Lorem Ipsum Sic Dolor Amit', $res['stream'], $admin, [$member1]);
 
         $response = $this->client
             ->post(

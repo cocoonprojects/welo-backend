@@ -35,7 +35,7 @@ class CascadeDeleteTaskTest extends \PHPUnit_Framework_TestCase
         $mailbox = Mailbox::create();
 
         $res = $this->fixtures->createOrganization('my org', $admin, [$member]);
-        $task = $this->fixtures->createOngoingTask('Lorem Ipsum Sic Dolor Amit', $res['stream'], $admin, $member);
+        $task = $this->fixtures->createOngoingTask('Lorem Ipsum Sic Dolor Amit', $res['stream'], $admin, [$member]);
 
         $mailbox->clean();
 
@@ -47,6 +47,7 @@ class CascadeDeleteTaskTest extends \PHPUnit_Framework_TestCase
         // users get notified via mail
         $messages = $mailbox->getMessages();
 
+        $this->assertCount(2, $messages);
         $this->assertEquals("Item 'Lorem Ipsum Sic Dolor Amit' was deleted", $messages[0]->subject);
         $this->assertEquals('<phil.toledo@ora.local>', $messages[0]->recipients[0]);
         $this->assertEquals('<bruce.wayne@ora.local>', $messages[1]->recipients[0]);
@@ -63,13 +64,12 @@ class CascadeDeleteTaskTest extends \PHPUnit_Framework_TestCase
     protected function countItemDeletedFlowCard() {
         //users get notified via flowcard
         $response = $this->client
-                         ->get('/flow-management/cards?limit=1&offset=0');
+                         ->get('/flow-management/cards?limit=10&offset=0');
 
         $flowCards = json_decode($response->getContent(), true);
-
         $count = 0;
-        foreach ($flowCards as $idx => $flowCard) {
-            if (get_class($flowCard) == ItemDeletedCard::class) {
+        foreach ($flowCards['_embedded']['ora:flowcard'] as $idx => $flowCard) {
+            if ($flowCard['type'] == 'ItemDeleted') {
                 $count++;
             }
         }
