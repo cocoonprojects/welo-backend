@@ -246,10 +246,17 @@ class ItemCommandsListener implements ListenerAggregateInterface {
 		$streamEvent = $event->getTarget();
 		$itemId = $streamEvent->metadata()['aggregate_id'];
 
-		$exOwner = $this->userService->findUser($event->getParam('ex_owner'));
+        $item = $this->taskService->getTask($itemId);
+        $itemMembers = $item->getMembers();
+
 		$changedBy = $this->userService->findUser($event->getParam('by'));
 
-		$this->flowService->createItemOwnerChangedCard($exOwner, $itemId, $organization->getId(), $changedBy);		
+        foreach ($itemMembers as $member) {
+            $recipient = $this->userService->findUser($member['id']);
+
+            $this->flowService->createItemOwnerChangedCard($recipient, $itemId, $organization->getId(), $changedBy);
+
+        }
 	}
 
 	public function processItemMemberRemoved(Event $event) {
@@ -259,21 +266,26 @@ class ItemCommandsListener implements ListenerAggregateInterface {
 
 		$streamEvent = $event->getTarget();
 		$itemId = $streamEvent->metadata()['aggregate_id'];
+        $item = $this->taskService->getTask($itemId);
 
 		$exMember = $this->userService->findUser($event->getParam('userId'));
 		$changedBy = $this->userService->findUser($event->getParam('by'));
 
 		$organization = $this->organizationService->findOrganization($event->getParam('organizationId'));
 		$orgAdminsMemberships = $this->organizationService->findOrganizationMemberships($organization, null, null, [OrganizationMembership::ROLE_ADMIN]);
-		
+
 		$exMemberId = $exMember->getId();
 		$exMemberFound = false;
 		foreach ($orgAdminsMemberships as $member) {
 			$_member = $member->getMember();
 			$orgAdmins[] = $_member;
 			if ($_member->getId()==$exMemberId) $exMemberFound = true;
-		}		
+		}
 		if ((!$exMemberFound)) { $orgAdmins[] = $exMember; }
+
+		if (!is_null($item->getOwner())) {
+            $orgAdmins[] = $item->getOwner();
+        }
 
 		$params = [$this->flowService, $itemId, $organization, $changedBy, $exMember];
 		array_walk($orgAdmins, function($recipient) use($params){

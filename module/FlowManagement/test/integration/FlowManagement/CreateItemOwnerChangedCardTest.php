@@ -1,14 +1,13 @@
 <?php
 namespace TaskManagement;
 
-use FlowManagement\Entity\ItemMemberRemovedCard;
 use FlowManagement\Entity\ItemOwnerChangedCard;
 use IntegrationTest\Bootstrap;
 use Test\TestFixturesHelper;
 use Test\Mailbox;
 use Test\ZFHttpClient;
 
-class RemoveItemMemberCardTest extends \PHPUnit_Framework_TestCase
+class CreateItemOwnerChangedCardTest extends \PHPUnit_Framework_TestCase
 {
     protected $client;
     protected $fixtures;
@@ -29,7 +28,7 @@ class RemoveItemMemberCardTest extends \PHPUnit_Framework_TestCase
         $this->client->setJWTToken($this->fixtures->getJWTToken('bruce.wayne@ora.local'));
     }
 
-    public function testRemoveMemberCard()
+    public function testCreateItemOwnerChangedCard()
     {
         $admin = $this->fixtures->findUserByEmail('bruce.wayne@ora.local');
         $owner = $this->fixtures->findUserByEmail('phil.toledo@ora.local');
@@ -39,10 +38,9 @@ class RemoveItemMemberCardTest extends \PHPUnit_Framework_TestCase
         $task = $this->fixtures->createOngoingTask('Lorem Ipsum Sic Dolor Amit', $res['stream'], $owner, [$admin, $member]);
 
         $response = $this->client
-            ->delete("/{$res['org']->getId()}/task-management/tasks/{$task->getId()}/members/{$member->getId()}");
+            ->delete("/{$res['org']->getId()}/task-management/tasks/{$task->getId()}/members", ['memberId' => $member->getId()]);
 
         $this->assertEquals('200', $response->getStatusCode());
-
         $this->assertEquals(1, $this->countOwnerRemovedFlowCard($owner));
     }
 
@@ -50,10 +48,9 @@ class RemoveItemMemberCardTest extends \PHPUnit_Framework_TestCase
     protected function countOwnerRemovedFlowCard($member) {
         //users get notified via flowcard
         $response = $this->client
-            ->get('/flow-management/cards?limit=3&offset=0');
+            ->get('/flow-management/cards?limit=10&offset=0');
 
         $flowCards = json_decode($response->getContent(), true);
-
         $count = 0;
         foreach ($flowCards['_embedded']['ora:flowcard'] as $idx => $flowCard) {
             if ($flowCard['type'] == 'ItemMemberRemoved') {

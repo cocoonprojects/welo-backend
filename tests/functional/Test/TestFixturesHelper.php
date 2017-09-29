@@ -76,6 +76,8 @@ class TestFixturesHelper
         try {
 
             $task = Task::create($stream, $subject, $admin);
+            $taskService->addTask($task);
+
             $task->open($admin);
             $task->execute($admin);
 
@@ -86,8 +88,6 @@ class TestFixturesHelper
                 $task->addMember($member, Task::ROLE_MEMBER);
                 $task->addEstimation(100, $member);
             }
-
-            $taskService->addTask($task);
 
             $transactionManager->commit();
         } catch (\Exception $e) {
