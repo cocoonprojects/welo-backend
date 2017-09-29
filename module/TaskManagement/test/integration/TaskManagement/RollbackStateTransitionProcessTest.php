@@ -133,9 +133,7 @@ class RollbackStateTransitionProcessTest extends PHPUnit_Framework_TestCase
         $responseTask = json_decode($response->getContent(), true);
 
         $events = array_column($responseTask, 'name');
-        $event = array_pop($events);
 
-        $this->assertEquals('TaskRevertedToOngoing', $event);
+        $this->assertContains('TaskRevertedToOngoing', $events);
     }
-
 }

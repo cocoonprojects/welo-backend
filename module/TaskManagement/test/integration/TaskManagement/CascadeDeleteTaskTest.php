@@ -1,21 +1,27 @@
 <?php
 namespace TaskManagement;
 
+use FlowManagement\Entity\ItemDeletedCard;
 use Test\TestFixturesHelper;
 use Test\Mailbox;
 use Test\ZFHttpClient;
+use IntegrationTest\Bootstrap;
 
 class CascadeDeleteTaskTest extends \PHPUnit_Framework_TestCase
 {	
 	protected $client;
     protected $fixtures;
+    protected $flowService;
 
     public function setUp()
     {
         $config = getenv('APP_ROOT_DIR') . '/config/application.test.config.php';
+        $serviceManager = Bootstrap::getServiceManager();
 
         $this->client = ZFHttpClient::create($config);
         $this->client->enableErrorTrace();
+
+        $this->flowService = $serviceManager->get('FlowManagement\FlowService');
 
         $this->fixtures = new TestFixturesHelper($this->client->getServiceManager());
 
@@ -50,11 +56,23 @@ class CascadeDeleteTaskTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals('404', $response->getStatusCode());
 
+        $this->assertEquals(1, $this->countItemDeletedFlowCard());
+	}
+
+
+    protected function countItemDeletedFlowCard() {
         //users get notified via flowcard
         $response = $this->client
                          ->get('/flow-management/cards?limit=1&offset=0');
 
-        $data = json_decode($response->getContent(), true);
-        $this->assertEquals('Item deleted', current($data['_embedded']['ora:flowcard'])['title']);
-	}
+        $flowCards = json_decode($response->getContent(), true);
+
+        $count = 0;
+        foreach ($flowCards as $idx => $flowCard) {
+            if (get_class($flowCard) == ItemDeletedCard::class) {
+                $count++;
+            }
+        }
+        return $count;
+    }
 }
