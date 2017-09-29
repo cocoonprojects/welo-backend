@@ -38,7 +38,7 @@ class OrganizationMemberContribution
      */
     private $occurredOn;
 
-    public function __construct($userId, $taskId, $organizationId, $credits, $occurredOn)
+    public function __construct($organizationId, $userId, $taskId, $credits, $occurredOn)
     {
         $this->userId = $userId;
         $this->taskId = $taskId;

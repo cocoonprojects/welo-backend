@@ -131,8 +131,8 @@ class MailNotificationProcessTest extends \PHPUnit_Framework_TestCase
 	public function testTaskClosedNotification()
     {
 		$this->transactionManager->beginTransaction();
-		$this->task->addEstimation(1500, $this->owner);
-		$this->task->addEstimation(3100, $this->member);
+		$this->task->addEstimation(2, $this->owner);
+		$this->task->addEstimation(5, $this->member);
 		$this->task->complete($this->owner);
 		$this->task->accept($this->owner, $this->intervalForCloseTasks);
 		$this->transactionManager->commit();
@@ -159,6 +159,24 @@ class MailNotificationProcessTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals($email->recipients[0], '<mark.rogers@ora.local>');
         $this->assertContains('<td>Mark Rogers</td>', $body);
 	}
+
+    /**
+     * @depends testTaskClosedNotification
+     */
+	public function testShiftOut()
+    {
+        $rootDir = getenv('APPLICATION_ROOT_DIR');
+        $this->cleanEmailMessages();
+
+        $res = shell_exec("php $rootDir/public/index.php shiftoutwarning");
+
+        $email = $this->getLastEmailMessage();
+        $body = (string)$this->getEmailBody($email)->getBody();
+
+        $this->assertEquals("Hey Admin Uber it's quite been some time", $email->subject);
+        $this->assertContains("in the last 90 days you worked on 0 item(s) gaining 0 credit", $body);
+
+    }
 
 	public function testTaskAcceptedNotification()
     {

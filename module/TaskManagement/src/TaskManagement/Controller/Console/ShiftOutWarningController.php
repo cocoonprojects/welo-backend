@@ -2,7 +2,6 @@
 
 namespace TaskManagement\Controller\Console;
 
-use Application\Entity\EventStream;
 use Application\Service\UserService;
 use Doctrine\ORM\EntityManager;
 use People\Entity\OrganizationMembership;
@@ -54,21 +53,33 @@ class ShiftOutWarningController extends AbstractConsoleController {
 
 
         $memberships = $this->organizationService
-                            ->findOrganizationMemberships($org, null, null, [OrganizationMembership::ROLE_MEMBER]);
+                            ->findOrganizationMemberships($org, null, null, [OrganizationMembership::ROLE_MEMBER, OrganizationMembership::ROLE_CONTRIBUTOR, OrganizationMembership::ROLE_ADMIN]);
 
         $orgAggregate = $this->organizationService
                              ->getOrganization($org->getId());
 
         foreach($memberships as $member) {
+            $user = $member->getMember();
+
+            $this->write($user->getDislayedName() . ' ' . $user->getId());
 
             if ($member->wasWarnedAboutShiftOut()) {
                 continue;
             }
 
-            $user = $member->getMember();
-
             if ($this->organizationService->isMemberOverShiftOutQuota($user->getId(), $org->getId(), $shiftout_min_credits, $shiftout_min_item, $shiftout_days)) {
-                $orgAggregate->resetShiftOutWarning($systemUser, $user);
+
+                try {
+                    $this->transaction()->begin();
+
+                    $orgAggregate->resetShiftOutWarning($user, $systemUser);
+
+                    $this->transaction()->commit();
+                } catch (\Exception $e) {
+                    $this->write($e->getMessage());
+
+                    $this->transaction()->rollback();
+                }
 
                 continue;
             }
@@ -76,15 +87,26 @@ class ShiftOutWarningController extends AbstractConsoleController {
             $contrib = $this->organizationService
                             ->getMemberContributionWithinDays($user->getId(), $org->getId(), $shiftout_days);
 
-            $orgAggregate->shiftOutWarning(
-                $systemUser,
-                $user,
-                $contrib['gainedCredits'],
-                $contrib['numItemWorked'],
-                $shiftout_min_credits,
-                $shiftout_min_item,
-                $shiftout_days
-            );
+
+            try {
+                $this->transaction()->begin();
+
+                $orgAggregate->shiftOutWarning(
+                    $user,
+                    $contrib['gainedCredits'],
+                    $contrib['numItemWorked'],
+                    $shiftout_min_credits,
+                    $shiftout_min_item,
+                    $shiftout_days,
+                    $systemUser
+                );
+
+                $this->transaction()->commit();
+            } catch (\Exception $e) {
+                $this->write($e->getMessage());
+
+                $this->transaction()->rollback();
+            }
         }
 
     }
