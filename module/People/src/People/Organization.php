@@ -190,9 +190,9 @@ class Organization extends DomainEntity
         )));
     }
 
-	public function shiftOutWarning(User $member, User $by, $gainedCredits, $numItemWorked, $minCredits, $minItems, $withinDays)
-	{
-		$this->recordThat(ShiftOutWarning::occur($this->id->toString(), array(
+	public function shiftOutWarning(User $member, $gainedCredits, $numItemWorked, $minCredits, $minItems, $withinDays, User $by)
+    {
+        $this->recordThat(ShiftOutWarning::occur($this->id->toString(), array(
             'userId' => $member->getId(),
             'organizationId' => $this->getId(),
             'gainedCredits' => $gainedCredits,
@@ -200,10 +200,9 @@ class Organization extends DomainEntity
             'minCredits' => $minCredits,
             'minItems' => $minItems,
             'withinDays' => $withinDays,
-            'by' => $by->getId()
+            'by' => $by->getId(),
         )));
-	}
-
+    }
 
 	public function resetShiftOutWarning(User $member, User $by)
     {
@@ -237,6 +236,16 @@ class Organization extends DomainEntity
 		});
 	}
 
+	protected function whenShiftOutWarning(ShiftOutWarning $event)
+    {
+
+    }
+
+	protected function whenResetShiftOutWarning(ResetShiftOutWarning $event)
+    {
+
+    }
+
 	protected function whenOrganizationCreated(OrganizationCreated $event)
 	{
 		$this->id = Uuid::fromString($event->aggregateId());
@@ -258,14 +267,6 @@ class Organization extends DomainEntity
 			}
 		}
 	}
-
-	protected function whenShiftOutWarning(ShiftOutWarning $event) {
-
-    }
-
-    protected function whenResetShiftOutWarning(ResetShiftOutWarning $event) {
-
-    }
 
 	protected function whenOrganizationAccountChanged(OrganizationAccountChanged $event) {
 		$p = $event->payload();

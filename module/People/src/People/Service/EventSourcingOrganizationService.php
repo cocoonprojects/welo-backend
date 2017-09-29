@@ -188,13 +188,10 @@ class EventSourcingOrganizationService extends AggregateRepository implements Or
         $contribution = $query->getArrayResult();
 
         if (empty($contribution)) {
-            $contribution = [
-              'numItemWorked' => 0,
-              'gainedCredits' => 0
-            ];
+            $contribution = [['numItemWorked' => 0, 'gainedCredits' => 0]];
         }
 
-        return $contribution;
+        return $contribution[0];
     }
 
 	public function isMemberOverShiftOutQuota($userId, $orgId, $minCredits, $minItems, $withinDays)
