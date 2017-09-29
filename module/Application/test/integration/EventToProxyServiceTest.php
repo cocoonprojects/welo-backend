@@ -5,9 +5,9 @@ namespace Application;
 use Application\Service\EventProxyService;
 use Guzzle\Http\Client;
 use Guzzle\Http\Message\Request;
+use Prooph\EventStore\Stream\EventId;
+use Prooph\EventStore\Stream\EventName;
 use Prooph\EventStore\Stream\StreamEvent;
-use Rhumsaa\Uuid\Uuid;
-use Zend\EventManager\Event;
 
 class EventToProxyServiceTest extends \PHPUnit_Framework_TestCase
 {	
@@ -33,8 +33,8 @@ class EventToProxyServiceTest extends \PHPUnit_Framework_TestCase
 	public function testSendEvent()
     {
         $event = new StreamEvent(
-            Uuid::uuid4(),
-            'test',
+            EventId::generate(),
+            new EventName('test'),
             ['a' => '1', 'b' => 'banana', 'c' => 'batman'],
             2,
             new \DateTime(),
