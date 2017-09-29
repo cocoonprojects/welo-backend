@@ -46,6 +46,7 @@ class AssignCreditsListener implements ListenerAggregateInterface{
 					$task->assignCredits($by);
 					$this->transactionManager->commit();
 				}catch( \Exception $e ) {
+				    var_dump($e->getMessage());
 					$this->transactionManager->rollback();
 					throw $e;
 				}

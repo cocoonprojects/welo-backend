@@ -96,7 +96,35 @@ class OrganizationCommandsListener extends ReadModelProjector {
 						   ));
 		$this->entityManager->remove($membership);
 	}
-	
+
+	protected function onShiftOutWarning(StreamEvent $event) {
+
+        $membership = $this->entityManager
+                           ->getRepository(OrganizationMembership::class)
+                           ->findOneBy(array(
+                                'member' => $event->payload()['userId'],
+                                'organization' => $event->metadata()['aggregate_id']
+                           ));
+
+        $membership->notifyShiftOutWarning();
+
+        $this->entityManager->persist($membership);
+    }
+
+	protected function onResetShiftOutWarning(StreamEvent $event) {
+
+        $membership = $this->entityManager
+                           ->getRepository(OrganizationMembership::class)
+                           ->findOneBy(array(
+                                'member' => $event->payload()['userId'],
+                                'organization' => $event->metadata()['aggregate_id']
+                           ));
+
+        $membership->resetShiftOutWarning();
+
+        $this->entityManager->persist($membership);
+    }
+
 	protected function getPackage() {
 		return 'People';
 	}

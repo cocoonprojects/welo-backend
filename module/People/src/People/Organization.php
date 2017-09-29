@@ -27,27 +27,18 @@ class Organization extends DomainEntity
 	 * @var string
 	 */
 	private $name;
-
 	/**
 	 * @var Uuid
 	 */
 	private $accountId;
-
 	/**
 	 * @var array
 	 */
 	private $members = [];
-
-    /**
-     * @var bool
-     */
-	private $syncErrorsNotification = false;
-
 	/**
 	 * @var \DateTime
 	 */
 	private $createdAt;
-
 	/**
 	 * @var array
 	 */
@@ -177,24 +168,47 @@ class Organization extends DomainEntity
 			'by' => $removedBy == null ? $member->getId() : $removedBy->getId(),
 		)));
 	}
-
-	public function hasSyncErrorsNotificationSet()
+	
+    public function hasSyncErrorsNotificationSet()
     {
         return $this->syncErrorsNotification;
     }
-
-    public function setSyncErrorsNotification(User $by)
+		
+	public function clearSyncErrorsNotification(User $by)
     {
+        $this->recordThat(OrganizationUpdated::occur($this->id->toString(), array(
+            'syncErrorsNotification' => false,
+            'by' => $by->getId(),
+        )));
+    }
+	
+    public function setSyncErrorsNotification(User $by)
+    {   
         $this->recordThat(OrganizationUpdated::occur($this->id->toString(), array(
             'syncErrorsNotification' => true,
             'by' => $by->getId(),
         )));
     }
 
-    public function clearSyncErrorsNotification(User $by)
+	public function shiftOutWarning(User $member, User $by, $gainedCredits, $numItemWorked, $minCredits, $minItems, $withinDays)
+	{
+		$this->recordThat(ShiftOutWarning::occur($this->id->toString(), array(
+            'userId' => $member->getId(),
+            'organizationId' => $this->getId(),
+            'gainedCredits' => $gainedCredits,
+            'numItemWorked' => $numItemWorked,
+            'minCredits' => $minCredits,
+            'minItems' => $minItems,
+            'withinDays' => $withinDays,
+            'by' => $by->getId()
+        )));
+	}
+
+
+	public function resetShiftOutWarning(User $member, User $by)
     {
-        $this->recordThat(OrganizationUpdated::occur($this->id->toString(), array(
-            'syncErrorsNotification' => false,
+        $this->recordThat(ResetShiftOutWarning::occur($this->id->toString(), array(
+            'userId' => $member->getId(),
             'by' => $by->getId(),
         )));
     }
@@ -231,15 +245,9 @@ class Organization extends DomainEntity
 
 	protected function whenOrganizationUpdated(OrganizationUpdated $event) {
 		$pl = $event->payload();
-
 		if(array_key_exists('name', $pl)) {
 			$this->name = $pl['name'];
 		}
-
-		if(array_key_exists('syncErrorsNotification', $pl)) {
-            $this->syncErrorsNotification = $pl['syncErrorsNotification'];
-		}
-
 		if(array_key_exists('settingKey', $pl) && array_key_exists('settingValue', $pl)) {
 			if(is_array($pl['settingValue'])){
 				foreach ($pl['settingValue'] as $key=>$value){
@@ -249,7 +257,6 @@ class Organization extends DomainEntity
 				$this->settings[$pl['settingKey']] = $pl['settingValue'];
 			}
 		}
-
 	}
 
 	protected function whenShiftOutWarning(ShiftOutWarning $event) {

@@ -64,10 +64,11 @@ class OrganizationMembership
 	protected $mostRecentEditBy;
 
     /**
-     * @ORM\Column(type="datetime")
+     * @ORM\Column(type="datetime", nullable=true)
      * @var \DateTime
      */
 	protected $shiftoutWarnedAt;
+
 
 	public function __construct(User $user, Organization $organization, $role = self::ROLE_CONTRIBUTOR)
 	{
