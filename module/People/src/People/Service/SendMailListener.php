@@ -5,6 +5,7 @@ namespace People\Service;
 use Application\Service\FrontendRouter;
 use People\Organization;
 use People\OrganizationMemberAdded;
+use People\ShiftOutWarning;
 use Zend\EventManager\EventManagerInterface;
 use Zend\EventManager\Event;
 use Zend\EventManager\ListenerAggregateInterface;
@@ -54,6 +55,24 @@ class SendMailListener implements ListenerAggregateInterface
 			$member = $this->userService->findUser($memberId);
 			$this->sendMemberAddedInfoMail ( $organization, $member );
 		} );
+
+		$this->listeners[] = $events->getSharedManager()->attach(Application::class, ShiftOutWarning::class, function (Event $event) {
+			$streamEvent = $event->getTarget();
+
+			$userId = $streamEvent->payload()['userId'];
+            $organizationId = $streamEvent->payload()['organizationId'];
+
+            $organization = $this->organizationService->getOrganization($organizationId);
+			$member = $this->userService->findUser($userId);
+
+            $gainedCredits = $streamEvent->payload()['gainedCredits'];
+            $numItemWorked = $streamEvent->payload()['numItemWorked'];
+            $minCredits = $streamEvent->payload()['minCredits'];
+            $minItems = $streamEvent->payload()['minItems'];
+            $withinDays = $streamEvent->payload()['withinDays'];
+
+			$this->sendShiftOutWarning($organization, $member, $gainedCredits, $numItemWorked, $minCredits, $minItems, $withinDays);
+		} );
 	}
 
 	public function detach(EventManagerInterface $events) {
@@ -64,11 +83,6 @@ class SendMailListener implements ListenerAggregateInterface
 		}
 	}
 
-	/**
-	 * @param Organization $organization
-	 * @param User $member
-	 * @throws \AcMailer\Exception\MailException
-	 */
 	public function sendMemberAddedInfoMail(Organization $organization, User $member)
 	{
 		$this->mailService->setSubject ( 'A new member joined "' . $organization->getName() . '"');
@@ -94,5 +108,24 @@ class SendMailListener implements ListenerAggregateInterface
 
 			$this->mailService->send();
 		}
+	}
+
+	public function sendShiftOutWarning(Organization $organization, User $member, $gainedCredits, $numItemWorked, $minCredits, $minItems, $withinDays)
+	{
+        $message = $this->mailService->getMessage();
+        $message->setTo($member->getEmail());
+        $message->setSubject('Hey ' . $member->getDislayedName() . ' it\'s quite been some time');
+
+        $this->mailService->setTemplate( 'mail/shiftout-warning.phtml', [
+            'member' => $member,
+            'gainedCredits' => $gainedCredits,
+            'numItemWorked' => $numItemWorked,
+            'minCredits' => $minCredits,
+            'minItems' => $minItems,
+            'withinDays' => $withinDays,
+            'organization' => $organization,
+        ]);
+
+        $this->mailService->send();
 	}
 }
