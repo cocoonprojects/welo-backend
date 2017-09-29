@@ -1,0 +1,8 @@
+<p>Hi <?= $this->member->getFirstname() ?>,<br>
+    in the last <?= $this->withinDays ?> days you worked on <?= $this->numItemWorked ?> item(s) gaining <?= $this->gainedCredits ?> credits.
+    Not bad but you can do better! In order to avoid shiftout you should work on at least <?= $this->minItems ?> work items gaining al least
+    <?= $this->minCredits ?> within <?= $this->withinDays ?>
+
+<p>Welo</p>
+<hr>
+<p style="font-size: 12px">You are receiving this e-mail because you are part of the "<?= $this->organization->getName() ?>" organization.</p>
