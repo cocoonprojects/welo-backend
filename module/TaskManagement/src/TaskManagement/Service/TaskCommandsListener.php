@@ -408,13 +408,24 @@ class TaskCommandsListener extends ReadModelProjector {
 	}
 
 	protected function onCreditsAssigned(StreamEvent $event) {
-		$id = $event->metadata ()['aggregate_id'];
-		$task = $this->entityManager->find ( Task::class, $id );
-		$credits = $event->payload ()['credits'];
-		foreach ( $task->getMembers () as $member ) {
-			$member->setCredits ( $credits [$member->getUser ()->getId ()] );
-			$this->entityManager->persist ( $member );
+
+        $taskId = $event->metadata()['aggregate_id'];
+		$task = $this->entityManager->find ( Task::class, $taskId );
+		$credits = $event->payload()['credits'];
+
+		foreach($task->getMembers () as $member ) {
+			$member->setCredits($credits[$member->getUser()->getId()]);
+			$this->entityManager->persist($member);
 		}
+
+        $orgId = $event->payload()['organizationId'];
+
+        foreach ($credits as $userId => $credit)
+        {
+            $this->orgService
+                 ->updateMemberContribution($orgId, $userId, $taskId, $credit, $event->occurredOn());
+        }
+
 	}
 
 	protected function onOwnerAdded(StreamEvent $event) {

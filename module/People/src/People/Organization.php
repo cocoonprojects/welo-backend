@@ -2,7 +2,6 @@
 
 namespace People;
 
-use People\Entity\OrganizationMembership;
 use Rhumsaa\Uuid\Uuid;
 use Application\Entity\User;
 use Application\DomainEntity;
@@ -170,6 +169,28 @@ class Organization extends DomainEntity
 		)));
 	}
 
+	public function shiftOutWarning(User $member, User $by, $gainedCredits, $numItemWorked, $minCredits, $minItems, $withinDays)
+    {
+        $this->recordThat(ShiftOutWarning::occur($this->id->toString(), array(
+            'userId' => $member->getId(),
+            'organizationId' => $this->getId(),
+            'gainedCredits' => $gainedCredits,
+            'numItemWorked' => $numItemWorked,
+            'minCredits' => $minCredits,
+            'minItems' => $minItems,
+            'withinDays' => $withinDays,
+            'by' => $by->getId(),
+        )));
+    }
+
+	public function resetShiftOutWarning(User $member, User $by)
+    {
+        $this->recordThat(ResetShiftOutWarning::occur($this->id->toString(), array(
+            'userId' => $member->getId(),
+            'by' => $by->getId(),
+        )));
+    }
+
 	/**
 	 * @return \DateTime
 	 */
@@ -193,6 +214,16 @@ class Organization extends DomainEntity
 			return $profile['role'] == self::ROLE_ADMIN;
 		});
 	}
+
+	protected function whenShiftOutWarning(ShiftOutWarning $event)
+    {
+
+    }
+
+	protected function whenResetShiftOutWarning(ResetShiftOutWarning $event)
+    {
+
+    }
 
 	protected function whenOrganizationCreated(OrganizationCreated $event)
 	{

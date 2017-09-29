@@ -13,6 +13,7 @@ use Application\Entity\User;
 use People\Organization;
 use People\Entity\Organization as ReadModelOrg;
 use People\Entity\OrganizationMembership;
+use People\Entity\OrganizationMemberContribution;
 
 class EventSourcingOrganizationService extends AggregateRepository implements OrganizationService
 {
@@ -166,4 +167,73 @@ class EventSourcingOrganizationService extends AggregateRepository implements Or
 		$rv = $this->entityManager->getRepository(ReadModelOrg::class)->findBy([], ['name' => 'ASC']);
 		return $rv;
 	}
+
+	public function getMemberContributionWithinDays($userId, $orgId, $numDays)
+    {
+        $date = (new \DateTime('now'))->sub(new \DateInterval("P{$numDays}D"));
+        $entity = OrganizationMemberContribution::class;
+
+        $sql = "SELECT COUNT(c.taskId) as numItemWorked, SUM(c.credits) as gainedCredits  
+                FROM $entity c
+                WHERE c.userId = :userId
+                AND c.organizationId = :orgId
+                AND c.occurredOn >= :date
+                GROUP BY c.userId";
+
+        $query = $this->entityManager->createQuery($sql);
+        $query->setParameter(':userId', $userId);
+        $query->setParameter(':orgId', $orgId);
+        $query->setParameter(':date', $date);
+
+        $contribution = $query->getArrayResult();
+
+        if (empty($contribution)) {
+            $contribution = [
+              'numItemWorked' => 0,
+              'gainedCredits' => 0
+            ];
+        }
+
+        return $contribution;
+    }
+
+	public function isMemberOverShiftOutQuota($userId, $orgId, $minCredits, $minItems, $withinDays)
+    {
+        $contribution = $this->getMemberContributionWithinDays($userId, $orgId, $withinDays);
+
+        if ($contribution['numItemWorked'] < $minItems) {
+            return false;
+        }
+
+        if ($contribution['gainedCredits'] < $minCredits) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function updateMemberContribution($orgId, $userId, $taskId, $credit, $occurredOn)
+    {
+        $criteria = [
+            'organizationId' => $orgId,
+            'userId' => $userId,
+            'taskId' => $taskId
+        ];
+
+        $contribution = $this->entityManager
+             ->getRepository(OrganizationMemberContribution::class)
+             ->findOneBy($criteria);
+
+        if ($contribution === null) {
+
+            $contribution = new OrganizationMemberContribution($orgId, $userId, $taskId, $credit, $occurredOn);
+
+            $this->entityManager->persist($contribution);
+
+            return;
+        }
+
+        $contribution->update($credit, $occurredOn);
+        $this->entityManager->persist($contribution);
+    }
 }
