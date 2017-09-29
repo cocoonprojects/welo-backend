@@ -75,6 +75,15 @@ return array(
                         ]
                     ]
                 ],
+                'shiftoutwarning' => [
+                    'options' => [
+                        'route'    => 'shiftoutwarning [--verbose|-v]',
+                        'defaults' => [
+							'controller' => 'TaskManagement\Controller\Console\ShiftOutWarning',
+							'action' => 'send'
+                        ]
+                    ]
+                ],
                 'sendtoproxy' => [
                     'options' => [
                         'route'    => 'send <eventId> [--verbose|-v]',
