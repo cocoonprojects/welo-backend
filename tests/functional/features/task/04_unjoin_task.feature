@@ -36,8 +36,7 @@ Scenario: Cannot unjoin an accepted task
 Scenario: Organization admin can successfully unjoin a member of an ongoing task 
 	Given that I am authenticated as "mark.rogers@ora.local"  
 	And that I want to delete a "Member"
-	And that its "member" is "20000000-0000-0000-0000-000000000000"
-	And I request "/00000000-0000-0000-1000-000000000000/task-management/tasks/00000000-0000-0000-0000-000000000000/members"
+	And I request "/00000000-0000-0000-1000-000000000000/task-management/tasks/00000000-0000-0000-0000-000000000000/members/20000000-0000-0000-0000-000000000000"
 	Then the response status code should be 200
 	#And echo last response
 

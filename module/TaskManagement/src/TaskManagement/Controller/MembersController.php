@@ -77,10 +77,10 @@ class MembersController extends OrganizationAwareController
 
 		$memberToRemove = $this->identity();
 		try {
-			$memberId = $this->getRequest()->getQuery("member");
+			$memberId = $this->params('typeId');
 			if ($this->identity()->isOwnerOf($this->organization)
-				&& !empty($memberId) 
-				&& ($member=$this->userService->findUser($this->getRequest()->getQuery("member")))
+				&& !empty($memberId)
+				&& ($member=$this->userService->findUser($memberId))
 				&& preg_match('/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/', $member->getId())!==false
 				) {
 					$memberToRemove = $member;

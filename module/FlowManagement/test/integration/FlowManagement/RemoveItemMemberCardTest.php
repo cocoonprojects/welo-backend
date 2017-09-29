@@ -39,20 +39,23 @@ class RemoveItemMemberCardTest extends \PHPUnit_Framework_TestCase
         $task = $this->fixtures->createOngoingTask('Lorem Ipsum Sic Dolor Amit', $res['stream'], $owner, [$admin, $member]);
 
         $response = $this->client
-            ->delete("/{$res['org']->getId()}/task-management/tasks/{$task->getId()}/members", ['memberId' => $member->getId()]);
+            ->delete("/{$res['org']->getId()}/task-management/tasks/{$task->getId()}/members/{$member->getId()}");
 
         $this->assertEquals('200', $response->getStatusCode());
 
-//        $data = json_decode($response->getContent(), true);
         $this->assertEquals(1, $this->countOwnerRemovedFlowCard($owner));
     }
 
 
     protected function countOwnerRemovedFlowCard($member) {
-        $flowCards = $this->flowService->findFlowCards($member, null, null, null);
+        //users get notified via flowcard
+        $response = $this->client
+            ->get('/flow-management/cards?limit=10&offset=0');
+
+        $flowCards = json_decode($response->getContent(), true);
         $count = 0;
-        foreach ($flowCards as $idx => $flowCard) {
-            if (get_class($flowCard) == ItemMemberRemovedCard::class) {
+        foreach ($flowCards['_embedded']['ora:flowcard'] as $idx => $flowCard) {
+            if ($flowCard['type'] == 'ItemMemberRemoved') {
                 $count++;
             }
         }
