@@ -63,6 +63,12 @@ class OrganizationMembership
 	 */
 	protected $mostRecentEditBy;
 
+    /**
+     * @ORM\Column(type="datetime")
+     * @var \DateTime
+     */
+	protected $shiftoutWarnedAt;
+
 	public function __construct(User $user, Organization $organization, $role = self::ROLE_CONTRIBUTOR)
 	{
 		$this->member = $user;
@@ -132,4 +138,17 @@ class OrganizationMembership
 		$this->mostRecentEditBy = $user;
 		return $this;
 	}
+
+	public function notifyShiftOutWarning() {
+	    $this->shiftoutWarnedAt = new \DateTime();
+    }
+
+	public function resetShiftOutWarning() {
+	    $this->shiftoutWarnedAt = null;
+    }
+
+    public function wasWarnedAboutShiftOut()
+    {
+        return $this->shiftoutWarnedAt !== null;
+    }
 }
