@@ -7,6 +7,7 @@ use TaskManagement\Controller\AttachmentsController;
 use TaskManagement\Controller\Console\SendController;
 use TaskManagement\Controller\Console\SharesRemindersController;
 use TaskManagement\Controller\Console\SharesClosingController;
+use TaskManagement\Controller\Console\ShiftOutWarningController;
 use TaskManagement\Controller\EstimationsController;
 use TaskManagement\Controller\MembersController;
 use TaskManagement\Controller\OwnerController;
@@ -232,6 +233,14 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
 					$taskService = $locator->get('TaskManagement\TaskService');
 					$controller = new HistoryController($taskService);
 					return $controller;
+				},
+                'TaskManagement\Controller\Console\ShiftOutWarning' => function ($sm) {
+					$locator = $sm->getServiceLocator();
+                    $orgService = $locator->get('People\OrganizationService');
+                    $userService = $locator->get('Application\UserService');
+                    $em = $locator->get('doctrine.entitymanager.orm_default');
+
+					return new ShiftOutWarningController($orgService, $userService, $em);
 				}
 			]
 		];

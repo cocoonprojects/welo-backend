@@ -2,33 +2,27 @@
 
 namespace TaskManagement\Controller\Console;
 
+use Application\Entity\EventStream;
+use Application\Service\UserService;
+use Doctrine\ORM\EntityManager;
 use People\Entity\OrganizationMembership;
 use Zend\Mvc\Controller\AbstractConsoleController;
-use TaskManagement\Service\TaskService;
 use People\Service\OrganizationService;
-use TaskManagement\TaskInterface;
-use Zend\Console\Request as ConsoleRequest;
 use Application\Entity\User;
-use Application\Service\UserService;
-use Zend\Stdlib\RequestInterface;
-use Zend\Stdlib\ResponseInterface;
 
 class ShiftOutWarningController extends AbstractConsoleController {
-
-	protected $taskService;
 
 	protected $organizationService;
 
 	protected $userService;
 
-	public function __construct(
-		TaskService $taskService,
-		OrganizationService $organizationService,
-		UserService $userService
-	) {
-		$this->taskService = $taskService;
+	protected $entityManager;
+
+	public function __construct(OrganizationService $organizationService, UserService $userService, EntityManager $entityManager)
+    {
 		$this->organizationService = $organizationService;
 		$this->userService = $userService;
+		$this->entityManager = $entityManager;
 	}
 
     public function sendAction()
@@ -52,25 +46,12 @@ class ShiftOutWarningController extends AbstractConsoleController {
     {
         $params = $org->getParams();
 
-        $shiftout_min_credits = $params->get('shiftout_min_credits');
-        $shiftout_min_item = $params->get('shiftout_min_item');
-        $shiftout_days = $params->get('shiftout_days');
+        $shiftout_min_credits = $params->get('shiftout_min_credits') ?: 100;
+        $shiftout_min_item = $params->get('shiftout_min_item') ?: 3;
+        $shiftout_days = $params->get('shiftout_days') ?: 90;
 
         $this->write("threshold: {$shiftout_min_item} item; {$shiftout_min_credits} credits; {$shiftout_days} days");
 
-        $events = $this->eventStreamRepo
-                       ->findByType('TaskManagement\CreditsAssigned', $org->getId(), $shiftout_days);
-
-        $credits = [];
-
-        foreach ($events as $creditsAssigned) {
-
-            foreach ($creditsAssigned->getPayload() as $userId => $userCredits) {
-
-                $credits[$userId]['credits'] = $userCredits;
-                $credits[$userId]['numItems'] = $credits[$userId]['numItems'] ? 0 : $credits[$userId]['numItems']++;
-            }
-        }
 
         $memberships = $this->organizationService
                             ->findOrganizationMemberships($org, null, null, [OrganizationMembership::ROLE_MEMBER]);
@@ -86,11 +67,24 @@ class ShiftOutWarningController extends AbstractConsoleController {
 
             $user = $member->getMember();
 
-            if ($this->isMemberOverMinQuota($user, $credits, $shiftout_min_credits, $shiftout_min_item)) {
+            if ($this->organizationService->isMemberOverShiftOutQuota($user->getId(), $org->getId(), $shiftout_min_credits, $shiftout_min_item, $shiftout_days)) {
+                $orgAggregate->resetShiftOutWarning($systemUser, $user);
+
                 continue;
             }
 
-            $orgAggregate->shiftOutWarning($systemUser, $user);
+            $contrib = $this->organizationService
+                            ->getMemberContributionWithinDays($user->getId(), $org->getId(), $shiftout_days);
+
+            $orgAggregate->shiftOutWarning(
+                $systemUser,
+                $user,
+                $contrib['gainedCredits'],
+                $contrib['numItemWorked'],
+                $shiftout_min_credits,
+                $shiftout_min_item,
+                $shiftout_days
+            );
         }
 
     }
@@ -104,7 +98,7 @@ class ShiftOutWarningController extends AbstractConsoleController {
             ->findUser(User::SYSTEM_USER);
 
         if (!$systemUser) {
-            $this->write("missing system user, aborting");
+            $this->write('missing system user, aborting');
 
             exit(1);
         }
@@ -112,20 +106,6 @@ class ShiftOutWarningController extends AbstractConsoleController {
         $this->write("loaded system user {$systemUser->getEmail()}");
 
         return $systemUser;
-    }
-
-    /**
-     * @param $credits
-     * @param $user
-     * @param $shiftout_min_credits
-     * @param $shiftout_min_item
-     * @return bool
-     */
-    private function isMemberOverMinQuota($user, $credits, $shiftout_min_credits, $shiftout_min_item)
-    {
-        return isset($credits[$user->getId()]) &&
-            $credits[$user->getId()]['credits'] >= $shiftout_min_credits &&
-            $credits[$user->getId()]['numItems'] >= $shiftout_min_item;
     }
 
     private function write($msg)
