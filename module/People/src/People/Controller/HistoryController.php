@@ -63,7 +63,7 @@ class HistoryController extends HATEOASRestfulController {
         $event = [
             "id" => $serializedEvent['id'],
             "name" => $serializedEvent['name'],
-            "on" => $serializedEvent['occurredOn'],
+            "on" => \DateTime::createFromFormat('Y-m-d G:i:s', $serializedEvent['occurredOn'])->format('c'),
             "user" => [
                 "id" => $serializedEvent['payload']['userId'],
                 "name" => "",
