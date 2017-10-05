@@ -58,7 +58,7 @@ class HistoryController extends HATEOASRestfulController {
     {
         $serializedEvent = $event->serialize();
 
-        $role = isset($serializedEvent['payload']['newRole']) ? $serializedEvent['payload']['newRole'] : $serializedEvent['payload']['role'];
+        $role = $this->getEventRole($serializedEvent);
 
         $event = [
             "id" => $serializedEvent['id'],
@@ -72,6 +72,18 @@ class HistoryController extends HATEOASRestfulController {
         ];
 
         return $event;
+    }
+
+    protected function getEventRole($serializedEvent)
+    {
+        $role = '';
+        if (isset($serializedEvent['payload']['newRole'])) {
+            $role = $serializedEvent['payload']['newRole'];
+        }
+        if (isset($serializedEvent['payload']['role'])) {
+            $role = $serializedEvent['payload']['role'];
+        }
+        return $role;
     }
 
 }
