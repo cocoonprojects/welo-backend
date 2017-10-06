@@ -1,7 +1,8 @@
 # build/travis-ci-apache - used for testing within Travis CI
 <VirtualHost *:80>
-  ServerName ora.local
-  ServerAlias www.ora.local ora oraprojecttest
+
+  ServerName oraprojecttest
+
   DocumentRoot "%TRAVIS_BUILD_DIR%/public"
 
   SetEnv APPLICATION_ENV acceptance
@@ -9,8 +10,7 @@
   <Directory "%TRAVIS_BUILD_DIR%/public">
     Options FollowSymLinks MultiViews ExecCGI
     AllowOverride All
-    Order deny,allow
-    Allow from all
+	Require all granted
   </Directory>
 
   # Wire up Apache to use Travis CI's php-fpm.
