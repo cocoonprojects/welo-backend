@@ -152,4 +152,12 @@ class OrganizationMembership
     {
         return $this->shiftoutWarnedAt !== null;
     }
+
+    public function joinedMoreThanDaysAgo($days, \DateTime $now = null)
+    {
+        $today = $now ?: new \DateTime('now');
+        $interval = $today->diff($this->createdAt);
+
+        return $interval->format('%a') > $days;
+    }
 }
