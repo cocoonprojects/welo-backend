@@ -165,7 +165,7 @@ class MailNotificationProcessTest extends \PHPUnit_Framework_TestCase
      */
 	public function testShiftOut()
     {
-        $rootDir = getenv('APPLICATION_ROOT_DIR');
+        $rootDir = __DIR__ . '/../../../../..';
         $this->cleanEmailMessages();
 
         $res = shell_exec("php $rootDir/public/index.php shiftoutwarning");
