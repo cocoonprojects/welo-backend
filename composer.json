@@ -35,7 +35,8 @@
     "phpunit/phpunit": "~5.7",
     "behat/mink-extension": ">=2.0.1",
     "behat/mink-goutte-driver": "*",
-    "behat/mink-selenium2-driver": "*"
+    "behat/mink-selenium2-driver": "*",
+    "symfony/var-dumper": "^3.3"
   },
   "autoload-dev": {
     "psr-4": {
