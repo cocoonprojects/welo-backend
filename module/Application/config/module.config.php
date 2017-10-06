@@ -89,6 +89,6 @@ return array(
     'listeners' => array(
         'Application\LoadLocalProfileListener',
         'Application\DomainEventDispatcher',
-        'Application\Service\SendEventToProxyListener'
+        //'Application\Service\SendEventToProxyListener'
     ),
 );
