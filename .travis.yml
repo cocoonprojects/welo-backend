@@ -33,9 +33,9 @@ before_script:
 
     # configure apache virtual hosts
   - echo $APPLICATION_ENV
+  - ls -l /etc/apache2/sites-enabled
   - sudo cp -f build/ci/travis-ci-apache /etc/apache2/sites-available/default
   - sudo sed -e "s?%TRAVIS_BUILD_DIR%?$(pwd)?g" --in-place /etc/apache2/sites-available/default
-  - sudo a2ensite travis-ci-apache
   - sudo service apache2 restart
   - cp build/ci/.env.example .env
 
