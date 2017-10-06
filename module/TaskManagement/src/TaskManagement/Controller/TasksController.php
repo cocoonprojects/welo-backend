@@ -90,6 +90,7 @@ class TasksController extends OrganizationAwareController
 	 * @return TaskJsonModel
 	 */
 	public function getList() {
+
 		if (is_null ( $this->identity () )) {
 			$this->response->setStatusCode ( 401 );
 			return $this->response;

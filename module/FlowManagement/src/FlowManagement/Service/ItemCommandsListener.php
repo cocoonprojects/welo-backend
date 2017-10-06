@@ -276,18 +276,30 @@ class ItemCommandsListener implements ListenerAggregateInterface {
 
 		$exMemberId = $exMember->getId();
 		$exMemberFound = false;
+
+        $ownerId = $item->getOwner();
+        $owner = $item->getOwner() ? $this->userService->findUser($item->getOwner()) : null;
+        $ownerFound = false;
+
 		foreach ($orgAdminsMemberships as $member) {
 			$_member = $member->getMember();
 			$orgAdmins[] = $_member;
-			if ($_member->getId()==$exMemberId) $exMemberFound = true;
-		}
-		if ((!$exMemberFound)) { $orgAdmins[] = $exMember; }
 
-		if (!is_null($item->getOwner())) {
-            $orgAdmins[] = $item->getOwner();
+			if ($_member->getId() == $exMemberId) { $exMemberFound = true; }
+
+			if ($_member->getId() == $ownerId) { $ownerFound = true; }
+		}
+
+		if (!$ownerFound && $owner) {
+		    $orgAdmins[] = $owner;
+        }
+
+		if (!$exMemberFound) {
+            $orgAdmins[] = $exMember;
         }
 
 		$params = [$this->flowService, $itemId, $organization, $changedBy, $exMember];
+
 		array_walk($orgAdmins, function($recipient) use($params){
 			$flowService = $params[0];
 			$itemId = $params[1];
@@ -295,7 +307,7 @@ class ItemCommandsListener implements ListenerAggregateInterface {
 			$changedBy = $params[3];
 			$exMember = $params[4];
 
-			$flowService->createItemMemberRemovedCard($recipient, $itemId, $exMember, $organization->getId(), $changedBy);		
+            $flowService->createItemMemberRemovedCard($recipient, $itemId, $exMember, $organization->getId(), $changedBy);
 		});		
 	}
 

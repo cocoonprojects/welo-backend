@@ -99,7 +99,7 @@ class MembersController extends OrganizationAwareController
 			$view->setVariable('resource', $task);
 			return $view;
 		} catch (DomainEntityUnavailableException $e) {
-			$this->transaction()->rollback();
+		    $this->transaction()->rollback();
 			$this->response->setStatusCode(204);	// No content = nothing changed
 		} catch (IllegalStateException $e) {
 			$this->transaction()->rollback();
