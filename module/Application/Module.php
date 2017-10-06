@@ -209,7 +209,7 @@ class Module
 
                             return $rv;
                         },
-                        EventProxyService::class => function() {
+/*                        EventProxyService::class => function() {
 
                             $client = new Client(getenv('PROXY_URL'));
 
@@ -220,7 +220,7 @@ class Module
                             return new SendEventToProxyListener(
                                 $serviceLocator->get(EventProxyService::class)
                             );
-                        }
+                        }*/
                 )
         );
     }
