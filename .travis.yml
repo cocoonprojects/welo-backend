@@ -38,6 +38,7 @@ before_script:
   - ls -l /etc/apache2/sites-available
   - ls -l /etc/apache2/sites-enabled
   - sudo sed -e "s?%TRAVIS_BUILD_DIR%?$(pwd)?g" --in-place /etc/apache2/sites-available/default
+  - sudo a2ensite default
   - sudo service apache2 restart
   - cp build/ci/.env.example .env
 
