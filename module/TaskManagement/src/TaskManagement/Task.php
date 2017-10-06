@@ -894,7 +894,9 @@ class Task extends DomainEntity implements TaskInterface
     protected function whenTaskAccepted(TaskAccepted $event)
     {
         $this->status = self::STATUS_ACCEPTED;
+
         $this->acceptedAt = $event->occurredOn();
+
         if (isset($event->payload()['intervalForCloseTask'])) {
             $sharesAssignmentExpiresAt = clone $event->occurredOn();
             $sharesAssignmentExpiresAt->add($event->payload()['intervalForCloseTask']);
