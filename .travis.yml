@@ -32,8 +32,10 @@ before_script:
   - ~/.phpenv/versions/$(phpenv version-name)/sbin/php-fpm
 
     # configure apache virtual hosts
+  - echo $APPLICATION_ENV
   - sudo cp -f build/ci/travis-ci-apache /etc/apache2/sites-available/default
   - sudo sed -e "s?%TRAVIS_BUILD_DIR%?$(pwd)?g" --in-place /etc/apache2/sites-available/default
+  - sudo a2ensite travis-ci-apache
   - sudo service apache2 restart
   - cp build/ci/.env.example .env
 
