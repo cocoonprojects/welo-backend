@@ -42,7 +42,9 @@ class EventSourcingTaskService extends AggregateRepository implements TaskServic
 	public function getTask($id)
 	{
 		$tId = $id instanceof Uuid ? $id->toString() : $id;
+
 		$task = $this->getAggregateRoot($tId);
+
 		return $task;
 	}
 

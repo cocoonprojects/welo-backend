@@ -64,6 +64,7 @@ class ShiftOutWarningController extends AbstractConsoleController {
             $this->write($user->getDislayedName() . ' ' . $user->getId());
 
             if ($member->wasWarnedAboutShiftOut()) {
+                $this->write("already warned");
                 continue;
             }
 
@@ -73,6 +74,8 @@ class ShiftOutWarningController extends AbstractConsoleController {
                     $this->transaction()->begin();
 
                     $orgAggregate->resetShiftOutWarning($user, $systemUser);
+
+                    $this->write("resetting shiftout warning");
 
                     $this->transaction()->commit();
                 } catch (\Exception $e) {
@@ -100,6 +103,8 @@ class ShiftOutWarningController extends AbstractConsoleController {
                     $shiftout_days,
                     $systemUser
                 );
+
+                $this->write("sending shiftout warning");
 
                 $this->transaction()->commit();
             } catch (\Exception $e) {
