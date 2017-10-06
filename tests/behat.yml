@@ -14,16 +14,9 @@ default:
                 - functional/features/task
                 - functional/features/people
             contexts:
-                - RestContext:
-                    - http://oraprojecttest
+                - ZFClientContext
         mail_features:
-            paths: 
+            paths:
                 - functional/features/mail
-            contexts: 
-                - RestContext:
-                    - http://oraprojecttest
-    extensions:
-        Behat\MinkExtension:
-            base_url:  http://oraprojecttest
-            goutte:    ~
-            selenium2: ~
+            contexts:
+                - ZFClientContext

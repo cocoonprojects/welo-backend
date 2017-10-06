@@ -247,7 +247,6 @@ Feature: List tasks
     And that its "orderType" is "desc"
     When I request "/00000000-0000-0000-1000-000000000000/task-management/tasks"
     Then the response status code should be 200
-    #And echo last response
     And the response should be JSON
     And the response should have a "_embedded.{'ora:task'}[0].subject" property
     And the "_embedded.{'ora:task'}[0].subject" property should be "This update subject is a lot better than the previous one"

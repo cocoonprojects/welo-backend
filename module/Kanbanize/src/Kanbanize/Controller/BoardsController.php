@@ -92,12 +92,17 @@ class BoardsController extends OrganizationAwareController{
 		]);
 
 		$params = [$statusValidator, &$error];
+
 		array_walk($data['mapping'], function($status, $column) use($params){
-			$statusValidator = $params[0];
-			$error = $params[1];
+
+		    $statusValidator = $params[0];
+
+		    $error = $params[1];
+
 			if(!$statusValidator->isValid($status)){
 				$error->addSecondaryErrors($column, ["Invalid status: {$status}"]);
 			}
+
 		});
 
 		//all status should be mapped
