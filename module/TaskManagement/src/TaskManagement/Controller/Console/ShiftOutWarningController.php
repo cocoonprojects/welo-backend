@@ -47,7 +47,7 @@ class ShiftOutWarningController extends AbstractConsoleController {
 
         $shiftout_min_credits = $params->get('shiftout_min_credits') ?: 100;
         $shiftout_min_item = $params->get('shiftout_min_item') ?: 3;
-        $shiftout_days = $params->get('shiftout_days') ?: 90;
+        $shiftout_days = $params->get('shiftout_days') ?: 30;
 
         $this->write("threshold: {$shiftout_min_item} item; {$shiftout_min_credits} credits; {$shiftout_days} days");
 
@@ -62,6 +62,10 @@ class ShiftOutWarningController extends AbstractConsoleController {
             $user = $member->getMember();
 
             $this->write($user->getDislayedName() . ' ' . $user->getId());
+
+            if (!$member->joinedMoreThanDaysAgo(30)) {
+                continue;
+            }
 
             if ($member->wasWarnedAboutShiftOut()) {
                 $this->write("already warned");
