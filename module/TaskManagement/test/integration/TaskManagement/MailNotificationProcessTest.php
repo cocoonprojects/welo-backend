@@ -165,6 +165,8 @@ class MailNotificationProcessTest extends \PHPUnit_Framework_TestCase
      */
 	public function testShiftOut()
     {
+        $this->markTestSkipped();
+
         $rootDir = __DIR__ . '/../../../../..';
         $this->cleanEmailMessages();
 
