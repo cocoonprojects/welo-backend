@@ -43,7 +43,7 @@ class EventStream
     protected $aggregate_type;
 
     /**
-     * @ORM\Column(type="text")
+     * @ORM\Column(type="integer", length=11)
      */
     protected $version;
 
