@@ -1,0 +1,13 @@
+<p>Hi <?=$this->recipient->getFirstname()?>,<br>
+    it seems the process which syncs your kanbanize board connected with your organization generated some error: </p>
+<pre>
+    <ul>
+        <?php foreach($this->errors as $error): ?>
+            <li><?= $error; ?></li>
+        <?php endforeach; ?>
+    </ul>
+</pre>
+<p>Please check the organization settings and the Kanbanize board accordingly.</p>
+<p>Welo</p>
+<hr>
+<p style="font-size: 12px">You are receiving this e-mail because you are a member of the "<?= $this->organization->getName() ?>" organization.</p>

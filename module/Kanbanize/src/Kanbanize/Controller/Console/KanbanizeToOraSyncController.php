@@ -33,6 +33,9 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
 
     protected $mailService;
 
+    protected $orgsErrors;
+    protected $tasksErrors;
+
     public function __construct(
         TaskService $taskService,
         OrganizationService $organizationService,
@@ -54,21 +57,27 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
         $this->assertIsConsoleRequest($request);
 
         $systemUser = $this->userService
-                           ->findUser(User::SYSTEM_USER);
+            ->findUser(User::SYSTEM_USER);
 
         $this->assertIsSystemUser($systemUser);
 
         $orgs = $this->organizationService
-                     ->findOrganizations();
+            ->findOrganizations();
 
         $this->write("SYNC START");
 
-        foreach($orgs as $org) {
+        $this->resetOrgsErrors();
+        $this->resetTasksErrors();
+
+        foreach ($orgs as $org) {
+
+            $orgId = $org->getId();
+
             $this->write('-------------------');
-            $this->write("org {$org->getName()} ({$org->getId()})");
+            $this->write("org {$org->getName()} ({$orgId})");
 
             $stream = $this->kanbanizeService
-                           ->findStreamByOrganization($org);
+                ->findStreamByOrganization($org);
 
             if (!$stream || !$stream->isBoundToKanbanizeBoard()) {
                 continue;
@@ -77,8 +86,7 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
             $kanbanize = $org->getSettings(Organization::KANBANIZE_SETTINGS);
 
             $this->kanbanizeService
-                 ->initApi($kanbanize['apiKey'], $kanbanize['accountSubdomain'])
-            ;
+                ->initApi($kanbanize['apiKey'], $kanbanize['accountSubdomain']);
 
             try {
 
@@ -90,7 +98,10 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
                 );
 
             } catch (\Exception $e) {
-                $this->write("ERROR {$e->getMessage()}");
+                $error = "ERROR {$e->getMessage()}";
+
+                $this->write($error);
+                $this->pushOrgError($orgId, $error);
                 continue;
             }
 
@@ -103,15 +114,18 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
             try {
                 $this->transaction()->begin();
 
-                $organization = $this->organizationService->getOrganization($org->getId());
+                $organization = $this->organizationService->getOrganization($orgId);
                 $organization->setLanes($lanes['app'], $systemUser);
 
                 $this->transaction()->commit();
 
-                $this->write('saved lanes: '.str_replace(PHP_EOL, '', var_export($lanes['app'], 1)));
+                $this->write('saved lanes: ' . str_replace(PHP_EOL, '', var_export($lanes['app'], 1)));
 
-            } catch(\Exception $e) {
-                $this->write("ERROR updating organization {$organization->getId()} lanes");
+            } catch (\Exception $e) {
+                $error = "ERROR updating organization {$organization->getId()} lanes";
+                $this->write($error);
+                $this->pushOrgError($orgId, $error);
+
                 $this->transaction()->rollback();
             }
 
@@ -121,11 +135,12 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
             $this->write("loading board activities stream {$stream->getId()} board {$stream->getBoardId()}");
 
             $kanbanizeTasks = $this->kanbanizeService
-                                   ->getTasks($stream->getBoardId());
+                ->getTasks($stream->getBoardId());
 
             //when something goes wrong a string is returned
             if (is_string($kanbanizeTasks)) {
                 $this->write($kanbanizeTasks);
+                $this->pushOrgError($orgId, $kanbanizeTasks);
                 continue;
             }
 
@@ -138,17 +153,19 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
                 continue;
             }
 
-            foreach($kanbanizeTasks as $kanbanizeTask) {
-                $this->write("task {$kanbanizeTask['taskid']}");
+            foreach ($kanbanizeTasks as $kanbanizeTask) {
+                $kanbanizeTaskId = $kanbanizeTask['taskid'];
+                $this->write("task $kanbanizeTaskId");
 
                 $task = $this->taskService
-                             ->findTaskByKanbanizeId($kanbanizeTask['taskid']);
+                    ->findTaskByKanbanizeId($kanbanizeTaskId);
 
                 if (!$task) {
                     try {
                         $this->blockTaskOnKanbanize($kanbanizeTask);
-                    } catch(\Exception $e) {
-                        $this->write("[ERROR] generic exception raised syncing with kanbanize: ".$e->getMessage());
+                    } catch (\Exception $e) {
+                        $this->write("[ERROR] generic exception raised syncing with kanbanize: " . $e->getMessage());
+                        $this->pushOrgError($orgId, "ERROR trying to block task $kanbanizeTaskId on Kanbanize " . $e->getMessage());
                     }
                     continue;
                 }
@@ -168,10 +185,12 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
                         $kanbanizeTask,
                         $stream
                     );
-                } catch(OperationFailedException $e) {
-                    $this->write("[ERROR] operation failed: ".$e->getMessage());
-                } catch(\Exception $e) {
-                    $this->write("[ERROR] generic exception raised syncing with kanbanize: ".$e->getMessage());
+                } catch (OperationFailedException $e) {
+                    $this->write("ERROR trying to unblock item {$task->getId()} on Kanbanize: " . $e->getMessage());
+                    $this->pushTaskError($orgId, $task->getId(), "ERROR trying to unblock item {$task->getId()} on Kanbanize: " . $e->getMessage());
+                } catch (\Exception $e) {
+                    $this->write("ERROR updating item with id {$task->getId()} on Kanbanize: " . $e->getMessage());
+                    $this->pushTaskError($orgId, $task->getId(), "ERROR updating item with id {$task->getId()} on Kanbanize: " . $e->getMessage());
                 }
 
                 $this->updateTaskPositionFromKanbanize(
@@ -184,13 +203,103 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
             $this->write("");
         }
         $this->write("SYNC END");
+
+        $this->notifyErrors();
     }
+
+    function notifyErrors()
+    {
+        $this->write("SEND ERRORS EMAILS");
+
+        $orgs = array_merge(array_keys($this->orgsErrors), array_keys($this->tasksErrors));
+        foreach ($orgs as $orgId) {
+            $org = $this->organizationService->findOrganization($orgId);
+
+            $orgErrors = $this->getOrgsErrors($orgId);
+            $tasksErrors = $this->getTasksErrorsByOrg($orgId);
+
+            $this->write("   org [".$orgId."] ".$org->getName());
+
+            if (!empty($orgErrors)) {
+                $this->write("   org errors: ");
+                foreach ($orgErrors as $error) {
+                    $this->write("      $error");
+                }
+            }
+
+            if (!empty($tasksErrors)) {
+                $this->write("   tasks errors: ");
+                foreach ($tasksErrors as $taskId => $errors) {
+                    $this->write("      task $taskId:");
+                    foreach ($errors as $error) {
+                        $this->write("         $error");
+                    }
+                }
+            }
+
+            $this->mailService
+                ->sendKanbanizeSyncErrors($org, $orgErrors, $tasksErrors);
+        }
+        $this->write("ERRORS EMAILS SENT");
+    }
+
+
 
     private function write($msg)
     {
         $now = (new \DateTime('now'))->format('Y-m-d H:s');
 
         echo "[$now] ", $msg, "\n";
+    }
+
+    private function resetOrgsErrors()
+    {
+        $this->orgsErrors = [];
+    }
+
+    private function resetTasksErrors()
+    {
+        $this->tasksErrors = [];
+    }
+
+    private function pushOrgError($orgId, $error)
+    {
+        if (!isset($this->orgsErrors[$orgId])) {
+            $this->orgsErrors[$orgId] = [];
+        }
+
+        array_push($this->orgsErrors[$orgId], $error);
+    }
+
+    private function pushTaskError($orgId, $taskId, $error)
+    {
+        if (!is_array($this->tasksErrors[$orgId])) {
+            $this->tasksErrors[$orgId] = [];
+        }
+
+        if (!is_array($this->tasksErrors[$orgId][$taskId])) {
+            $this->tasksErrors[$orgId][$taskId] = [];
+        }
+
+        array_push($this->orgsErrors[$orgId][$taskId], $error);
+    }
+
+    private function getOrgsErrors($orgId)
+    {
+        if (!isset($this->orgsErrors[$orgId])) {
+            return [];
+        }
+
+        return $this->orgsErrors[$orgId];
+    }
+
+    private function getTasksErrorsByOrg($orgId)
+    {
+        if (!isset($this->tasksErrors[$orgId])) {
+            return [];
+        }
+
+        return $this->tasksErrors[$orgId];
     }
 
     private function assertIsConsoleRequest($request)
@@ -251,6 +360,8 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
         $this->mailService
              ->sendKanbanizeSyncAlert($organization);
     }
+
+
 
     /**
      * first case: task on kanbanize but not on Welo

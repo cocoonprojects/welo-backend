@@ -117,7 +117,8 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
 				'Kanbanize\MailNotificationService'=> function ($locator){
 					$mailService = $locator->get('AcMailer\Service\MailService');
 					$orgService = $locator->get('People\OrganizationService');
-					$rv = new MailNotificationService($mailService, $orgService);
+					$taskService = $locator->get('TaskManagement\TaskService');
+					$rv = new MailNotificationService($mailService, $orgService, $taskService);
 
 					return $rv;
 				},

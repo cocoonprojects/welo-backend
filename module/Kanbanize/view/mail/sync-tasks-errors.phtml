@@ -1,0 +1,18 @@
+<p>Hi <?=$this->recipient->getFirstname()?>,<br>
+    it seems the process which syncs your kanbanize board connected with your organization generated errors.</p>
+<p>You are receiving this e-mail because you are the owner of one or more workitems involved:</p>
+<?php if (!empty($this->tasksErrors) && is_array($this->tasksErrors)) { ?>
+<pre>
+    <ul>
+        <?php foreach($this->errors as $taskId => $errors) { ?>
+            <?php foreach($errors as $error) { ?>
+                <li>Workitem <?= $taskId ?>: <?= $error; ?></li>
+            <?php } ?>
+        <?php } ?>
+    </ul>
+</pre>
+<?php } ?>
+<p>Please check the workitem either in Kanbanize or contact the organization administartor.</p>
+<p>Welo</p>
+<hr>
+<p style="font-size: 12px">You are receiving this e-mail because you are a member of the "<?= $this->organization->getName() ?>" organization.</p>
