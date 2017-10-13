@@ -45,9 +45,9 @@ class ShiftOutWarningController extends AbstractConsoleController {
     {
         $params = $org->getParams();
 
-        $shiftout_min_credits = $params->get('shiftout_min_credits') ?: 100;
-        $shiftout_min_item = $params->get('shiftout_min_item') ?: 3;
-        $shiftout_days = $params->get('shiftout_days') ?: 30;
+        $shiftout_min_credits = $params->get('shiftout_min_credits') ?: 50;
+        $shiftout_min_item = $params->get('shiftout_min_item') ?: 2;
+        $shiftout_days = $params->get('shiftout_days') ?: 90;
 
         $this->write("threshold: {$shiftout_min_item} item; {$shiftout_min_credits} credits; {$shiftout_days} days");
 
