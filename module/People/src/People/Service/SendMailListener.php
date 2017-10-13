@@ -114,7 +114,7 @@ class SendMailListener implements ListenerAggregateInterface
 	{
         $message = $this->mailService->getMessage();
         $message->setTo($member->getEmail());
-        $message->setSubject('Hey ' . $member->getDislayedName() . ' it\'s quite been some time');
+        $message->setSubject('Your contribution in the ' . $organization->getName() . ' open governance');
 
         $this->mailService->setTemplate( 'mail/shiftout-warning.phtml', [
             'member' => $member,
