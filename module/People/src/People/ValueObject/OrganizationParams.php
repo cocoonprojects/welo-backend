@@ -22,7 +22,11 @@ class OrganizationParams
             'org_transaction_limit_per_page' => 10,
             'org_members_limit_per_page' => 20,
 
-            'flow_welcome_card_text' => 'Welcome to our organization.'
+            'flow_welcome_card_text' => 'Welcome to our organization.',
+
+            'shiftout_days' =>  50,
+            'shiftout_min_item' =>  2,
+            'shiftout_min_credits' =>  90
         ];
     }
 
@@ -105,7 +109,12 @@ class OrganizationParams
         $settings->setIntValue($data, 'org_transaction_limit_per_page');
         $settings->setIntValue($data, 'org_members_limit_per_page');
 
+        $settings->setIntValue($data, 'shiftout_days');
+        $settings->setIntValue($data, 'shiftout_min_item');
+        $settings->setIntValue($data, 'shiftout_min_credits');
+
         $settings->setTextValue($data, 'flow_welcome_card_text');
+
         return $settings;
     }
 }
