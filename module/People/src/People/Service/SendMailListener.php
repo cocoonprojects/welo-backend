@@ -65,13 +65,11 @@ class SendMailListener implements ListenerAggregateInterface
             $organization = $this->organizationService->getOrganization($organizationId);
 			$member = $this->userService->findUser($userId);
 
-            $gainedCredits = $streamEvent->payload()['gainedCredits'];
-            $numItemWorked = $streamEvent->payload()['numItemWorked'];
             $minCredits = $streamEvent->payload()['minCredits'];
             $minItems = $streamEvent->payload()['minItems'];
             $withinDays = $streamEvent->payload()['withinDays'];
 
-			$this->sendShiftOutWarning($organization, $member, $gainedCredits, $numItemWorked, $minCredits, $minItems, $withinDays);
+			$this->sendShiftOutWarning($organization, $member, $minCredits, $minItems, $withinDays);
 		} );
 	}
 
@@ -110,7 +108,7 @@ class SendMailListener implements ListenerAggregateInterface
 		}
 	}
 
-	public function sendShiftOutWarning(Organization $organization, User $member, $gainedCredits, $numItemWorked, $minCredits, $minItems, $withinDays)
+	public function sendShiftOutWarning(Organization $organization, User $member, $minCredits, $minItems, $withinDays)
 	{
         $message = $this->mailService->getMessage();
         $message->setTo($member->getEmail());
@@ -118,8 +116,6 @@ class SendMailListener implements ListenerAggregateInterface
 
         $this->mailService->setTemplate( 'mail/shiftout-warning.phtml', [
             'member' => $member,
-            'gainedCredits' => $gainedCredits,
-            'numItemWorked' => $numItemWorked,
             'minCredits' => $minCredits,
             'minItems' => $minItems,
             'withinDays' => $withinDays,

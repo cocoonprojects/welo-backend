@@ -190,13 +190,11 @@ class Organization extends DomainEntity
         )));
     }
 
-	public function shiftOutWarning(User $member, $gainedCredits, $numItemWorked, $minCredits, $minItems, $withinDays, User $by)
+	public function shiftOutWarning(User $member, $minCredits, $minItems, $withinDays, User $by)
     {
         $this->recordThat(ShiftOutWarning::occur($this->id->toString(), array(
             'userId' => $member->getId(),
             'organizationId' => $this->getId(),
-            'gainedCredits' => $gainedCredits,
-            'numItemWorked' => $numItemWorked,
             'minCredits' => $minCredits,
             'minItems' => $minItems,
             'withinDays' => $withinDays,

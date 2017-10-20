@@ -63,12 +63,12 @@ class ShiftOutWarningController extends AbstractConsoleController {
 
             $this->write($user->getDislayedName() . ' ' . $user->getId());
 
-            if (!$member->joinedMoreThanDaysAgo(30)) {
+            if (!$member->joinedMoreThanDaysAgo($shiftout_days)) {
                 continue;
             }
 
             if ($member->wasWarnedAboutShiftOut()) {
-                $this->write("already warned");
+                $this->write('already warned');
                 continue;
             }
 
@@ -79,7 +79,7 @@ class ShiftOutWarningController extends AbstractConsoleController {
 
                     $orgAggregate->resetShiftOutWarning($user, $systemUser);
 
-                    $this->write("resetting shiftout warning");
+                    $this->write('resetting shiftout warning');
 
                     $this->transaction()->commit();
                 } catch (\Exception $e) {
@@ -91,24 +91,18 @@ class ShiftOutWarningController extends AbstractConsoleController {
                 continue;
             }
 
-            $contrib = $this->organizationService
-                            ->getMemberContributionWithinDays($user->getId(), $org->getId(), $shiftout_days);
-
-
             try {
                 $this->transaction()->begin();
 
                 $orgAggregate->shiftOutWarning(
                     $user,
-                    $contrib['gainedCredits'],
-                    $contrib['numItemWorked'],
                     $shiftout_min_credits,
                     $shiftout_min_item,
                     $shiftout_days,
                     $systemUser
                 );
 
-                $this->write("sending shiftout warning");
+                $this->write('sending shiftout warning');
 
                 $this->transaction()->commit();
             } catch (\Exception $e) {

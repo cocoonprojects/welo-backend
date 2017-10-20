@@ -170,7 +170,7 @@ class MailNotificationProcessTest extends \PHPUnit_Framework_TestCase
         $rootDir = __DIR__ . '/../../../../..';
         $this->cleanEmailMessages();
 
-        $res = shell_exec("php $rootDir/public/index.php shiftoutwarning");
+        shell_exec("php $rootDir/public/index.php shiftoutwarning");
 
         $email = $this->getLastEmailMessage();
         $body = (string)$this->getEmailBody($email)->getBody();
