@@ -168,45 +168,28 @@ class EventSourcingOrganizationService extends AggregateRepository implements Or
 		return $rv;
 	}
 
-	public function getMemberContributionWithinDays($userId, $orgId, $numDays)
+	public function isMemberOverShiftOutQuota($userId, $orgId, $minCredits, $minItems, $withinDays)
     {
-        $date = (new \DateTime('now'))->sub(new \DateInterval("P{$numDays}D"));
+        $date = (new \DateTime('now'))->sub(new \DateInterval("P{$withinDays}D"));
         $entity = OrganizationMemberContribution::class;
 
-        $sql = "SELECT COUNT(c.taskId) as numItemWorked, SUM(c.credits) as gainedCredits  
+
+        $sql = "SELECT count(c.taskId)  
                 FROM $entity c
                 WHERE c.userId = :userId
                 AND c.organizationId = :orgId
-                AND c.occurredOn >= :date
-                GROUP BY c.userId";
+                AND c.occurredOn >= :occurredOn
+                AND c.credits >= :minCredits";
 
         $query = $this->entityManager->createQuery($sql);
         $query->setParameter(':userId', $userId);
         $query->setParameter(':orgId', $orgId);
-        $query->setParameter(':date', $date);
+        $query->setParameter(':occurredOn', $date);
+        $query->setParameter(':minCredits', $minCredits);
 
-        $contribution = $query->getArrayResult();
+        $contribution = $query->getSingleScalarResult();
 
-        if (empty($contribution)) {
-            $contribution = [['numItemWorked' => 0, 'gainedCredits' => 0]];
-        }
-
-        return $contribution[0];
-    }
-
-	public function isMemberOverShiftOutQuota($userId, $orgId, $minCredits, $minItems, $withinDays)
-    {
-        $contribution = $this->getMemberContributionWithinDays($userId, $orgId, $withinDays);
-
-        if ($contribution['numItemWorked'] < $minItems) {
-            return false;
-        }
-
-        if ($contribution['gainedCredits'] < $minCredits) {
-            return false;
-        }
-
-        return true;
+        return $contribution >= $minItems;
     }
 
     public function updateMemberContribution($orgId, $userId, $taskId, $credit, $occurredOn)
