@@ -228,7 +228,7 @@ class BoardsController extends OrganizationAwareController{
 		}
 		$client = $this->client;
 		$client->setApiKey($apiKey);
-		$client->setUrl(sprintf(Importer::API_URL_FORMAT, $subdomain));
+		$client->setUrl(sprintf(KanbanizeAPI::API_URL_FORMAT, $subdomain));
 		return $client;
 	}
 }
