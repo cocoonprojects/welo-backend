@@ -71,24 +71,7 @@ class TaskCommandsListener extends ReadModelProjector {
 			    }
 		    }, 200
         );
-
-
-		$this->listeners [] = $events->getSharedManager ()->attach ( Application::class, TaskMemberAdded::class, function (Event $event) {
-			$streamEvent = $event->getTarget ();
-			if ($streamEvent->metadata ()['aggregate_type'] == KanbanizeTask::class) {
-				$id = $streamEvent->metadata ()['aggregate_id'];
-				$entity = $this->taskService->findTask ( $id );
-				$user = $this->entityManager->find(User::class, $streamEvent->payload ()['userId']);
-				$by = $this->entityManager->find ( User::class, $streamEvent->payload ()['by'] );
-				$role = $streamEvent->payload ()['role'];
-				$entity->addMember($user, $role, $by,$streamEvent->occurredOn ());
-				$entity->setMostRecentEditAt ( $streamEvent->occurredOn () );
-				$entity->setMostRecentEditBy ( $by);
-				$this->entityManager->persist ( $entity );
-				$this->entityManager->flush ( $entity );
-			}
-		}, 200 );
-	}
+    }
 
 	private function updateEntity(ReadModelKanbanizeTask $task, User $updatedBy, $streamEvent) {
 		if (isset ( $streamEvent->payload ()['taskid'] )) {
