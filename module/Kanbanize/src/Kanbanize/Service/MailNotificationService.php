@@ -53,7 +53,6 @@ class MailNotificationService implements NotificationService{
 
 			$message = $this->mailService->getMessage();
 			$message->setTo($admin->getEmail());
-$message->setTo('marco.radossi@ideato.info');
 			$message->setSubject("Your connected Kanbanize board is out of sync");
 
 			$this->mailService->setTemplate('mail/board-out-of-sync.phtml', [
@@ -80,7 +79,6 @@ $message->setTo('marco.radossi@ideato.info');
 
 			$message = $this->mailService->getMessage();
 			$message->setTo($admin->getEmail());
-$message->setTo('marco.radossi@ideato.info');
 			$message->setSubject("Your connected Kanbanize board generated some error");
 
 			$this->mailService->setTemplate('mail/sync-org-errors.phtml', [

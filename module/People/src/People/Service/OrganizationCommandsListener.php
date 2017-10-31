@@ -25,20 +25,31 @@ class OrganizationCommandsListener extends ReadModelProjector {
 	}
 
 	protected function onOrganizationUpdated(StreamEvent $event) {
-		$id = $event->metadata()['aggregate_id'];
-		$entity = $this->entityManager->find(Organization::class, $id);
-		if(isset($event->payload()['name'])) {
+
+	    $id = $event->metadata()['aggregate_id'];
+
+	    $entity = $this->entityManager->find(Organization::class, $id);
+
+	    if(isset($event->payload()['name'])) {
 			$entity->setName($event->payload()['name']);
 		}
+
+		if(isset($event->payload()['syncErrorsNotification'])) {
+	        $entity->setSyncErrorsNotification($event->payload()['syncErrorsNotification']);
+		}
+
 		if(isset($event->payload()['settingKey']) && isset($event->payload()['settingValue'])) {
 			$entity->setSettings($event->payload()['settingKey'], $event->payload()['settingValue']);
 		}
+
 		if(isset($event->payload()['lanes']) && is_array($event->payload()['lanes'])) {
 			$entity->setLanes($event->payload()['lanes']);
 		}
+
 		$updatedBy = $this->entityManager->find(User::class, $event->payload()['by']);
 		$entity->setMostRecentEditAt($event->occurredOn());
 		$entity->setMostRecentEditBy($updatedBy);
+
 		$this->entityManager->persist($entity);
 	}
 	

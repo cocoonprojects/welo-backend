@@ -33,8 +33,9 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
 
     protected $mailService;
 
-    protected $orgsErrors;
-    protected $tasksErrors;
+    protected $orgsErrors = [];
+
+    protected $tasksErrors = [];
 
     public function __construct(
         TaskService $taskService,
@@ -65,9 +66,6 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
             ->findOrganizations();
 
         $this->write("SYNC START");
-
-        $this->resetOrgsErrors();
-        $this->resetTasksErrors();
 
         foreach ($orgs as $org) {
 
@@ -102,6 +100,7 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
 
                 $this->write($error);
                 $this->pushOrgError($orgId, $error);
+
                 continue;
             }
 
@@ -204,43 +203,96 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
         }
         $this->write("SYNC END");
 
-        $this->notifyErrors();
+        $this->notifyErrors($systemUser);
     }
 
-    function notifyErrors()
+    private function notifyErrors($systemUser)
     {
         $this->write("SEND ERRORS EMAILS");
 
-        $orgs = array_merge(array_keys($this->orgsErrors), array_keys($this->tasksErrors));
-        foreach ($orgs as $orgId) {
-            $org = $this->organizationService->findOrganization($orgId);
+        $allOrgs = $this->organizationService->findOrganizations();
 
-            $orgErrors = $this->getOrgsErrors($orgId);
-            $tasksErrors = $this->getTasksErrorsByOrg($orgId);
+        foreach ($allOrgs as $org) {
 
-            $this->write("   org [".$orgId."] ".$org->getName());
+            $this->write('org ' . $org->getId());
+
+            $orgAggregate = $this->organizationService->getOrganization($org->getId());
+
+            // first case: no error && flag set -> sync successful after an error
+            // - unset flag
+            // - do not send email
+            if (!$this->hasErrors($org->getId())) {
+                if ($orgAggregate->hasSyncErrorsNotificationSet()) {
+                    try {
+
+                        $this->transaction()->begin();
+
+                        $orgAggregate->clearSyncErrorsNotification($systemUser);
+                        $this->write('clear sync error flag');
+                        $this->transaction()->commit();
+
+                    } catch (\Exception $e) {
+                        $error = "ERROR updating organization {$orgAggregate->getId()} sync warn";
+                        $this->write($error);
+                        $this->transaction()->rollback();
+                    }
+                }
+
+                continue;
+            }
+
+            // second case: sync error && flag set -> sync unsuccessful but an email was already sent
+            // do nothing
+            if ($orgAggregate->hasSyncErrorsNotificationSet()) {
+                $this->write('error + sync error flag, do nothing');
+
+                continue;
+            }
+
+            // third case: sync error && flag not set -> sync unsuccessful, need to warn users
+            // - set the flag
+            // - set it and send email
+
+            try {
+
+                $this->transaction()->begin();
+
+                $orgAggregate->setSyncErrorsNotification($systemUser);
+                $this->write('set sync error flag');
+
+                $this->transaction()->commit();
+
+            } catch (\Exception $e) {
+                $error = "ERROR updating organization {$orgAggregate->getId()} sync warn";
+                $this->write($error);
+                $this->transaction()->rollback();
+            }
+
+            if (!$this->hasErrors($org->getId())) {
+                continue;
+            }
+
+            $orgErrors = $this->getOrgsErrors($org->getId());
+            $tasksErrors = $this->getTasksErrorsByOrg($org->getId());
+
+            $this->write("   org [".$org->getId()."] ".$org->getName());
 
             if (!empty($orgErrors)) {
-                $this->write("   org errors: ");
-                foreach ($orgErrors as $error) {
-                    $this->write("      $error");
-                }
+                $this->write(">>> Org errors:");
+                $this->write(print_r($orgErrors, true));
             }
 
             if (!empty($tasksErrors)) {
-                $this->write("   tasks errors: ");
-                foreach ($tasksErrors as $taskId => $errors) {
-                    $this->write("      task $taskId:");
-                    foreach ($errors as $error) {
-                        $this->write("         $error");
-                    }
-                }
+                $this->write(">>> Tasks errors:");
+                $this->write(print_r($tasksErrors, true));
             }
 
             $this->mailService
                 ->sendKanbanizeSyncErrors($org, $orgErrors, $tasksErrors);
+
         }
-        $this->write("ERRORS EMAILS SENT");
+
+        $this->write('ERRORS EMAILS SENT');
     }
 
 
@@ -250,16 +302,6 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
         $now = (new \DateTime('now'))->format('Y-m-d H:s');
 
         echo "[$now] ", $msg, "\n";
-    }
-
-    private function resetOrgsErrors()
-    {
-        $this->orgsErrors = [];
-    }
-
-    private function resetTasksErrors()
-    {
-        $this->tasksErrors = [];
     }
 
     private function pushOrgError($orgId, $error)
@@ -282,6 +324,11 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
         }
 
         array_push($this->orgsErrors[$orgId][$taskId], $error);
+    }
+
+    private function hasErrors($orgId)
+    {
+        return isset($this->orgsErrors[$orgId]) || isset($this->tasksErrors[$orgId]);
     }
 
     private function getOrgsErrors($orgId)

@@ -20,6 +20,12 @@ class Organization extends EditableEntity implements ResourceInterface
 	 */
 	private $name;
 
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     * @var bool
+     */
+	private $syncErrorsNotification = false;
+
 	/**
 	 * @ORM\Column(type="json_array", nullable=true)
 	 * @var string
@@ -40,8 +46,16 @@ class Organization extends EditableEntity implements ResourceInterface
 	public function setName($name)
 	{
 		$this->name = $name;
+
 		return $this;
 	}
+
+	public function setSyncErrorsNotification($enabled)
+    {
+	    $this->syncErrorsNotification = $enabled;
+
+	    return $this;
+    }
 
 	public function setSettings($settingKey, $settingValue){
 		if(is_array($settingValue)){
