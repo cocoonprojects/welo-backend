@@ -63,6 +63,8 @@ class LoadLocalProfileListener implements ListenerAggregateInterface
         if (is_null($user)) {
             $args['code'] = Result::FAILURE_IDENTITY_NOT_FOUND;
             $args['info'] = null;
+
+            return;
         }
 
         $args['info'] = $user;
@@ -78,6 +80,8 @@ class LoadLocalProfileListener implements ListenerAggregateInterface
         if (is_null($user)) {
             $args['code'] = Result::FAILURE_IDENTITY_NOT_FOUND;
             $args['info'] = null;
+
+            return;
         }
 
         $args['info'] = $user;
@@ -92,6 +96,9 @@ class LoadLocalProfileListener implements ListenerAggregateInterface
 
         if (is_null($user)) {
             $user = $this->userService->subscribeUser($info);
+            $args['info'] = $user;
+
+            return;
         }
 
         $args['info'] = $user;

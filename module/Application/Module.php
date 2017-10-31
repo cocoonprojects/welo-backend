@@ -47,18 +47,25 @@ class Module
         }
 
         $eventManager->attach(MvcEvent::EVENT_DISPATCH, function ($event) use ($serviceManager, $request) {
+
             if ($token = $request->getHeaders('ORA-JWT')) {
                 $adapter = $serviceManager->get('Application\JWTAdapter');
                 $adapter->setToken($token->getFieldValue());
                 $authService = $serviceManager->get('Zend\Authentication\AuthenticationService');
-                $result = $authService->authenticate($adapter);
-            } elseif ($token = $request->getHeaders('GOOGLE-JWT')) {
+                $authService->authenticate($adapter);
+
+                return;
+            }
+
+            if ($token = $request->getHeaders('GOOGLE-JWT')) {
                 $client = $serviceManager->get('Application\Service\GoogleAPIClient');
                 $adapter = new GoogleJWTAdapter($client);
                 $adapter->setToken($token->getFieldValue());
 
                 $authService = $serviceManager->get('Zend\Authentication\AuthenticationService');
-                $result = $authService->authenticate($adapter);
+                $authService->authenticate($adapter);
+
+                return;
             }
         }, 100);
     }
@@ -157,18 +164,22 @@ class Module
                         },
                         'Application\Service\GoogleAPIClient' => function ($serviceLocator) {
                             $config = $serviceLocator->get('Config');
+
                             if (! isset($config ['zendoauth2'])) {
                                 throw new \Exception('ZendOAuth2 config not found');
                             }
+
                             if (! isset($config ['zendoauth2'] ['google'])) {
                                 throw new \Exception('ZendOAuth2/Google config not found');
                             }
+
                             $googleConfig = $config ['zendoauth2'] ['google'];
                             $rv = new \Google_Client();
                             $rv->setClientId($googleConfig ['client_id']);
                             $rv->setClientSecret($googleConfig ['client_secret']);
                             $rv->setRedirectUri($googleConfig ['redirect_uri']);
                             $rv->setApplicationName('Welo Platform');
+
                             return $rv;
                         },
                         'Application\JWTAdapter' => function ($serviceLocator) {
