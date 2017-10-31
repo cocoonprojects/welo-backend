@@ -24,9 +24,9 @@ class OrganizationParams
 
             'flow_welcome_card_text' => 'Welcome to our organization.',
 
-            'shiftout_days' =>  50,
+            'shiftout_days' =>  90,
             'shiftout_min_item' =>  2,
-            'shiftout_min_credits' =>  90
+            'shiftout_min_credits' =>  50
         ];
     }
 
