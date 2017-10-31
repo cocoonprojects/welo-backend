@@ -163,6 +163,13 @@ class User extends BasicUser implements RoleInterface, ResourceInterface
         return $rv;
     }
 
+    public function updateInfo($name, $lastname, $picture = null)
+    {
+        $this->firstname = $name;
+        $this->lastname = $lastname;
+        $this->picture = $picture ?: $this->picture;
+    }
+
     /**
      * @param ReadModelOrganization|Organization $organization
      * @param string $role

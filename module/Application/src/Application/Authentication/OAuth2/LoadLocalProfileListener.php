@@ -101,6 +101,14 @@ class LoadLocalProfileListener implements ListenerAggregateInterface
             return;
         }
 
+        $user->updateInfo(
+            $info['given_name'],
+            $info['family_name'],
+            isset($info['picture']) ? $info['picture'] : null
+        );
+
+        $this->userService->saveUser($user);
+
         $args['info'] = $user;
     }
 }

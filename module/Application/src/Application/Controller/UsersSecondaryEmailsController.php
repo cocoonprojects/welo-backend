@@ -91,7 +91,7 @@ class UsersSecondaryEmailsController extends HATEOASRestfulController
 
         $loggedUser->setSecondaryEmails($emails);
 
-        $this->userService->updateUser($loggedUser);
+        $this->userService->saveUser($loggedUser);
 
         return new JsonModel([
             'id' => $loggedUser->getId(),
