@@ -216,6 +216,14 @@ class Organization extends DomainEntity
 		}
 	}
 
+	protected function whenShiftOutWarning(ShiftOutWarning $event) {
+
+    }
+
+    protected function whenResetShiftOutWarning(ResetShiftOutWarning $event) {
+
+    }
+
 	protected function whenOrganizationAccountChanged(OrganizationAccountChanged $event) {
 		$p = $event->payload();
 		$this->accountId = Uuid::fromString($p['accountId']);

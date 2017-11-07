@@ -68,7 +68,7 @@ class VotingResultsControllerTest extends ControllerTest
 	public function testTimeboxedCompletedWorkItemApproval()
 	{
 		$this->taskServiceStub
-			->method('countVotesForItem')
+			->method('countVotesForItemAcceptance')
 			->willReturn(['votesAgainst' => 0, 'votesFor' => 2]);
 		$this->taskServiceStub
 			->method('findItemsBefore')

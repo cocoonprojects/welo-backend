@@ -91,10 +91,8 @@ interface TaskService
 	 */
 	public function findItemsBefore(\DateInterval $interval, $status);
 	
-	/**
-	 * Count votes on item idea to open or archive it
-	 * @param int item status from TaskInterface
-	 * @param string|Uuid $id
-	 */
-	public function countVotesForItem($itemStatus, $id);
+    public function countVotesForIdeaApproval($itemStatus, $id);
+
+    public function countVotesForItemAcceptance($itemStatus, $id);
+
 }

@@ -12,6 +12,7 @@ use Prooph\EventStore\Aggregate\AggregateType;
 use Prooph\EventStore\EventStore;
 use Prooph\EventStore\Stream\SingleStreamStrategy;
 use Rhumsaa\Uuid\Uuid;
+use TaskManagement\Entity\ItemCompletedAcceptance;
 use TaskManagement\Task;
 use TaskManagement\Entity\Task as ReadModelTask;
 use Kanbanize\Entity\KanbanizeTask as ReadModelKanbanizeTask;
@@ -325,18 +326,26 @@ class EventSourcingTaskService extends AggregateRepository implements TaskServic
 		return $query->getQuery()->getResult();
 	}
 
-	/**
-	 * (non-PHPdoc)
-	 * @see \TaskManagement\Service\TaskService::countVotesForApproveItem()
-	 */
-	public function countVotesForItem($itemStatus, $id){
+	public function countVotesForIdeaApproval($itemStatus, $id)
+    {
+        return $this->countVotesForItem($itemStatus, $id, ItemIdeaApproval::class);
+    }
+
+    public function countVotesForItemAcceptance($itemStatus, $id)
+    {
+        return $this->countVotesForItem($itemStatus, $id, ItemCompletedAcceptance::class);
+    }
+
+	private function countVotesForItem($itemStatus, $id, $voteType = null)
+    {
+	    $voteType = $voteType ?: ItemIdeaApproval::class;
 
 		$tId = $id instanceof Uuid ? $id->toString() : $id;
 		$builder = $this->entityManager->createQueryBuilder();
 
 		$query = $builder->select ( 'COALESCE(SUM( CASE WHEN a.vote.value = 1 THEN 1 ELSE 0 END ),0) as votesFor' )
 		->addSelect('COALESCE(SUM( CASE WHEN a.vote.value = 0 THEN 1 ELSE 0 END ),0) as votesAgainst')
-		->from(ItemIdeaApproval::class, 'a')
+		->from($voteType, 'a')
 		->innerJoin('a.item', 'item', 'WITH', 'item.status = :status')
 		->where('item.id = :id')
 		->setParameter ( ':status', $itemStatus)
@@ -347,7 +356,8 @@ class EventSourcingTaskService extends AggregateRepository implements TaskServic
 	}
 
 
-	public function countItemsInLane($laneId){
+	public function countItemsInLane($laneId)
+    {
         $builder = $this->entityManager->createQueryBuilder();
 
         $query = $builder->select ( 'COUNT(item) as itemsCount' )

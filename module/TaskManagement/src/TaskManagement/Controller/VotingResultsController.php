@@ -59,7 +59,9 @@ class VotingResultsController extends HATEOASRestfulController {
 				if(sizeof($itemIdeas) > 0){
 					array_walk($itemIdeas, function($idea){
 						$itemId = $idea->getId();
-						$results = $this->taskService->countVotesForItem(TaskInterface::STATUS_IDEA, $itemId);
+						$results = $this->taskService
+                                        ->countVotesForIdeaApproval(TaskInterface::STATUS_IDEA, $itemId);
+
 						$item = $this->taskService->getTask($itemId);
 						$this->transaction()->begin();
 						try {
@@ -94,8 +96,11 @@ class VotingResultsController extends HATEOASRestfulController {
 				if(sizeof($itemsCompleted) > 0){
 					array_walk($itemsCompleted, function($completed) use (&$operationResult) {
 						$itemId = $completed->getId();
-						$results = $this->taskService->countVotesForItem(TaskInterface::STATUS_COMPLETED, $itemId);
+						$results = $this->taskService
+                                        ->countVotesForItemAcceptance(TaskInterface::STATUS_COMPLETED, $itemId);
+
 						$item = $this->taskService->getTask($itemId);
+
 						$this->transaction()->begin();
 						try {
 							if($results['votesFor'] > $results['votesAgainst']){

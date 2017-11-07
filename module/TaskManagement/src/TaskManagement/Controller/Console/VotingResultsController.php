@@ -99,7 +99,8 @@ class VotingResultsController extends AbstractConsoleController {
 		array_walk($itemIdeas, function($idea) use($systemUser){
 			$itemId = $idea->getId();
 			$results = $this->taskService
-							->countVotesForItem(TaskInterface::STATUS_IDEA, $itemId);
+							->countVotesForIdeaApproval(TaskInterface::STATUS_IDEA, $itemId);
+
 			$item = $this->taskService->getTask($itemId);
 
 			$this->transaction()->begin();
@@ -145,7 +146,8 @@ class VotingResultsController extends AbstractConsoleController {
 		array_walk($itemsCompleted, function($completed) use ($systemUser) {
 			$itemId = $completed->getId();
 			$results = $this->taskService
-							->countVotesForItem(TaskInterface::STATUS_COMPLETED, $itemId);
+							->countVotesForItemAcceptance(TaskInterface::STATUS_COMPLETED, $itemId);
+
 			$item = $this->taskService->getTask($itemId);
 
 			$this->transaction()->begin();
