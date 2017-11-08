@@ -264,3 +264,14 @@ Feature: List tasks
     And the response should have a "_embedded.{'ora:task'}[0].subject" property
     And the "_embedded.{'ora:task'}[0].subject" property should be "Decision task 001"
 
+  @sort
+  Scenario: Ordering task item list by position parameter DESC
+    Given that I am authenticated as "mark.rogers@ora.local"
+    And that I want to find a "Task"
+    And that its "orderBy" is "position"
+    And that its "orderType" is "asc"
+    When I request "/00000000-0000-0000-1000-000000000000/task-management/tasks"
+    Then the response status code should be 200
+    And the response should be JSON
+    And the "_embedded.{'ora:task'}[0].subject" property should be "This update subject is a lot better than the previous one"
+

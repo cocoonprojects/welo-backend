@@ -71,10 +71,12 @@ class EventSourcingTaskService extends AggregateRepository implements TaskServic
 
 		$orderBy = 't.mostRecentEditAt';
 		$orderType = 'DESC';
-		if(isset($sorting["orderBy"])) {
+
+		if (isset($sorting["orderBy"])) {
 			$orderBy = 't.'.$sorting['orderBy'];
 		}
-		if(isset($sorting["orderType"])) {
+
+		if (isset($sorting["orderType"])) {
 			$orderType = $sorting['orderType'];
 		}
 
@@ -87,6 +89,7 @@ class EventSourcingTaskService extends AggregateRepository implements TaskServic
 			->setParameter(':organization', $organizationId);
 
 		$type = 0;
+
 		if(isset($filters["type"]) && $filters["type"]=='decisions') {
 			$query->andWhere('t.is_decision = :type')
 				->setParameter('type', 1);

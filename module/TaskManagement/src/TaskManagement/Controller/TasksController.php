@@ -90,28 +90,37 @@ class TasksController extends OrganizationAwareController
 	 * @return TaskJsonModel
 	 */
 	public function getList() {
-		if (is_null ( $this->identity () )) {
-			$this->response->setStatusCode ( 401 );
+
+		if (is_null($this->identity())) {
+
+			$this->response->setStatusCode(401);
+
 			return $this->response;
 		}
 
-		if (! $this->isAllowed ( $this->identity (), $this->organization, 'TaskManagement.Task.list' )) {
-			$this->response->setStatusCode ( 403 );
-			return $this->response;
+		if (!$this->isAllowed($this->identity(), $this->organization, 'TaskManagement.Task.list')) {
+
+		    $this->response->setStatusCode(403);
+
+		    return $this->response;
 		}
 
 		$cardType = $this->getRequest()->getQuery("cardType");
+
 		if (empty($cardType) || !in_array($cardType, ['all', 'decisions'])) {
 			$cardType = 'all';
 		}
+
 		$filters["type"] = $cardType;
 
 		$integerValidator = new ValidatorChain();
 		$integerValidator
 			->attach(new IsInt())
 			->attach(new GreaterThan(['min' => 0, 'inclusive' => false]));
+
 		$offset = $this->getRequest()->getQuery("offset");
 		$offset = $integerValidator->isValid($offset) ? intval($offset) : 0;
+
 		$limit = $this->getRequest()->getQuery("limit");
 		$limit = $integerValidator->isValid($limit) ? intval($limit) : $this->organization->getParams()->get('tasks_limit_per_page');
 
@@ -120,7 +129,8 @@ class TasksController extends OrganizationAwareController
 
 		$sorting = [];
 		$orderBy = $this->getRequest()->getQuery("orderBy");
-		if (!empty($orderBy) && in_array($orderBy, ['mostRecentEditAt'])) {
+
+		if (!empty($orderBy) && in_array($orderBy, ['mostRecentEditAt', 'position'])) {
 			$sorting['orderBy'] = $orderBy;
 		}
 
