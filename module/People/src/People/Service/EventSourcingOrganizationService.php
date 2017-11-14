@@ -110,7 +110,9 @@ class EventSourcingOrganizationService extends AggregateRepository implements Or
 			$criteria['role'] = $roles;
 		}
 
-		$rv = $this->entityManager->getRepository(OrganizationMembership::class)->findBy($criteria, ['createdAt' => 'ASC'], $limit, $offset);
+		$rv = $this->entityManager
+                ->getRepository(OrganizationMembership::class)
+                ->findBy($criteria, ['createdAt' => 'ASC'], $limit, $offset);
 
 		return $rv;
 
