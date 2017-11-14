@@ -34,23 +34,25 @@ class ShiftOutWarningController extends AbstractConsoleController {
 
 			$this->write("org {$org->getName()} ({$org->getId()})");
 
-            $this->sendShiftOutWarning($systemUser, $org);
+            $this->sendShiftOutWarning($systemUser, $org, $this->getRequest()->getParam('days'));
 
 			$this->write("");
 		}
 
 	}
 
-    private function sendShiftOutWarning($systemUser, $org)
+    /**
+     * $days is used for ease testing
+     */
+    private function sendShiftOutWarning($systemUser, $org, $days = null)
     {
         $params = $org->getParams();
 
         $shiftout_min_credits = $params->get('shiftout_min_credits');
         $shiftout_min_item = $params->get('shiftout_min_item');
-        $shiftout_days = $params->get('shiftout_days');
+        $shiftout_days = $days ?: $params->get('shiftout_days');
 
         $this->write("threshold: {$shiftout_min_item} item; {$shiftout_min_credits} credits; {$shiftout_days} days");
-
 
         $memberships = $this->organizationService
                             ->findOrganizationMemberships($org, null, null, [OrganizationMembership::ROLE_MEMBER, OrganizationMembership::ROLE_CONTRIBUTOR, OrganizationMembership::ROLE_ADMIN]);

@@ -165,19 +165,24 @@ class MailNotificationProcessTest extends \PHPUnit_Framework_TestCase
      */
 	public function testShiftOut()
     {
-        $this->markTestSkipped();
-
         $rootDir = __DIR__ . '/../../../../..';
         $this->cleanEmailMessages();
 
-        shell_exec("php $rootDir/public/index.php shiftoutwarning");
+        shell_exec("php $rootDir/public/index.php shiftoutwarning --days=0");
 
-        $email = $this->getLastEmailMessage();
+        $emails = $this->getEmailMessages();
+
+        $email = $emails[0];
         $body = (string)$this->getEmailBody($email)->getBody();
 
-        $this->assertEquals("Hey Admin Uber it's quite been some time", $email->subject);
-        $this->assertContains("in the last 90 days you worked on 0 item(s) gaining 0 credit", $body);
+        $this->assertEquals("Your contribution in the O.R.A. Team open governance", $email->subject);
+        $this->assertContains("not been fully active in the open governance of O.R.A. Team in the last 90 days.", $body);
 
+        $email = $emails[1];
+        $body = (string)$this->getEmailBody($email)->getBody();
+
+        $this->assertEquals("Mark Rogers contribution in the O.R.A. Team open governance", $email->subject);
+        $this->assertContains("Mark Rogers You have not been fully active", $body);
     }
 
 	public function testTaskAcceptedNotification()

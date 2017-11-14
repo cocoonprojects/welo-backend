@@ -63,13 +63,33 @@ class SendMailListener implements ListenerAggregateInterface
             $organizationId = $streamEvent->payload()['organizationId'];
 
             $organization = $this->organizationService->getOrganization($organizationId);
-			$member = $this->userService->findUser($userId);
+            $orgReadModel = $this->organizationService->findOrganization($organizationId);
+
+            $orgMemberships = $this->organizationService
+                                   ->findOrganizationMemberships($orgReadModel, null, null);
+
+            $orgMembers = [];
+            $member = null;
+
+            foreach ($orgMemberships as $orgMembership) {
+
+                $user = $orgMembership->getMember();
+
+                if ($user->getId() == $userId) {
+                    $member = $user;
+
+                    continue;
+                }
+
+                $orgMembers[] = $user;
+            }
 
             $minCredits = $streamEvent->payload()['minCredits'];
             $minItems = $streamEvent->payload()['minItems'];
             $withinDays = $streamEvent->payload()['withinDays'];
 
-			$this->sendShiftOutWarning($organization, $member, $minCredits, $minItems, $withinDays);
+			$this->sendShiftOutWarningToUser($organization, $member, $minCredits, $minItems, $withinDays);
+			$this->sendShiftOutWarningToOrg($organization, $member, $orgMembers, $minCredits, $minItems, $withinDays);
 		} );
 	}
 
@@ -108,7 +128,7 @@ class SendMailListener implements ListenerAggregateInterface
 		}
 	}
 
-	public function sendShiftOutWarning(Organization $organization, User $member, $minCredits, $minItems, $withinDays)
+	public function sendShiftOutWarningToUser(Organization $organization, User $member, $minCredits, $minItems, $withinDays)
 	{
         $message = $this->mailService->getMessage();
         $message->setTo($member->getEmail());
@@ -123,5 +143,29 @@ class SendMailListener implements ListenerAggregateInterface
         ]);
 
         $this->mailService->send();
+	}
+
+	public function sendShiftOutWarningToOrg(Organization $organization, User $member, array $orgMembers, $minCredits, $minItems, $withinDays)
+	{
+        $message = $this->mailService->getMessage();
+
+        foreach ($orgMembers as $orgMember) {
+
+            $message->setTo($orgMember->getEmail());
+            $message->setSubject($member->getDislayedName() . ' contribution in the ' . $organization->getName() . ' open governance');
+
+            $this->mailService->setTemplate( 'mail/shiftout-warning-org.phtml', [
+                'member' => $member,
+                'minCredits' => $minCredits,
+                'minItems' => $minItems,
+                'withinDays' => $withinDays,
+                'organization' => $organization,
+            ]);
+
+            $this->mailService->send();
+
+        }
+
+
 	}
 }

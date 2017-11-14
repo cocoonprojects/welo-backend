@@ -77,7 +77,7 @@ return array(
                 ],
                 'shiftoutwarning' => [
                     'options' => [
-                        'route'    => 'shiftoutwarning [--verbose|-v]',
+                        'route'    => 'shiftoutwarning [--days=] [--verbose|-v]',
                         'defaults' => [
 							'controller' => 'TaskManagement\Controller\Console\ShiftOutWarning',
 							'action' => 'send'
