@@ -44,6 +44,8 @@ class Organization extends DomainEntity
 	 */
 	private $settings = [];
 
+	private $syncErrorsNotification = false;
+
 	public static function create($name, User $createdBy) {
 		$rv = new self();
 		$rv->recordThat(OrganizationCreated::occur(Uuid::uuid4()->toString(), array(
