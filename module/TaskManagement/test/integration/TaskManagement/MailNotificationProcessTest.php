@@ -186,7 +186,7 @@ class MailNotificationProcessTest extends \PHPUnit_Framework_TestCase
         $body = (string)$this->getEmailBody($email)->getBody();
 
         $this->assertEquals("Mark Rogers contribution in the O.R.A. Team open governance", $email->subject);
-        $this->assertContains("Mark Rogers You have not been fully active", $body);
+        $this->assertContains("Mark Rogers has not been fully active", $body);
     }
 
 	public function testTaskAcceptedNotification()
