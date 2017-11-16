@@ -3,6 +3,7 @@ namespace TaskManagement;
 
 use Guzzle\Http\Client;
 use IntegrationTest\Bootstrap;
+use People\Organization;
 use TaskManagement\Controller\SharesController;
 use Zend\Http\Request;
 use Zend\Mvc\MvcEvent;
@@ -37,6 +38,9 @@ class MailNotificationProcessTest extends \PHPUnit_Framework_TestCase
 		//Clean EmailMessages
 		$this->mailcatcher = new Client('http://127.0.0.1:1080');
 		$this->cleanEmailMessages();
+
+        $organizationService = $serviceManager->get('People\OrganizationService');
+        $this->organization = $organizationService->getOrganization('00000000-0000-0000-1000-000000000000');
 
 		$userService = $serviceManager->get('Application\UserService');
 		$this->owner = $userService->findUser('60000000-0000-0000-0000-000000000000');

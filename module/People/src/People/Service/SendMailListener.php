@@ -3,6 +3,7 @@
 namespace People\Service;
 
 use Application\Service\FrontendRouter;
+use People\Entity\OrganizationMembership;
 use People\Organization;
 use People\OrganizationMemberAdded;
 use People\ShiftOutWarning;
@@ -66,21 +67,22 @@ class SendMailListener implements ListenerAggregateInterface
             $orgReadModel = $this->organizationService->findOrganization($organizationId);
 
             $orgMemberships = $this->organizationService
-                                   ->findOrganizationMemberships($orgReadModel, null, null);
+                                   ->findOrganizationMemberships(
+                                        $orgReadModel,
+                                        null,
+                                        null,
+                                        [
+                                            OrganizationMembership::ROLE_ADMIN,
+                                            OrganizationMembership::ROLE_MEMBER
+                                        ]
+                                   );
+
+            $member = $this->userService->findUser($userId);
 
             $orgMembers = [];
-            $member = null;
-
             foreach ($orgMemberships as $orgMembership) {
 
                 $user = $orgMembership->getMember();
-
-                if ($user->getId() == $userId) {
-                    $member = $user;
-
-                    continue;
-                }
-
                 $orgMembers[] = $user;
             }
 

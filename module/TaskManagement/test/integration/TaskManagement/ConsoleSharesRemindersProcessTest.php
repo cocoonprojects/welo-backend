@@ -28,6 +28,7 @@ class ConsoleSharesRemindersProcessTest extends \PHPUnit_Framework_TestCase
 	private $mailbox;
 	private $feRouter;
 	private $mailService;
+	private $organization;
 
 	protected function setUp()
 	{
