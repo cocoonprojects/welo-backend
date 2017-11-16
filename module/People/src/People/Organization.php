@@ -266,6 +266,10 @@ class Organization extends DomainEntity
 				$this->settings[$pl['settingKey']] = $pl['settingValue'];
 			}
 		}
+
+		if (array_key_exists('syncErrorsNotification', $pl)) {
+            $this->syncErrorsNotification = $pl['syncErrorsNotification'];
+        }
 	}
 
 	protected function whenOrganizationAccountChanged(OrganizationAccountChanged $event) {
