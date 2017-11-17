@@ -10,6 +10,9 @@ use Zend\Permissions\Acl\Resource\ResourceInterface;
 
 class Account extends DomainEntity implements ResourceInterface
 {
+    const CREDITS_FROM_SHARES = 'shares';
+    const CREDITS_FROM_MEMBERS = 'members';
+
     /**
      * @var string
      */
@@ -190,7 +193,7 @@ class Account extends DomainEntity implements ResourceInterface
      * @param User $by
      * @return array
      */
-    public function transferOut($amount, Account $payee, $description, User $by)
+    public function transferOut($amount, Account $payee, $description, User $by, $source=self::CREDITS_FROM_SHARES)
     {
         if ($amount >= 0) {
             throw new IllegalAmountException($amount);
@@ -201,6 +204,7 @@ class Account extends DomainEntity implements ResourceInterface
                 'payee' => $payee->getId(),
                 'balance' => $this->balance->getValue() + $amount,
                 'prevBalance' => $this->balance->getValue(),
+                'source' => $source,
                 'by' => $by->getId(),
         ]);
         $this->recordThat($event);
@@ -213,6 +217,7 @@ class Account extends DomainEntity implements ResourceInterface
                 'balance' => $event->payload()['balance'],
                 'date' => date_format($event->occurredOn(), 'c'),
                 'payee' => $payee->getName(),
+                'source' => $source,
                 'type' => 'OutgoingTransfer'
         ];
     }

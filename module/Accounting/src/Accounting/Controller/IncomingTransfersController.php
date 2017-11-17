@@ -95,7 +95,7 @@ class IncomingTransfersController extends TransfersController
 		$amount = $data['amount'];
 		$this->transaction()->begin();
 		try{
-			$transactions[] = $payerAccount->transferOut(-$amount, $account, $description, $this->identity());
+			$transactions[] = $payerAccount->transferOut(-$amount, $account, $description, $this->identity(), \Accounting\Account::CREDITS_FROM_MEMBERS);
 			$transactions[] = $account->transferIn($amount, $payerAccount, $description, $this->identity());
 			$this->transaction()->commit();
 			$this->response->setStatusCode(201); // Created

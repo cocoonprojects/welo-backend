@@ -78,13 +78,16 @@ class CreditTransferNotifiedViaMailListener implements ListenerAggregateInterfac
         $data = $streamEvent->payload();
         $amount = abs($data['amount']);
 
+        $source = $data['source'];
+        $description = $data['description'];
+
         $by = $this->userService->findUser($data['by']);
         $payeeAccount = $this->accountService->findAccount($data['payee']);
 
         $payee = $payeeAccount->holders()->first();
         $org = $payeeAccount->getOrganization();
 
-        $this->sendCreditsAddedInfoMail($by, $payee, $amount, $org);
+        $this->sendCreditsAddedInfoMail($by, $payee, $amount, $source, $org);
     }
 
 	public function processIncomingCreditsTransferred(Event $event) {
@@ -99,7 +102,9 @@ class CreditTransferNotifiedViaMailListener implements ListenerAggregateInterfac
         $data = $streamEvent->payload();
         $amount = abs($data['amount']);
 
-		$by = $this->userService->findUser($data['by']);
+        $description = $data['description'];
+
+        $by = $this->userService->findUser($data['by']);
         $payerAccount = $this->accountService->findAccount($data['payer']);
         $payer = $payerAccount->holders()->first();
         $org = $payerAccount->getOrganization();
@@ -108,12 +113,12 @@ class CreditTransferNotifiedViaMailListener implements ListenerAggregateInterfac
 
 	}
 
-	public function sendCreditsSubtractedInfoMail(User $by, User $payer, $amount, Organization $org){
+	public function sendCreditsSubtractedInfoMail(User $by, User $payer, $amount, Organization $org, $source){
 
         $message = $this->mailService->getMessage();
         $message->setTo($payer->getEmail());
         $message->setSubject("$amount credits transferred from your account in the '{$org->getName()}' organization'");
-			
+
         $this->mailService->setTemplate('mail/credits-subtracted.phtml', [
             'recipient' => $payer,
             'by' => $by,
@@ -128,13 +133,18 @@ class CreditTransferNotifiedViaMailListener implements ListenerAggregateInterfac
 		return $payer;
 	}
 
-	public function sendCreditsAddedInfoMail(User $by, User $payee, $amount, Organization $org){
+	public function sendCreditsAddedInfoMail(User $by, User $payee, $amount, $source, Organization $org){
 
         $message = $this->mailService->getMessage();
         $message->setTo($payee->getEmail());
         $message->setSubject("$amount credits transferred in your account from the '{$org->getName()}' organization'");
 
-        $this->mailService->setTemplate('mail/credits-added.phtml', [
+        $emailTemplate = 'mail/credits-added.phtml';
+        if ($source==\Accounting\Account::CREDITS_FROM_SHARES) {
+            $emailTemplate = 'mail/credits-added-for-shares.phtml';
+        }
+
+        $this->mailService->setTemplate($emailTemplate, [
             'recipient' => $payee,
             'by' => $by,
             'amount' => $amount,

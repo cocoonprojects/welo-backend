@@ -23,8 +23,15 @@ class CreditsAddedCard extends FlowCard
 		$rv['createdAt'] = date_format($this->getCreatedAt(), 'c');
 		$rv['id'] = $this->getId();
 		$rv['title'] = "{$content['amount']} credits added to your account";
+		$rv['source'] = $content['source'];
+
+		$description = "The user {$content['userName']} took these credits from '{$content['orgName']}' account";
+        if ($content['source']==\Accounting\Account::CREDITS_FROM_SHARES) {
+		    $description = "These credits come from your contribution in a work item";
+        }
+
 		$rv['content'] = [
-			'description' => "The user {$content['userName']} took these credits from '{$content['orgName']}' account",
+			'description' => $description,
 			'actions' => [
 				'primary' => [
                     'text' => 'See your balance',
@@ -38,7 +45,7 @@ class CreditsAddedCard extends FlowCard
 		return $rv;
 	}
 
-	public static function create(Uuid $uuid, $amount, User $payee, Organization $org, User $by)
+	public static function create(Uuid $uuid, $amount, $source, User $payee, Organization $org, User $by)
     {
         $data = [
             'userName'  => $by->getDislayedName(),
@@ -46,6 +53,7 @@ class CreditsAddedCard extends FlowCard
             'orgName'   => $org->getName(),
             'orgId'     => $org->getId(),
             'amount'    => abs($amount),
+		    'source'    => $source
         ];
 
         $flowCard = new static($uuid, $payee);
