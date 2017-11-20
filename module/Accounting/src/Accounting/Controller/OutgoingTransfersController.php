@@ -3,6 +3,7 @@
 namespace Accounting\Controller;
 
 
+use Accounting\Account;
 use Accounting\IllegalAmountException;
 use Application\View\ErrorJsonModel;
 use Zend\I18n\Validator\IsFloat;
@@ -95,7 +96,7 @@ class OutgoingTransfersController extends TransfersController
 		$amount = $data['amount'];
 		$this->transaction()->begin();
 		try {
-			$transactions[] = $account->transferOut(-$amount, $payeeAccount, $description, $this->identity());
+			$transactions[] = $account->transferOut(-$amount, $payeeAccount, $description, $this->identity(), Account::CREDITS_FROM_MEMBERS);
 			$transactions[] = $payeeAccount->transferIn($amount, $account, $description, $this->identity());
 			$this->transaction()->commit();
 			$this->response->setStatusCode(201); // Created

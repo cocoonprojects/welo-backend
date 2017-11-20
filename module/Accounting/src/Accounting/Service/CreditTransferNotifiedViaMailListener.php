@@ -75,6 +75,7 @@ class CreditTransferNotifiedViaMailListener implements ListenerAggregateInterfac
             return;
         }
 
+
         $data = $streamEvent->payload();
         $amount = abs($data['amount']);
 

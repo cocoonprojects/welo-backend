@@ -81,8 +81,8 @@ class CreditsTransferNotifiedViaFlowCardListener implements ListenerAggregateInt
         $this->entityManager->flush();
 	}
 	
-	public function processOutgoingCreditsTransferred(Event $event) {
-
+	public function processOutgoingCreditsTransferred(Event $event)
+    {
         $streamEvent = $event->getTarget();
         $agg_type = $streamEvent->metadata()['aggregate_type'];
 

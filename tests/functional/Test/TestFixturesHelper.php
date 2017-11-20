@@ -182,6 +182,42 @@ class TestFixturesHelper
         return $task;
     }
 
+    public function createAcceptedTask($subject, $stream, $admin, $members)
+    {
+        $taskService = $this->serviceManager->get('TaskManagement\TaskService');
+        $transactionManager = $this->serviceManager->get('prooph.event_store');
+
+        $transactionManager->beginTransaction();
+
+        try {
+            $task = Task::create($stream, $subject, $admin);
+            $taskService->addTask($task);
+
+            $task->open($admin);
+            $task->execute($admin);
+            $task->addMember($admin);
+            $task->addEstimation(100, $admin);
+
+            foreach ($members as $member) {
+                $task->addMember($member);
+                $task->addEstimation(100, $member);
+            }
+
+            $task->complete($admin);
+            $task->accept($admin);
+
+
+            $transactionManager->commit();
+        } catch (\Exception $e) {
+            var_dump($e->getMessage());
+            var_dump($e->getTraceAsString());
+            $transactionManager->rollback();
+            throw $e;
+        }
+
+        return $task;
+    }
+
     public function findUserByEmail($email)
     {
         $userService = $this->serviceManager->get('Application\UserService');
