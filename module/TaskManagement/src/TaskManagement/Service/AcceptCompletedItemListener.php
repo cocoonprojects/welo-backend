@@ -77,13 +77,9 @@ class AcceptCompletedItemListener implements ListenerAggregateInterface
 		$taskReadModel = $this->taskService->findTask ( $taskId );
 		$acceptances = $taskReadModel->getAcceptances ();
 
-
 		$accept = 0;
 		$reject = 0;
 		$abstain = 0;
-
-		$interval = $organization->getParams()
-							     ->get('completed_item_interval_close_task');
 
 		foreach ( $acceptances as $acceptance ) {
 			switch ($acceptance->getVote()->getValue()) {
@@ -99,17 +95,27 @@ class AcceptCompletedItemListener implements ListenerAggregateInterface
 			}
 		}
 
-		if ($accept > $memberhipcount / 2) {
+        $threshold = $memberhipcount / 2;
+
+        if ($accept > $threshold) {
 
 			$this->transactionManager->beginTransaction ();
 			try {
+
+                $interval = $organization->getParams()
+                                         ->get('completed_item_interval_close_task');
+
 				$task->accept( $owner, $interval );
 				$this->transactionManager->commit ();
 			} catch ( \Exception $e ) {
 				$this->transactionManager->rollback ();
 				throw $e;
 			}
-		} elseif ($reject > $memberhipcount / 2) {
+
+		    return;
+		}
+
+		if ($reject > $threshold) {
 
 			$task->removeAcceptances($operator);
 
@@ -122,7 +128,11 @@ class AcceptCompletedItemListener implements ListenerAggregateInterface
 				$this->transactionManager->rollback ();
 				throw $e;
 			}
-		} elseif ($memberhipcount == (count ( $acceptances ))) {
+
+			return;
+		}
+
+		if ($memberhipcount == (count ( $acceptances ))) {
 
 			if ($accept > $reject) {
 
@@ -148,6 +158,7 @@ class AcceptCompletedItemListener implements ListenerAggregateInterface
 			}
 		}
 	}
+
 	public function detach(EventManagerInterface $events) {
 		if ($events->getSharedManager ()->detach ( 'TaskManagement\TaskService', $this->listeners [0] )) {
 			unset ( $this->listeners [0] );

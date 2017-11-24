@@ -243,6 +243,7 @@ class Task extends DomainEntity implements TaskInterface
         if (!in_array($this->status, [self::STATUS_ONGOING, self::STATUS_ACCEPTED])) {
             throw new IllegalStateException('Cannot complete a task in '.$this->status.' state');
         }
+
         if (is_null($this->getAverageEstimation())) {
             throw new IllegalStateException('Cannot complete a task with missing estimations by members');
         }
@@ -709,10 +710,12 @@ class Task extends DomainEntity implements TaskInterface
 
     public function getAverageEstimation()
     {
+
         $tot = null;
         $estimationsCount = 0;
         $notEstimationCount = 0;
         foreach ($this->members as $member) {
+
             $estimation = isset($member['estimation']) ? $member['estimation'] : null;
             switch ($estimation) {
                 case null:
@@ -725,13 +728,16 @@ class Task extends DomainEntity implements TaskInterface
                     $estimationsCount++;
             }
         }
+
         $membersCount = count($this->members);
+
         if ($notEstimationCount == $membersCount) {
             return self::NOT_ESTIMATED;
         }
         if (($estimationsCount + $notEstimationCount) == $membersCount || $estimationsCount > 2) {
             return round($tot / $estimationsCount, 2);
         }
+
         return null;
     }
 

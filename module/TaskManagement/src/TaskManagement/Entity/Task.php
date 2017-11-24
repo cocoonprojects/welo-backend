@@ -228,11 +228,14 @@ class Task extends EditableEntity implements TaskInterface
 			->setCreatedBy($by)
 			->setMostRecentEditAt($when)
 			->setMostRecentEditBy($by);
+
 		$this->members->set($user->getId(), $taskMember);
+
 		return $this;
 	}
 
-	public function addApproval(Vote $vote, BasicUser $by, \DateTime $when ,$description){
+	public function addApproval(Vote $vote, BasicUser $by, \DateTime $when ,$description) {
+
 		$approval = new ItemIdeaApproval($vote, $when);
 		$approval->setCreatedBy($by);
 		$approval->setCreatedAt($when);
@@ -241,6 +244,7 @@ class Task extends EditableEntity implements TaskInterface
 		$approval->setMostRecentEditAt($when);
 		$approval->setMostRecentEditBy($by);
 		$approval->setDescription($description);
+		
 		$this->approvals->add($approval);
 
 		return $this;
@@ -251,7 +255,8 @@ class Task extends EditableEntity implements TaskInterface
 		return $this;
 	}
 
-	public function addAcceptance (Vote $vote, BasicUser $by, \DateTime $when ,$description){
+	public function addAcceptance (Vote $vote, BasicUser $by, \DateTime $when ,$description) {
+
 		$acceptance = new ItemCompletedAcceptance($vote, $when);
 		$acceptance->setCreatedBy($by);
 		$acceptance->setCreatedAt($when);

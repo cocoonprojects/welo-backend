@@ -34,6 +34,7 @@ class TaskAcceptanceTest extends \PHPUnit_Framework_TestCase
 
         $response = $this->client
             ->get("/{$res['org']->getId()}/task-management/tasks/{$task->getId()}");
+
         $data = json_decode($response->getContent(), true);
 
         $this->assertEquals(TaskInterface::STATUS_COMPLETED, $data['status']);
