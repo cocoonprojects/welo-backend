@@ -241,7 +241,7 @@ class Task extends EditableEntity implements TaskInterface
 		$approval->setMostRecentEditAt($when);
 		$approval->setMostRecentEditBy($by);
 		$approval->setDescription($description);
-		$this->approvals->set($approval->getId(), $approval);
+		$this->approvals->add($approval);
 
 		return $this;
 	}
@@ -260,7 +260,8 @@ class Task extends EditableEntity implements TaskInterface
 		$acceptance->setMostRecentEditAt($when);
 		$acceptance->setMostRecentEditBy($by);
 		$acceptance->setDescription($description);
-		$this->acceptances->set($acceptance->getId(), $acceptance);
+
+		$this->acceptances->add($acceptance);
 
 		return $this;
 	}

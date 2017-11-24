@@ -774,3 +774,7 @@ VALUES
 INSERT INTO users (id, status, createdAt, mostRecentEditAt, firstname, lastname, email, role) VALUES
   ('00000000-0000-0000-0000-000000000000', 1, '2014-10-09 11:33:45', '2014-10-09 11:33:45', 'System', 'User',
    'system@oraproject.com', 'system');
+
+INSERT INTO users (id, status, createdAt, mostRecentEditAt, firstname, lastname, email, role) VALUES
+  ('22200000-2220-0000-0000-000000000000', 1, '2014-10-09 11:33:45', '2014-10-09 11:33:45', 'Diana', 'Prince',
+   'dianaprince@ww.com', 'user');

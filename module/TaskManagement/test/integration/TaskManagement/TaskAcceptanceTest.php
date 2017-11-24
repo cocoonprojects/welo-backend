@@ -57,4 +57,233 @@ class TaskAcceptanceTest extends \PHPUnit_Framework_TestCase
         $this->assertCount(0, $data['acceptances']);
 	}
 
+    /**
+     * @see https://www.pivotaltracker.com/story/show/152206793
+     */
+	public function testAcceptanceRegression()
+    {
+        $this->transactionManager = $this->client->getServiceManager()->get('prooph.event_store');
+        $this->taskService = $this->client->getServiceManager()->get('TaskManagement\TaskService');
+
+        $admin = $this->fixtures->findUserByEmail('bruce.wayne@ora.local');
+        $member1 = $this->fixtures->findUserByEmail('paul.smith@ora.local');
+        $member2 = $this->fixtures->findUserByEmail('phil.toledo@ora.local');
+        $member3 = $this->fixtures->findUserByEmail('mark.rogers@ora.local');
+        $member4 = $this->fixtures->findUserByEmail('spidey.web@dailybugle.local');
+        $member5 = $this->fixtures->findUserByEmail('dianaprince@ww.com');
+
+        $res = $this->fixtures->createOrganization('my org', $admin, [$member1, $member2, $member3, $member4, $member5]);
+
+        $task = $this->fixtures->createIdea('subject', $res['stream'], $admin);
+
+        $this->transactionManager->beginTransaction();
+
+        try {
+
+            $task->addApproval(Vote::VOTE_FOR, $admin, 'ok');
+
+            $this->transactionManager->commit();
+        }catch (\Exception $e) {
+            dump($e->getMessage());
+
+            $this->transactionManager->rollback();
+
+            throw $e;
+        }
+
+        $this->transactionManager->beginTransaction();
+
+        try {
+
+            $task->addApproval(Vote::VOTE_FOR, $member1, 'ok1');
+
+            $this->transactionManager->commit();
+        }catch (\Exception $e) {
+            dump($e->getMessage());
+
+            $this->transactionManager->rollback();
+
+            throw $e;
+        }
+
+        $this->transactionManager->beginTransaction();
+
+        try {
+
+            $task->addApproval(Vote::VOTE_FOR, $member2, 'ok1');
+
+            $this->transactionManager->commit();
+        }catch (\Exception $e) {
+            dump($e->getMessage());
+
+            $this->transactionManager->rollback();
+
+            throw $e;
+        }
+
+        $this->transactionManager->beginTransaction();
+
+        try {
+
+            $task->addApproval(Vote::VOTE_FOR, $member3, 'ok1');
+
+            $this->transactionManager->commit();
+        }catch (\Exception $e) {
+            dump($e->getMessage());
+
+            $this->transactionManager->rollback();
+
+            throw $e;
+        }
+
+        $this->assertEquals(Task::STATUS_OPEN, $task->getStatus());
+
+        $this->transactionManager->beginTransaction();
+
+        try {
+
+            $task->execute($member1);
+
+            $this->transactionManager->commit();
+        }catch (\Exception $e) {
+            dump($e->getMessage());
+
+            $this->transactionManager->rollback();
+
+            throw $e;
+        }
+
+        $this->transactionManager->beginTransaction();
+
+        try {
+
+            $task->addMember($member2);
+
+            $this->transactionManager->commit();
+        }catch (\Exception $e) {
+            dump($e->getMessage());
+
+            $this->transactionManager->rollback();
+
+            throw $e;
+        }
+
+        $this->transactionManager->beginTransaction();
+
+        try {
+
+            $task->addMember($admin);
+
+            $this->transactionManager->commit();
+        }catch (\Exception $e) {
+            dump($e->getMessage());
+
+            $this->transactionManager->rollback();
+
+            throw $e;
+        }
+
+        $this->transactionManager->beginTransaction();
+
+        try {
+
+            $task->addEstimation(500, $member1);
+            $task->addEstimation(200, $member2);
+            $task->addEstimation(-1, $admin);
+
+            $this->transactionManager->commit();
+        }catch (\Exception $e) {
+            dump($e->getMessage());
+
+            $this->transactionManager->rollback();
+
+            throw $e;
+        }
+
+        $this->transactionManager->beginTransaction();
+
+        try {
+
+            $task->complete($member1);
+
+            $this->transactionManager->commit();
+        }catch (\Exception $e) {
+            dump($e->getMessage());
+
+            $this->transactionManager->rollback();
+
+            throw $e;
+        }
+
+        $this->assertEquals(Task::STATUS_COMPLETED, $task->getStatus());
+
+
+        $this->transactionManager->beginTransaction();
+
+        try {
+
+            $task->addAcceptance(Vote::VOTE_FOR, $member1, 'bella li');
+
+            $this->transactionManager->commit();
+        }catch (\Exception $e) {
+            dump($e->getMessage());
+
+            $this->transactionManager->rollback();
+
+            throw $e;
+        }
+
+        $this->assertEquals(Task::STATUS_COMPLETED, $task->getStatus());
+
+
+        $this->transactionManager->beginTransaction();
+
+        try {
+
+            $task->addAcceptance(Vote::VOTE_FOR, $member2, 'bella la');
+
+            $this->transactionManager->commit();
+        }catch (\Exception $e) {
+            dump($e->getMessage());
+
+            $this->transactionManager->rollback();
+
+            throw $e;
+        }
+
+        $this->transactionManager->beginTransaction();
+
+        try {
+
+            $task->addAcceptance(Vote::VOTE_FOR, $admin, 'bella lu');
+
+            $this->transactionManager->commit();
+        }catch (\Exception $e) {
+            dump($e->getMessage());
+
+            $this->transactionManager->rollback();
+
+            throw $e;
+        }
+
+        $this->assertEquals(Task::STATUS_COMPLETED, $task->getStatus());
+
+        $this->transactionManager->beginTransaction();
+
+        try {
+
+            $task->addAcceptance(Vote::VOTE_FOR, $member3, 'bella lu');
+
+            $this->transactionManager->commit();
+        }catch (\Exception $e) {
+            dump($e->getMessage());
+
+            $this->transactionManager->rollback();
+
+            throw $e;
+        }
+
+        $this->assertEquals(Task::STATUS_ACCEPTED, $task->getStatus());
+    }
+
 }
