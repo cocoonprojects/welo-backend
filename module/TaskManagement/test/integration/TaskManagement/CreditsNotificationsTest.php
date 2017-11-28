@@ -103,9 +103,10 @@ class CreditsNotificationsTest extends \PHPUnit_Framework_TestCase
     {
         $owner = $this->fixtures->findUserByEmail('bruce.wayne@ora.local');
         $member = $this->fixtures->findUserByEmail('phil.toledo@ora.local');
+        $member2 = $this->fixtures->findUserByEmail('mark.rogers@ora.local');
 
-        $res = $this->fixtures->createOrganization('my org 2', $owner, [], [$member]);
-        $task = $this->fixtures->createAcceptedTask('Credits Share Notifications item', $res['stream'], $owner, [$member]);
+        $res = $this->fixtures->createOrganization('my org 2', $owner, [], [$member, $member2]);
+        $task = $this->fixtures->createAcceptedTask('Credits Share Notifications item', $res['stream'], $owner, [$member, $member2]);
 
         $mailbox = Mailbox::create();
         $mailbox->clean();
@@ -115,13 +116,20 @@ class CreditsNotificationsTest extends \PHPUnit_Framework_TestCase
         $transactionManager->beginTransaction();
         try {
             $task->assignShares([
-                $owner->getId() => 0.40,
-                $member->getId() => 0.60
+                $owner->getId() => 1.0,
+                $member->getId() => 0,
+                $member2->getId() => 0,
             ], $owner);
             $task->assignShares([
-                $owner->getId() => 0.50,
-                $member->getId() => 0.50
+                $owner->getId() => 0.70,
+                $member->getId() => 0.30,
+                $member2->getId() => 0,
             ], $member);
+            $task->assignShares([
+                $owner->getId() => 0.20,
+                $member->getId() => 0.60,
+                $member2->getId() => 0.20,
+            ], $member2);
             $transactionManager->commit();
         } catch (\Exception $e) {
             var_dump($e->getMessage());
