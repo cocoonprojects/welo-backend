@@ -1,4 +1,11 @@
-<?php $link = $this->router->item($this->task); ?>
+<?php
+    $link = $this->router->item($this->task);
+
+    function formatValue($value) {
+        return (fmod($value, 1.0)>0) ? number_format($value, 1, '.', ',') : ceil($value);
+    }
+?>
+
 
 <p>Hi <?= $this->recipient->getFirstname() ?>,<br>
 the item you contributed to <a href="<?= $link ?>">"<?= $this->task->getSubject()?>"</a> has been closed!</p>
@@ -14,9 +21,9 @@ the item you contributed to <a href="<?= $link ?>">"<?= $this->task->getSubject(
         <?php foreach($this->sharesSummary as $share): ?>
             <tr>
                 <td><?= $share['name']; ?></td>
-                <td><?= $share['share']; ?></td>
-                <td><?= $share['value']; ?></td>
-                <td><?= $share['gap']; ?></td>
+                <td><?= formatValue($share['share']); ?></td>
+                <td><?= formatValue($share['value']); ?></td>
+                <td><?= formatValue($share['gap']); ?></td>
             </tr>
         <?php endforeach; ?>
     </tbody>
