@@ -362,7 +362,7 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
 	 */
 	public function sendTaskClosedInfoMail(Task $task)
 	{
-		$rv = [];
+        $rv = [];
 
 		$sharesSummary = $task->getSharesSummary();
 		$avgCredits = $task->getAverageEstimation();
@@ -374,6 +374,13 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
 			$message = $this->mailService->getMessage();
 			$message->setTo($member->getEmail());
 			$message->setSubject('The "'.$task->getSubject().'" item has been closed');
+
+            $sharesSummary = array_map(function($share) {
+                $share['share'] = $this->formatFloatForOutput($share['share']);
+                $share['value'] = !empty($share['value']) ? $this->formatFloatForOutput($share['value']) : 'n/a';
+                $share['gap']   = !empty($share['gap']) ? $this->formatFloatForOutput($share['gap']) : 'n/a';
+                return $share;
+            }, $sharesSummary);
 
 			$this->mailService->setTemplate( 'mail/task-closed-info.phtml', [
 				'task' => $task,
@@ -592,4 +599,10 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
 		$this->host = $host;
 		return $this;
 	}
+
+    private function formatFloatForOutput($number) {
+	    $value = floatval($number);
+        return (fmod($value, 1.0)>0) ? number_format($value, 1, '.', ',') : ceil($value);
+    }
+
 }

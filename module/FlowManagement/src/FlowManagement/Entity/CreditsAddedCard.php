@@ -23,10 +23,10 @@ class CreditsAddedCard extends FlowCard
 		$rv['createdAt'] = date_format($this->getCreatedAt(), 'c');
 		$rv['id'] = $this->getId();
 		$rv['title'] = "{$content['amount']} credits added to your account";
-		$rv['source'] = $content['source'] ?: \Accounting\Account::CREDITS_FROM_SHARES;
+		$rv['source'] = !empty($content['source']) ? $content['source'] : \Accounting\Account::CREDITS_FROM_SHARES;
 
 		$description = "The user {$content['userName']} took these credits from '{$content['orgName']}' account";
-        if ($content['source']==\Accounting\Account::CREDITS_FROM_SHARES) {
+        if ($rv['source']==\Accounting\Account::CREDITS_FROM_SHARES) {
 		    $description = "These credits come from your contribution in a work item";
         }
 

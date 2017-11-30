@@ -116,19 +116,19 @@ class CreditsNotificationsTest extends \PHPUnit_Framework_TestCase
         $transactionManager->beginTransaction();
         try {
             $task->assignShares([
-                $owner->getId() => 1.0,
-                $member->getId() => 0,
-                $member2->getId() => 0,
+                $owner->getId() => '1.0',
+                $member->getId() => '0',
+                $member2->getId() => '0',
             ], $owner);
             $task->assignShares([
-                $owner->getId() => 0.70,
-                $member->getId() => 0.30,
-                $member2->getId() => 0,
+                $owner->getId() => '0.70',
+                $member->getId() => '0.30',
+                $member2->getId() => '0',
             ], $member);
             $task->assignShares([
-                $owner->getId() => 0.20,
-                $member->getId() => 0.60,
-                $member2->getId() => 0.20,
+                $owner->getId() => '0.20',
+                $member->getId() => '0.60',
+                $member2->getId() => '0.20',
             ], $member2);
             $transactionManager->commit();
         } catch (\Exception $e) {
