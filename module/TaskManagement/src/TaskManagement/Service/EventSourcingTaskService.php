@@ -185,6 +185,31 @@ class EventSourcingTaskService extends AggregateRepository implements TaskServic
 	}
 
 	/**
+	 * @see \TaskManagement\Service\TaskService::findCompletedTasksBefore()
+	 * @param \DateInterval $interval
+	 * @return ReadModelTask[]
+	 */
+	public function findItemsCompletedBefore(\DateInterval $interval, $orgId = null){
+
+		$referenceDate = new \DateTime('now');
+
+		$builder = $this->entityManager->createQueryBuilder();
+		$query = $builder->select('t')
+			->from(ReadModelTask::class, 't')
+			->where("DATE_ADD(t.completedAt,".$interval->format('%d').", 'DAY') <= :referenceDate")
+			->andWhere('t.status = :taskStatus')
+			->setParameter('taskStatus', Task::STATUS_COMPLETED)
+			->setParameter('referenceDate', $referenceDate->format('Y-m-d H:i:s'));
+
+        if(!is_null($orgId)) {
+            $query->innerjoin('t.stream', 's', 'WITH', 's.organization = :organization')
+                ->setParameter('organization', $orgId);
+        }
+
+		return $query->getQuery()->getResult();
+	}
+
+	/**
 	 * @see \TaskManagement\Service\TaskService::findAcceptedTasksBefore()
 	 * @param \DateInterval $interval
 	 * @return ReadModelTask[]

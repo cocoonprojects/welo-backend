@@ -72,10 +72,16 @@ class Task extends DomainEntity implements TaskInterface
      * @var \DateTime
      */
     protected $mostRecentEditAt;
+
     /**
      * @var \DateTime
      */
     protected $acceptedAt;
+
+    /**
+     * @var \DateTime
+     */
+    protected $completedAt;
 
     /**
      * @var \DateTime
@@ -894,6 +900,7 @@ class Task extends DomainEntity implements TaskInterface
             unset($value['shares']);
             unset($value['share']);
         });
+        $this->completedAt = $event->occurredOn();
         $this->mostRecentEditAt = $event->occurredOn();
     }
 
@@ -915,6 +922,7 @@ class Task extends DomainEntity implements TaskInterface
     {
         $this->status = self::STATUS_ONGOING;
         $this->mostRecentEditAt = $event->occurredOn();
+        $this->completedAt = null;
     }
 
     protected function whenTaskClosed(TaskClosed $event)

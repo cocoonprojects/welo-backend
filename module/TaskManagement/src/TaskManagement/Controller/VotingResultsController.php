@@ -90,7 +90,7 @@ class VotingResultsController extends HATEOASRestfulController {
 										->get('completed_item_voting_timebox');
 
 				$itemsCompleted = $this->taskService
-					->findItemsBefore($timeboxForVoting, TaskInterface::STATUS_COMPLETED);
+					->findItemsCompletedBefore($timeboxForVoting, $org->getId());
 
 				$operationResult = [];
 				if(sizeof($itemsCompleted) > 0){

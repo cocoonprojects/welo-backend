@@ -71,7 +71,7 @@ class VotingResultsControllerTest extends ControllerTest
 			->method('countVotesForItemAcceptance')
 			->willReturn(['votesAgainst' => 0, 'votesFor' => 2]);
 		$this->taskServiceStub
-			->method('findItemsBefore')
+			->method('findItemsCompletedBefore')
 			->willReturn([$this->task]);
 		$this->taskServiceStub
 			->method('getTask')

@@ -196,13 +196,14 @@ class TaskCommandsListener extends ReadModelProjector {
 	}
 
 	protected function onTaskReopened(StreamEvent $event) {
-		$id = $event->metadata ()['aggregate_id'];
-		$task = $this->entityManager->find ( Task::class, $id );
-		$task->setStatus ( Task::STATUS_ONGOING );
-		$user = $this->entityManager->find ( User::class, $event->payload ()['by'] );
-		$task->setMostRecentEditBy ( $user );
-		$task->setMostRecentEditAt ( $event->occurredOn () );
-		$this->entityManager->persist ( $task );
+		$id = $event->metadata()['aggregate_id'];
+
+		$task = $this->entityManager->find( Task::class, $id );
+		$user = $this->entityManager->find( User::class, $event->payload()['by'] );
+
+		$task->revertToOngoing($user, $event->occurredOn());
+
+		$this->entityManager->persist( $task );
 
 		if ($task->getType() == "kanbanizetask") {
 			$this->updateOnKanbanize($task);
@@ -323,17 +324,23 @@ class TaskCommandsListener extends ReadModelProjector {
 	}
 
 	protected function onTaskCompleted(StreamEvent $event) {
-		$id = $event->metadata ()['aggregate_id'];
+		$id = $event->metadata()['aggregate_id'];
+
 		$task = $this->entityManager->find ( Task::class, $id );
-		$task->setStatus ( Task::STATUS_COMPLETED );
-		$task->resetShares ();
-		$user = $this->entityManager->find ( User::class, $event->payload ()['by'] );
-		$task->setMostRecentEditBy ( $user );
-		$task->setMostRecentEditAt ( $event->occurredOn () );
-		$task->resetAcceptedAt ();
-		$this->entityManager->persist ( $task );
-		if ($task->getType () == "kanbanizetask") {
-			$this->updateOnKanbanize ( $task );
+		$task->setStatus( Task::STATUS_COMPLETED );
+		$task->resetShares();
+
+		$user = $this->entityManager->find( User::class, $event->payload()['by'] );
+
+		$task->setMostRecentEditBy( $user );
+		$task->setMostRecentEditAt( $event->occurredOn() );
+		$task->setCompletedAt( $event->occurredOn() );
+		$task->resetAcceptedAt();
+
+		$this->entityManager->persist( $task );
+
+		if ($task->getType() == "kanbanizetask") {
+			$this->updateOnKanbanize( $task );
 		}
 	}
 

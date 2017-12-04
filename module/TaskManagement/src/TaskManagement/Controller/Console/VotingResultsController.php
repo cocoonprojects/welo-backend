@@ -129,9 +129,8 @@ class VotingResultsController extends AbstractConsoleController {
 
 		$this->write("timebox for completed items is {$timeboxForVoting->format('%d')}");
 
-		$itemsCompleted = $this->taskService->findItemsBefore(
+		$itemsCompleted = $this->taskService->findItemsCompletedBefore(
 			$timeboxForVoting,
-			TaskInterface::STATUS_COMPLETED,
 			$org->getId()
 		);
 

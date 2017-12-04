@@ -1,7 +1,11 @@
 <?php
 namespace TaskManagement;
 
+use People\Entity\OrganizationMembership;
 use People\Organization;
+use Rhumsaa\Uuid\Uuid;
+use TaskManagement\Entity\Stream as ReadModelStream;
+use TaskManagement\Entity\Task as ReadModelTask;
 use TaskManagement\Entity\Vote;
 use Test\Mailbox;
 use Test\TestFixturesHelper;
@@ -57,6 +61,52 @@ class TaskAcceptanceTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(TaskInterface::STATUS_ONGOING, $data['status']);
         $this->assertCount(0, $data['acceptances']);
 	}
+
+	public function testFindCompletedTasksBeforeTimebox()
+    {
+        $org = new \People\Entity\Organization(Uuid::uuid4());
+        $org->setCreatedAt(new \DateTime());
+        $org->setMostRecentEditAt(new \DateTime());
+
+        $stream = new ReadModelStream(Uuid::uuid4(), $org);
+        $stream->setCreatedAt(new \DateTime());
+        $stream->setMostRecentEditAt(new \DateTime());
+
+        $task = new ReadModelTask(Uuid::uuid4(), $stream);
+        $task->setSubject('Amazing task');
+        $task->setStatus(TaskInterface::STATUS_COMPLETED);
+        $task->setCompletedAt(new \DateTime());
+        $task->setCreatedAt(new \DateTime());
+        $task->setMostRecentEditAt(new \DateTime());
+
+        $task2 = new ReadModelTask(Uuid::uuid4(), $stream);
+        $task2->setSubject('Amazing old task');
+        $task2->setStatus(TaskInterface::STATUS_COMPLETED);
+        $task2->setCompletedAt(new \DateTime('-8 days'));
+        $task2->setCreatedAt(new \DateTime());
+        $task2->setMostRecentEditAt(new \DateTime());
+
+        $task3 = new ReadModelTask(Uuid::uuid4(), $stream);
+        $task3->setSubject('Amazing very old task');
+        $task3->setStatus(TaskInterface::STATUS_COMPLETED);
+        $task3->setCompletedAt(new \DateTime('-1 month'));
+        $task3->setCreatedAt(new \DateTime());
+        $task3->setMostRecentEditAt(new \DateTime());
+
+
+        $em = $this->client->getServiceManager()->get('doctrine.entitymanager.orm_default');
+        $em->persist($org);
+        $em->persist($stream);
+        $em->persist($task);
+        $em->persist($task2);
+        $em->persist($task3);
+        $em->flush();
+
+        $this->taskService = $this->client->getServiceManager()->get('TaskManagement\TaskService');
+        $tasks = $this->taskService->findItemsCompletedBefore(new \DateInterval('P7D'), $org->getId());
+
+        $this->assertCount(2, $tasks);
+    }
 
     /**
      * @see https://www.pivotaltracker.com/story/show/152206793

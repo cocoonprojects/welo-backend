@@ -75,6 +75,12 @@ class Task extends EditableEntity implements TaskInterface
  	 * @ORM\Column(type="datetime", nullable=true)
 	 * @var \DateTime
 	 */
+	protected $completedAt;
+
+	/**
+ 	 * @ORM\Column(type="datetime", nullable=true)
+	 * @var \DateTime
+	 */
 	protected $acceptedAt;
 
 	/**
@@ -523,6 +529,10 @@ class Task extends EditableEntity implements TaskInterface
 		return null;
 	}
 
+    public function setCompletedAt(\DateTime $date = null) {
+        $this->completedAt = $date;
+    }
+
 	/**
 	 * @return \DateTime
 	 */
@@ -667,6 +677,7 @@ class Task extends EditableEntity implements TaskInterface
         $this->setStatus(Task::STATUS_ONGOING);
         $this->setMostRecentEditBy($user);
         $this->setMostRecentEditAt($time);
+        $this->setCompletedAt(null);
         $this->removeAcceptances();
     }
 }

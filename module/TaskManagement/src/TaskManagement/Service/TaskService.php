@@ -42,6 +42,13 @@ interface TaskService
 	public function findTask($id);
 
 	/**
+	 * Find completed tasks with complete date before $interval days from now
+	 * @param \DateInterval $interval
+	 * @return array
+	 */
+	public function findItemsCompletedBefore(\DateInterval $interval, $orgId = null);
+
+	/**
 	 * Find accepted tasks with accepted date before $interval days from now
 	 * @param \DateInterval $interval
 	 * @return array
