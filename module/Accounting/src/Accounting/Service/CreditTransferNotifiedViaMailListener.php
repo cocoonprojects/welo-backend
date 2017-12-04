@@ -114,7 +114,7 @@ class CreditTransferNotifiedViaMailListener implements ListenerAggregateInterfac
 
 	}
 
-	public function sendCreditsSubtractedInfoMail(User $by, User $payer, $amount, Organization $org, $source){
+	public function sendCreditsSubtractedInfoMail(User $by, User $payer, $amount, Organization $org){
 
         $message = $this->mailService->getMessage();
         $message->setTo($payer->getEmail());

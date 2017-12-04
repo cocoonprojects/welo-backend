@@ -6,6 +6,7 @@ use Application\Entity\User;
 use Doctrine\ORM\Mapping AS ORM;
 use FlowManagement\FlowCardInterface;
 use People\Entity\Organization;
+use Rhumsaa\Uuid\Uuid;
 
 /**
  * @ORM\Entity
