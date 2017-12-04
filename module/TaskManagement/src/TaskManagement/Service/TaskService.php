@@ -96,7 +96,7 @@ interface TaskService
 	 * @param \DateInterval $interval
 	 * @param string $status
 	 */
-	public function findItemsBefore(\DateInterval $interval, $status);
+	public function findItemsCreatedBefore(\DateInterval $interval, $status);
 	
     public function countVotesForIdeaApproval($itemStatus, $id);
 

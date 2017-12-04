@@ -329,9 +329,9 @@ class EventSourcingTaskService extends AggregateRepository implements TaskServic
 	}
 	/**
 	 * (non-PHPdoc)
-	 * @see \TaskManagement\Service\TaskService::findItemsBefore()
+	 * @see \TaskManagement\Service\TaskService::findItemsCreatedBefore()
 	 */
-	public function findItemsBefore(\DateInterval $interval, $status = null, $orgId = null){
+	public function findItemsCreatedBefore(\DateInterval $interval, $status = null, $orgId = null){
 		$referenceDate = new \DateTime('now');
 
 		$builder = $this->entityManager->createQueryBuilder();

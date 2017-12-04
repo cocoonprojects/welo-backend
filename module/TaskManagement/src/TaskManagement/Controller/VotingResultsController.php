@@ -54,7 +54,7 @@ class VotingResultsController extends HATEOASRestfulController {
 										->get('item_idea_voting_timebox');
 
 				$itemIdeas = $this->taskService
-					->findItemsBefore($timeboxForVoting, TaskInterface::STATUS_IDEA);
+					->findItemsCreatedBefore($timeboxForVoting, TaskInterface::STATUS_IDEA);
 
 				if(sizeof($itemIdeas) > 0){
 					array_walk($itemIdeas, function($idea){

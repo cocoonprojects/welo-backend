@@ -82,7 +82,7 @@ class VotingResultsController extends AbstractConsoleController {
 
 		$this->write("timebox for ideas is {$timeboxForVoting->format('%d')}");
 
-		$itemIdeas = $this->taskService->findItemsBefore(
+		$itemIdeas = $this->taskService->findItemsCreatedBefore(
 			$timeboxForVoting,
 			TaskInterface::STATUS_IDEA,
 			$org->getId()
