@@ -54,6 +54,8 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
 
     public function syncAction()
     {
+        $features = $this->serviceLocator->get('configuration')['features'];
+
         $request = $this->getRequest();
         $this->assertIsConsoleRequest($request);
 
@@ -203,7 +205,9 @@ class KanbanizeToOraSyncController extends AbstractConsoleController {
         }
         $this->write("SYNC END");
 
-        $this->notifyErrors($systemUser);
+        if ($features['send_emails_on_kanbanize_sync_errors']=='true') {
+            $this->notifyErrors($systemUser);
+        }
     }
 
     private function notifyErrors($systemUser)

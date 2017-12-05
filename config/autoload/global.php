@@ -11,5 +11,8 @@
  * file.
  */
 
-return array(
-);
+return [
+    'features' => [
+        'send_emails_on_kanbanize_sync_errors' => getenv( 'SEND_EMAILS_ON_KANBANIZE_SYNC_ERRORS' ),
+    ]
+];
