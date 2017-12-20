@@ -602,7 +602,7 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
 
     private function formatFloatForOutput($number) {
 	    $value = floatval($number);
-        return (fmod($value, 1.0)>0) ? number_format($value, 1, '.', ',') : ceil($value);
+        return (abs($value) - intval(abs($value)) > 0) ? number_format($value, 1, '.', ',') : ceil($value);
     }
 
 }
