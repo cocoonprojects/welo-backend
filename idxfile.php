@@ -4,7 +4,7 @@ use Idephix\Idephix;
 
 $targets = array(
     'stage-ora' => array(
-        'hosts' => array('10.250.2.44'),
+        'hosts' => array('10.250.2.125'),
         'ssh_params' => ['user' => 'cocoon'],
         'deploy' => array(
             'local_base_dir' => __DIR__,
@@ -13,7 +13,7 @@ $targets = array(
         ),
     ),
     'stage' => array(
-        'hosts' => array('10.250.2.44'),
+        'hosts' => array('10.250.2.125'),
         'ssh_params' => ['user' => 'cocoon'],
         'deploy' => array(
             'local_base_dir' => __DIR__,
@@ -22,7 +22,7 @@ $targets = array(
         ),
     ),
     'prod' => array(
-        'hosts' => array('10.250.2.44'),
+        'hosts' => array('10.250.2.125'),
         'ssh_params' => ['user' => 'cocoon'],
         'deploy' => array(
             'local_base_dir' => __DIR__,
