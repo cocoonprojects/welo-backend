@@ -12,6 +12,7 @@ use TaskManagement\Controller\EstimationsController;
 use TaskManagement\Controller\MembersController;
 use TaskManagement\Controller\OwnerController;
 use TaskManagement\Controller\MemberStatsController;
+use TaskManagement\Controller\PositionsController;
 use TaskManagement\Controller\RemindersController;
 use TaskManagement\Controller\Console\RemindersController as ConsoleRemindersController;
 use TaskManagement\Controller\Console\VotingResultsController as ConsoleVotingsController;
@@ -21,6 +22,7 @@ use TaskManagement\Controller\TasksController;
 use TaskManagement\Controller\TransitionsController;
 use TaskManagement\Controller\VotingResultsController;
 use TaskManagement\Controller\HistoryController;
+use TaskManagement\Projector\TaskProjector;
 use TaskManagement\Service\AssignCreditsListener;
 use TaskManagement\Service\CloseTaskListener;
 use TaskManagement\Service\EventSourcingStreamService;
@@ -241,8 +243,15 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
                     $em = $locator->get('doctrine.entitymanager.orm_default');
 
 					return new ShiftOutWarningController($orgService, $userService, $em);
-				}
-			]
+				},
+                'TaskManagement\Controller\Positions' => function ($sm) {
+                    $locator = $sm->getServiceLocator();
+                    $orgService = $locator->get('People\OrganizationService');
+                    $taskService = $locator->get('TaskManagement\TaskService');
+                    $controller = new PositionsController($orgService, $taskService);
+                    return $controller;
+                }
+            ]
 		];
 	}
 
@@ -277,6 +286,9 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
 
 					return $rv;
 				},
+                'TaskManagement\Projector\TaskProjector' => function($locator) {
+				    return new TaskProjector();
+                },
 				'TaskManagement\TaskService' => function ($locator) {
 					$eventStore = $locator->get('prooph.event_store');
 					$entityManager = $locator->get('doctrine.entitymanager.orm_default');

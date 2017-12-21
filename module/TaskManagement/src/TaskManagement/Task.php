@@ -11,6 +11,7 @@ use Application\InvalidArgumentException;
 use People\MissingOrganizationMembershipException;
 use Rhumsaa\Uuid\Uuid;
 use TaskManagement\Entity\TaskMember;
+use TaskManagement\Event\TaskPositionUpdated;
 
 class Task extends DomainEntity implements TaskInterface
 {
@@ -201,6 +202,23 @@ class Task extends DomainEntity implements TaskInterface
         }
 
         $this->recordThat(TaskUpdated::occur($this->id->toString(), $eventData));
+    }
+
+    /**
+     * Set the position for the given tasks.
+     *
+     * @param integer	$position	the position on the kanbanize board
+     */
+    public function updatePosition($position, BasicUser $updatedBy)
+    {
+        $event = TaskPositionUpdated::happened(
+            $this->id->toString(),
+            $position,
+            $this->getPosition(),
+            $updatedBy->getId()
+        );
+
+        $this->recordThat($event);
     }
 
     /**
@@ -1133,6 +1151,12 @@ class Task extends DomainEntity implements TaskInterface
                 $this->members[$key]['share'] = $value;
             }
         }
+        $this->mostRecentEditAt = $event->occurredOn();
+    }
+
+    protected function whenTaskPositionUpdated(TaskPositionUpdated $event)
+    {
+        $this->position = $event->position();
         $this->mostRecentEditAt = $event->occurredOn();
     }
 

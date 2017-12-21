@@ -127,5 +127,6 @@ return array(
 	    'TaskManagement\AcceptCompletedItemListener',
 		'TaskManagement\TransferCreditsListener',
 		'TaskManagement\AssignCreditsListener',
+        'TaskManagement\Projector\TaskProjector'
 	],
 );

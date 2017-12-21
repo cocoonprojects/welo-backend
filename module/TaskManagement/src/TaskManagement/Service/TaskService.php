@@ -2,6 +2,7 @@
 
 namespace TaskManagement\Service;
 
+use Application\Entity\BasicUser;
 use People\Entity\Organization;
 use Rhumsaa\Uuid\Uuid;
 use TaskManagement\Task;
@@ -101,5 +102,7 @@ interface TaskService
     public function countVotesForIdeaApproval($itemStatus, $id);
 
     public function countVotesForItemAcceptance($itemStatus, $id);
+
+    public function updateTasksPositions($data, BasicUser $by);
 
 }

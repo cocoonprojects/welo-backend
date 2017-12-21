@@ -2,6 +2,7 @@
 
 namespace TaskManagement\Service;
 
+use Application\Entity\BasicUser;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Query;
 use People\Organization as WriteModelOrganization;
@@ -420,5 +421,14 @@ class EventSourcingTaskService extends AggregateRepository implements TaskServic
     public function refreshEntity(ReadModelTask $task)
     {
         $this->entityManager->refresh($task);
+    }
+
+    public function updateTasksPositions($data, BasicUser $by)
+    {
+        foreach ($data as $taskId => $position) {
+            $task = $this->getTask($taskId);
+
+            $task->updatePosition($position, $by);
+        }
     }
 }

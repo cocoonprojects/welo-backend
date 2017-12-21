@@ -1,6 +1,8 @@
 <?php
 namespace Application\Service;
 
+use Prooph\EventStore\Stream\StreamEvent;
+use Rhumsaa\Uuid\Uuid;
 use Zend\EventManager\ListenerAggregateInterface;
 use Zend\EventManager\EventManagerInterface;
 use Prooph\EventStore\PersistenceEvent\PostCommitEvent;
@@ -15,7 +17,13 @@ class DomainEventDispatcher implements ListenerAggregateInterface
 			function(PostCommitEvent $event) use ($that, $events) {
 				foreach ($event->getRecordedEvents() as $streamEvent) {
 					$eventName = $streamEvent->eventName();
-					$events->trigger($eventName->toString(), $streamEvent, $streamEvent->payload());
+
+                    if (strpos($eventName->toString(), '\\Event\\') !== false) {
+                        $stuff = $this->translateToAggregateChangedEvent($streamEvent);
+                        $events->trigger($stuff);
+                    } else {
+                        $events->trigger($eventName->toString(), $streamEvent, $streamEvent->payload());
+                    }
 				}
 			}); // Execute business processes after read model update
 	}
@@ -26,4 +34,28 @@ class DomainEventDispatcher implements ListenerAggregateInterface
 			unset($this->listeners[0]);
 		}
 	}
+
+
+    protected function translateToAggregateChangedEvent(StreamEvent $streamEvent)
+    {
+        if (! class_exists($streamEvent->eventName()->toString())) {
+            throw new \RuntimeException(
+                sprintf(
+                    'Event %s can not be constructed. EventName is no valid class name',
+                    $streamEvent->eventName()->toString()
+                )
+            );
+        }
+        $eventClass = $streamEvent->eventName()->toString();
+        $payload = $streamEvent->payload();
+        $aggregateId = $payload['aggregate_id'];
+        unset($payload['aggregate_id']);
+        return $eventClass::reconstitute(
+            $aggregateId,
+            $payload,
+            Uuid::fromString($streamEvent->eventId()->toString()),
+            $streamEvent->occurredOn(),
+            $streamEvent->version()
+        );
+    }
 }
