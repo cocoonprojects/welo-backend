@@ -5,7 +5,9 @@ namespace TaskManagement\Service;
 use Application\Entity\BasicUser;
 use People\Entity\Organization;
 use Rhumsaa\Uuid\Uuid;
+use TaskManagement\Entity\Stream;
 use TaskManagement\Task;
+use TaskManagement\DTO\PositionData;
 
 /**
  * TODO: Rename in TaskRepository?
@@ -103,6 +105,6 @@ interface TaskService
 
     public function countVotesForItemAcceptance($itemStatus, $id);
 
-    public function updateTasksPositions($data, BasicUser $by);
+    public function updateTasksPositions(Stream $stream, PositionData $data, BasicUser $by);
 
 }

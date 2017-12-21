@@ -26,4 +26,9 @@ class TaskPositionUpdated extends DomainEvent
     {
         return $this->position;
     }
+
+    public function by()
+    {
+        return $this->by;
+    }
 }

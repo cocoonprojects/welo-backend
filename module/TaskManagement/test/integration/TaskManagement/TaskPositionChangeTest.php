@@ -29,6 +29,7 @@ class TaskPositionChangeTest extends PHPUnit_Framework_TestCase
         $member2 = $this->fixtures->findUserByEmail('paul.smith@ora.local');
 
         $res = $this->fixtures->createOrganization('my org', $admin, [], [$member1, $member2]);
+
         $tasks = [
             $this->fixtures->createOpenTask('Lorem First Ipsum Sic Dolor Amit', $res['stream'], $admin),
             $this->fixtures->createOpenTask('Lorem Second Ipsum Sic Dolor Amit', $res['stream'], $admin),
@@ -41,10 +42,11 @@ class TaskPositionChangeTest extends PHPUnit_Framework_TestCase
                 $tasks[1]->getId() => 2,
                 $tasks[2]->getId() => 1
             ]);
+
         $this->assertEquals('200', $response->getStatusCode());
 
         $response = $this->client
-            ->get("/{$res['org']->getId()}/task-management/tasks?orderBy=position&orderType=asc");
+            ->get("/{$res['org']->getId()}/task-management/tasks?orderBy=position&orderType=desc");
 
         $this->assertEquals('200', $response->getStatusCode());
 

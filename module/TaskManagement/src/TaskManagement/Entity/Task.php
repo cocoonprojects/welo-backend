@@ -157,6 +157,13 @@ class Task extends EditableEntity implements TaskInterface
 		return $this;
 	}
 
+	public function updatePosition($position, $by, $when)
+    {
+        $this->position = $position;
+        $this->mostRecentEditAt = $when;
+        $this->mostRecentEditBy = $by;
+    }
+
 	/**
 	 * @return string
 	 */

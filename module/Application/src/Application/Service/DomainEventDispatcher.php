@@ -19,9 +19,12 @@ class DomainEventDispatcher implements ListenerAggregateInterface
 					$eventName = $streamEvent->eventName();
 
                     if (strpos($eventName->toString(), '\\Event\\') !== false) {
+
                         $stuff = $this->translateToAggregateChangedEvent($streamEvent);
                         $events->trigger($stuff);
+
                     } else {
+
                         $events->trigger($eventName->toString(), $streamEvent, $streamEvent->payload());
                     }
 				}
@@ -46,10 +49,13 @@ class DomainEventDispatcher implements ListenerAggregateInterface
                 )
             );
         }
+
         $eventClass = $streamEvent->eventName()->toString();
         $payload = $streamEvent->payload();
         $aggregateId = $payload['aggregate_id'];
+
         unset($payload['aggregate_id']);
+
         return $eventClass::reconstitute(
             $aggregateId,
             $payload,

@@ -2,6 +2,7 @@
 
 namespace Application\Service;
 
+use Doctrine\ORM\EntityManager;
 use Zend\EventManager\EventManagerInterface;
 use Zend\EventManager\ListenerAggregateInterface;
 use Zend\Mvc\Application;
@@ -9,6 +10,13 @@ use Zend\Mvc\Application;
 abstract class Projector implements ListenerAggregateInterface
 {
     protected $listeners = array();
+
+    protected $entityManager;
+
+    public function __construct(EntityManager $entityManager)
+    {
+        $this->entityManager = $entityManager;
+    }
 
     abstract public function getRegisteredEvents();
 

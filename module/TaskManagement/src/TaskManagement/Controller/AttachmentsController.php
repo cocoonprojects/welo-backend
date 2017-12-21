@@ -8,7 +8,6 @@ use Application\IllegalStateException;
 use Application\View\ErrorJsonModel;
 use ZFX\Rest\Controller\HATEOASRestfulController;
 use TaskManagement\Service\TaskService;
-use TaskManagement\TaskInterface;
 use TaskManagement\View\TaskJsonModel;
 
 class AttachmentsController extends HATEOASRestfulController {

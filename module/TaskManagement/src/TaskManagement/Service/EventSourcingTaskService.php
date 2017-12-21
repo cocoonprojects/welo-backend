@@ -4,7 +4,7 @@ namespace TaskManagement\Service;
 
 use Application\Entity\BasicUser;
 use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\Query;
+use Application\IllegalStateException;
 use People\Organization as WriteModelOrganization;
 use People\Entity\Organization;
 use Prooph\EventSourcing\EventStoreIntegration\AggregateTranslator;
@@ -13,12 +13,14 @@ use Prooph\EventStore\Aggregate\AggregateType;
 use Prooph\EventStore\EventStore;
 use Prooph\EventStore\Stream\SingleStreamStrategy;
 use Rhumsaa\Uuid\Uuid;
+use TaskManagement\DTO\PositionData;
 use TaskManagement\Entity\ItemCompletedAcceptance;
 use TaskManagement\Task;
 use TaskManagement\Entity\Task as ReadModelTask;
 use Kanbanize\Entity\KanbanizeTask as ReadModelKanbanizeTask;
 use TaskManagement\Entity\TaskMember;
 use TaskManagement\Entity\ItemIdeaApproval;
+use TaskManagement\Entity\Stream;
 
 class EventSourcingTaskService extends AggregateRepository implements TaskService
 {
@@ -423,9 +425,13 @@ class EventSourcingTaskService extends AggregateRepository implements TaskServic
         $this->entityManager->refresh($task);
     }
 
-    public function updateTasksPositions($data, BasicUser $by)
+    public function updateTasksPositions(Stream $stream, PositionData $dto, BasicUser $by)
     {
-        foreach ($data as $taskId => $position) {
+        if ($stream->isBoundToKanbanizeBoard()) {
+            throw new IllegalStateException('cannot update priorities in a board connected to kanbanize');
+        }
+
+        foreach ($dto->data as $taskId => $position) {
             $task = $this->getTask($taskId);
 
             $task->updatePosition($position, $by);

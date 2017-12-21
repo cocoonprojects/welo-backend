@@ -248,8 +248,9 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
                     $locator = $sm->getServiceLocator();
                     $orgService = $locator->get('People\OrganizationService');
                     $taskService = $locator->get('TaskManagement\TaskService');
-                    $controller = new PositionsController($orgService, $taskService);
-                    return $controller;
+                    $streamService = $locator->get('TaskManagement\StreamService');
+
+                    return new PositionsController($orgService, $streamService, $taskService);
                 }
             ]
 		];
@@ -287,12 +288,16 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
 					return $rv;
 				},
                 'TaskManagement\Projector\TaskProjector' => function($locator) {
-				    return new TaskProjector();
+                    $entityManager = $locator->get('doctrine.entitymanager.orm_default');
+
+				    return new TaskProjector($entityManager);
                 },
 				'TaskManagement\TaskService' => function ($locator) {
 					$eventStore = $locator->get('prooph.event_store');
 					$entityManager = $locator->get('doctrine.entitymanager.orm_default');
+
 					return new EventSourcingTaskService($eventStore, $entityManager);
+
 				},
 				'TaskManagement\TaskCommandsListener' => function ($locator) {
 					$entityManager = $locator->get('doctrine.entitymanager.orm_default');
