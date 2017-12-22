@@ -79,22 +79,36 @@ class EventSourcingTaskService extends AggregateRepository implements TaskServic
 		$orderType = 'DESC';
 
 		if (isset($sorting["orderBy"])) {
-			$orderBy = 't.'.$sorting['orderBy'];
+			$orderBy = "t.{$sorting['orderBy']}";
 		}
 
 		if (isset($sorting["orderType"])) {
 			$orderType = $sorting['orderType'];
 		}
 
-		$query = $builder->select('t')
-			->from(ReadModelTask::class, 't')
-			->innerjoin('t.stream', 's', 'WITH', 's.organization = :organization')
-			->orderBy($orderBy, $orderType)
-			->setFirstResult($offset)
-			->setMaxResults($limit)
-			->setParameter(':organization', $organizationId);
+		if ($orderBy == 't.priority') {
 
-		$type = 0;
+		    $value = 999999;
+
+		    if (strtoupper($orderType) == 'DESC') {
+		        $value = -1;
+            }
+
+            $query = $builder->select("t, COALESCE(t.position, $value) AS HIDDEN position")
+                             ->orderBy('position', $orderType);
+
+        } else {
+
+            $query = $builder->select('t')
+                             ->orderBy($orderBy, $orderType);
+        }
+
+        $query = $query->from(ReadModelTask::class, 't')
+                         ->innerJoin('t.stream', 's', 'WITH', 's.organization = :organization')
+                         ->setFirstResult($offset)
+                         ->setMaxResults($limit)
+                         ->setParameter(':organization', $organizationId);
+
 
 		if(isset($filters["type"]) && $filters["type"]=='decisions') {
 			$query->andWhere('t.is_decision = :type')
