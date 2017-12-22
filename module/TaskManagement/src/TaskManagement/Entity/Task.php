@@ -430,9 +430,9 @@ class Task extends EditableEntity implements TaskInterface
 
             $summary[$uid] = [
                 'name' => $member->getFirstname(). ' ' . $member->getLastname(),
-                'share' => $share * 100,
+                'share' => number_format($share * 100, 1),
                 'value' => $share * $avgCredits,
-                'gap' => isset($gap[$uid]) ? $gap[$uid] * 100 : 'n/a'
+                'gap' => isset($gap[$uid]) ? number_format($gap[$uid] * 100, 1) : 'n/a'
             ];
         }
 
