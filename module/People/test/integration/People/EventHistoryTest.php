@@ -12,7 +12,7 @@ class EventHistoryTest extends WebTestCase
         $this->client->setJWTToken($this->fixtures->getJWTToken('mark.rogers@ora.local'));
     }
 
-    public function testEventStreamTask()
+    public function testShouldShowEventLogForMembers()
     {
         $admin = $this->fixtures->findUserByEmail('mark.rogers@ora.local');
         $member = $this->fixtures->findUserByEmail('phil.toledo@ora.local');
