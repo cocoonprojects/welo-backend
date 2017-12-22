@@ -1,28 +1,20 @@
 <?php
 namespace TaskManagement;
 
-use People\Entity\OrganizationMembership;
-use People\Organization;
 use Rhumsaa\Uuid\Uuid;
 use TaskManagement\Entity\Stream as ReadModelStream;
 use TaskManagement\Entity\Task as ReadModelTask;
 use TaskManagement\Entity\Vote;
-use Test\Mailbox;
-use Test\TestFixturesHelper;
-use Test\ZFHttpClient;
+use ZFX\Test\WebTestCase;
 
-class TaskAcceptanceTest extends \PHPUnit_Framework_TestCase
+class TaskAcceptanceTest extends WebTestCase
 {	
 	protected $client;
     protected $fixtures;
 
     public function setUp()
     {
-        $config = getenv('APP_ROOT_DIR') . '/config/application.test.config.php';
-        $this->client = ZFHttpClient::create($config);
-        $this->client->enableErrorTrace();
-
-        $this->fixtures = new TestFixturesHelper($this->client->getServiceManager());
+        parent::setUp();
 
         $this->client->setJWTToken($this->fixtures->getJWTToken('bruce.wayne@ora.local'));
     }

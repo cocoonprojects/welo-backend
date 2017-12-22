@@ -414,7 +414,8 @@ class EventSourcingTaskService extends AggregateRepository implements TaskServic
 				'user' => [
 				    'id' => $payload['by'],
                     'name' => isset($payload['userName']) ? $payload['userName'] : ''
-                ]
+                ],
+                'payload' => $payload
 			];
 		}
 		return $events;

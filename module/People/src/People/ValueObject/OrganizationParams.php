@@ -26,7 +26,9 @@ class OrganizationParams
 
             'shiftout_days' =>  90,
             'shiftout_min_item' =>  2,
-            'shiftout_min_credits' =>  50
+            'shiftout_min_credits' =>  50,
+
+            'manage_priorities' => false
         ];
     }
 
@@ -44,6 +46,17 @@ class OrganizationParams
         }
 
         $this->params[$intervalName] = $interval;
+    }
+
+    private function setBoolValue($data, $boolName)
+    {
+        if (!isset($data[$boolName]) ||
+            !is_bool($data[$boolName])) {
+
+            return;
+        }
+
+        $this->params[$boolName] = $data[$boolName];
     }
 
     private function setTextValue($data, $textName)
@@ -114,6 +127,8 @@ class OrganizationParams
         $settings->setIntValue($data, 'shiftout_min_credits');
 
         $settings->setTextValue($data, 'flow_welcome_card_text');
+
+        $settings->setBoolValue($data, 'manage_priorities');
 
         return $settings;
     }

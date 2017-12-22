@@ -1,23 +1,13 @@
 <?php
 namespace TaskManagement;
 
-use Test\TestFixturesHelper;
-use Test\Mailbox;
-use Test\ZFHttpClient;
+use ZFX\Test\WebTestCase;
 
-class EventStreamTest extends \PHPUnit_Framework_TestCase
+class EventHistoryTest extends WebTestCase
 {
-    protected $client;
-    protected $fixtures;
-
     public function setUp()
     {
-        $config = getenv('APP_ROOT_DIR') . '/config/application.test.config.php';
-
-        $this->client = ZFHttpClient::create($config);
-        $this->client->enableErrorTrace();
-
-        $this->fixtures = new TestFixturesHelper($this->client->getServiceManager());
+        parent::setUp();
 
         $this->client->setJWTToken($this->fixtures->getJWTToken('mark.rogers@ora.local'));
     }

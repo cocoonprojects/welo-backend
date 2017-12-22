@@ -1,14 +1,10 @@
 <?php
+
 namespace TaskManagement;
 
-use FlowManagement\Entity\ItemMemberRemovedCard;
-use FlowManagement\Entity\ItemOwnerChangedCard;
-use IntegrationTest\Bootstrap;
-use Test\TestFixturesHelper;
-use Test\Mailbox;
-use Test\ZFHttpClient;
+use ZFX\Test\WebTestCase;
 
-class RemoveItemMemberCardTest extends \PHPUnit_Framework_TestCase
+class RemoveItemMemberCardTest extends WebTestCase
 {
     protected $client;
     protected $fixtures;
@@ -16,15 +12,7 @@ class RemoveItemMemberCardTest extends \PHPUnit_Framework_TestCase
 
     public function setUp()
     {
-        $config = getenv('APP_ROOT_DIR') . '/config/application.test.config.php';
-        $serviceManager = Bootstrap::getServiceManager();
-
-        $this->client = ZFHttpClient::create($config);
-        $this->client->enableErrorTrace();
-
-        $this->flowService = $serviceManager->get('FlowManagement\FlowService');
-
-        $this->fixtures = new TestFixturesHelper($this->client->getServiceManager());
+        parent::setUp();
 
         $this->client->setJWTToken($this->fixtures->getJWTToken('bruce.wayne@ora.local'));
     }
@@ -43,14 +31,15 @@ class RemoveItemMemberCardTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals('200', $response->getStatusCode());
 
-        $this->assertEquals(1, $this->countOwnerRemovedFlowCard($owner));
+        $this->assertEquals(1, $this->countOwnerRemovedFlowCard());
     }
 
 
-    protected function countOwnerRemovedFlowCard($member) {
+    protected function countOwnerRemovedFlowCard()
+    {
         //users get notified via flowcard
         $response = $this->client
-            ->get('/flow-management/cards?limit=3&offset=0');
+                         ->get('/flow-management/cards?limit=3&offset=0');
 
         $flowCards = json_decode($response->getContent(), true);
 
@@ -60,6 +49,7 @@ class RemoveItemMemberCardTest extends \PHPUnit_Framework_TestCase
                 $count++;
             }
         }
+
         return $count;
     }
 }

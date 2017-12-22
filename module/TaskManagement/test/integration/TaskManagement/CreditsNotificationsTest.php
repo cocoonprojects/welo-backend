@@ -1,39 +1,25 @@
 <?php
 namespace TaskManagement;
 
-use FlowManagement\Entity\ItemDeletedCard;
-use TaskManagement\Entity\Vote;
-use Test\TestFixturesHelper;
 use Test\Mailbox;
-use Test\ZFHttpClient;
-use IntegrationTest\Bootstrap;
+use ZFX\Test\WebTestCase;
 
-class CreditsNotificationsTest extends \PHPUnit_Framework_TestCase
+class CreditsNotificationsTest extends WebTestCase
 {
-    protected $client;
-    protected $fixtures;
-    protected $serviceManager;
-    protected $flowService;
-    protected $userService;
 
     public function setUp()
     {
-        $config = getenv('APP_ROOT_DIR') . '/config/application.test.config.php';
-        $this->serviceManager = Bootstrap::getServiceManager();
-
-        $this->client = ZFHttpClient::create($config);
-        $this->client->enableErrorTrace();
-
-        $this->flowService = $this->serviceManager->get('FlowManagement\FlowService');
-        $this->accountService = $this->serviceManager->get('Accounting\CreditsAccountsService');
-
-        $this->fixtures = new TestFixturesHelper($this->client->getServiceManager());
+        parent::setUp();
 
         $this->client->setJWTToken($this->fixtures->getJWTToken('bruce.wayne@ora.local'));
     }
 
     public function testCreditsTransferNotifications()
     {
+        $accountService = $this->client
+                               ->getServiceManager()
+                               ->get('Accounting\CreditsAccountsService');
+
         $owner = $this->fixtures->findUserByEmail('bruce.wayne@ora.local');
         $member = $this->fixtures->findUserByEmail('phil.toledo@ora.local');
 
@@ -89,7 +75,7 @@ class CreditsNotificationsTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(2, $this->countCreditsAddedFlowCard($flowCards));
 
 
-        $userAccount = $this->accountService->findPersonalAccount($member, $res['org']);
+        $userAccount = $accountService->findPersonalAccount($member, $res['org']);
         $response = $this->client
             ->get(
                 "/{$res['org']->getId()}/accounting/accounts/{$userAccount->getId()}"
@@ -112,7 +98,7 @@ class CreditsNotificationsTest extends \PHPUnit_Framework_TestCase
         $mailbox->clean();
 
 
-        $transactionManager = $this->serviceManager->get('prooph.event_store');
+        $transactionManager = $this->client->getServiceManager()->get('prooph.event_store');
         $transactionManager->beginTransaction();
         try {
             $task->assignShares([

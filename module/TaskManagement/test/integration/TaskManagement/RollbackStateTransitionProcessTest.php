@@ -1,23 +1,14 @@
 <?php
+
 namespace TaskManagement;
 
-use PHPUnit_Framework_TestCase;
-use Test\TestFixturesHelper;
-use Test\ZFHttpClient;
+use ZFX\Test\WebTestCase;
 
-class RollbackStateTransitionProcessTest extends PHPUnit_Framework_TestCase
+class RollbackStateTransitionProcessTest extends WebTestCase
 {
-    protected $client;
-    protected $fixtures;
-
     public function setUp()
     {
-        $config = getenv('APP_ROOT_DIR') . '/config/application.test.config.php';
-
-        $this->client = ZFHttpClient::create($config);
-        $this->client->enableErrorTrace();
-
-        $this->fixtures = new TestFixturesHelper($this->client->getServiceManager());
+        parent::setUp();
 
         $this->client->setJWTToken($this->fixtures->getJWTToken('bruce.wayne@ora.local'));
     }

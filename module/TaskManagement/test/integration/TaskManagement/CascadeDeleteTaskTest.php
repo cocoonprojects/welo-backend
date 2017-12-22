@@ -1,29 +1,15 @@
 <?php
+
 namespace TaskManagement;
 
-use FlowManagement\Entity\ItemDeletedCard;
-use Test\TestFixturesHelper;
 use Test\Mailbox;
-use Test\ZFHttpClient;
-use IntegrationTest\Bootstrap;
+use ZFX\Test\WebTestCase;
 
-class CascadeDeleteTaskTest extends \PHPUnit_Framework_TestCase
+class CascadeDeleteTaskTest extends WebTestCase
 {	
-	protected $client;
-    protected $fixtures;
-    protected $flowService;
-
     public function setUp()
     {
-        $config = getenv('APP_ROOT_DIR') . '/config/application.test.config.php';
-        $serviceManager = Bootstrap::getServiceManager();
-
-        $this->client = ZFHttpClient::create($config);
-        $this->client->enableErrorTrace();
-
-        $this->flowService = $serviceManager->get('FlowManagement\FlowService');
-
-        $this->fixtures = new TestFixturesHelper($this->client->getServiceManager());
+        parent::setUp();
 
         $this->client->setJWTToken($this->fixtures->getJWTToken('bruce.wayne@ora.local'));
     }

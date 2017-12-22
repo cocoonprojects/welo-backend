@@ -1,29 +1,13 @@
 <?php
 namespace TaskManagement;
 
-use FlowManagement\Entity\ItemOwnerChangedCard;
-use IntegrationTest\Bootstrap;
-use Test\TestFixturesHelper;
-use Test\Mailbox;
-use Test\ZFHttpClient;
+use ZFX\Test\WebTestCase;
 
-class CreateItemOwnerChangedCardTest extends \PHPUnit_Framework_TestCase
+class CreateItemOwnerChangedCardTest extends WebTestCase
 {
-    protected $client;
-    protected $fixtures;
-    protected $flowService;
-
     public function setUp()
     {
-        $config = getenv('APP_ROOT_DIR') . '/config/application.test.config.php';
-        $serviceManager = Bootstrap::getServiceManager();
-
-        $this->client = ZFHttpClient::create($config);
-        $this->client->enableErrorTrace();
-
-        $this->flowService = $serviceManager->get('FlowManagement\FlowService');
-
-        $this->fixtures = new TestFixturesHelper($this->client->getServiceManager());
+        parent::setUp();
 
         $this->client->setJWTToken($this->fixtures->getJWTToken('bruce.wayne@ora.local'));
     }
@@ -41,22 +25,25 @@ class CreateItemOwnerChangedCardTest extends \PHPUnit_Framework_TestCase
             ->delete("/{$res['org']->getId()}/task-management/tasks/{$task->getId()}/members", ['memberId' => $member->getId()]);
 
         $this->assertEquals('200', $response->getStatusCode());
-        $this->assertEquals(1, $this->countOwnerRemovedFlowCard($owner));
+        $this->assertEquals(1, $this->countOwnerRemovedFlowCard());
     }
 
 
-    protected function countOwnerRemovedFlowCard($member) {
+    protected function countOwnerRemovedFlowCard()
+    {
         //users get notified via flowcard
         $response = $this->client
-            ->get('/flow-management/cards?limit=10&offset=0');
+                         ->get('/flow-management/cards?limit=10&offset=0');
 
         $flowCards = json_decode($response->getContent(), true);
         $count = 0;
+
         foreach ($flowCards['_embedded']['ora:flowcard'] as $idx => $flowCard) {
             if ($flowCard['type'] == 'ItemMemberRemoved') {
                 $count++;
             }
         }
+
         return $count;
     }
 }
