@@ -54,7 +54,7 @@ class ZFClientContext implements Context
     /**
      * @AfterScenario
      */
-    public function closeConnections($event)
+    public function closeConnections()
     {
         $connection = $this->_client
                          ->getServiceManager()

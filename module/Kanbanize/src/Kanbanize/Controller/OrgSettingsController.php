@@ -4,30 +4,19 @@ namespace Kanbanize\Controller;
 
 use Application\Controller\OrganizationAwareController;
 use Application\View\ErrorJsonModel;
-use Kanbanize\Service\Importer;
-use Kanbanize\Service\KanbanizeAPI;
-use Kanbanize\Service\KanbanizeApiException;
-use People\Service\OrganizationService;
-use People\Organization;
-use Zend\Filter\FilterChain;
-use Zend\Filter\StringTrim;
-use Zend\Filter\StripNewlines;
-use Zend\Filter\StripTags;
-use Zend\Validator\NotEmpty;
 use Zend\View\Model\JsonModel;
-use Zend\Validator\ValidatorChain;
-use Zend\Validator\StringLength;
-use Zend\Json\Json;
 
-class OrgSettingsController extends OrganizationAwareController{
+class OrgSettingsController extends OrganizationAwareController
+{
+    protected function getCollectionOptions()
+    {
+        return ['PUT', 'GET'];
+    }
 
-	protected static $resourceOptions = [];
-	protected static $collectionOptions= ['PUT', 'GET'];
-
-	public function __construct(OrganizationService $orgService)
-	{
-		parent::__construct($orgService);
-	}
+    protected function getResourceOptions()
+    {
+        return [];
+    }
 
 	public function getList()
 	{
@@ -95,13 +84,5 @@ class OrgSettingsController extends OrganizationAwareController{
 			$this->response->setStatusCode(500);
 			return $error;
 		}
-	}
-
-	protected function getCollectionOptions() {
-		return self::$collectionOptions;
-	}
-
-	protected function getResourceOptions() {
-		return self::$resourceOptions;
 	}
 }

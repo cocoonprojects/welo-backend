@@ -75,6 +75,7 @@ class Organization extends DomainEntity
 			'settingValue' => $settingValue,
 			'by' => $updatedBy->getId(),
 		)));
+
 		return $this;
 	}
 
@@ -90,13 +91,14 @@ class Organization extends DomainEntity
 	}
 
 	public function setParams($data, User $updatedBy) {
+
 		$settings = ValueObject\OrganizationParams::fromArray($data);
 		$this->setSettings(self::ORG_SETTINGS, $settings, $updatedBy);
 
 		return $this;
 	}
 
-	public function getSettings($key = null){
+	public function getSettings($key = null) {
 		if(is_null($key)){
 			return $this->settings;
 		}
@@ -254,9 +256,12 @@ class Organization extends DomainEntity
 
 	protected function whenOrganizationUpdated(OrganizationUpdated $event) {
 		$pl = $event->payload();
+
+
 		if(array_key_exists('name', $pl)) {
 			$this->name = $pl['name'];
 		}
+
 		if(array_key_exists('settingKey', $pl) && array_key_exists('settingValue', $pl)) {
 			if(is_array($pl['settingValue'])){
 				foreach ($pl['settingValue'] as $key=>$value){

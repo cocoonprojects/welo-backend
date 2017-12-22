@@ -21,6 +21,7 @@ class TaskPositionChangeTest extends WebTestCase
 
         $res = $this->fixtures->createOrganization('my org', $admin, [], [$member1, $member2]);
 
+
         $tasks = [
             $this->fixtures->createOpenTask('Lorem First Ipsum Sic Dolor Amit', $res['stream'], $admin),
             $this->fixtures->createOpenTask('Lorem Second Ipsum Sic Dolor Amit', $res['stream'], $admin),
