@@ -105,6 +105,6 @@ interface TaskService
 
     public function countVotesForItemAcceptance($itemStatus, $id);
 
-    public function updateTasksPositions(Stream $stream, PositionData $data, BasicUser $by);
+    public function updateTasksPositions(Organization $organization, Stream $stream, PositionData $data, BasicUser $by);
 
 }

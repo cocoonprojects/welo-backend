@@ -45,14 +45,13 @@ class PositionsController extends OrganizationAwareController
             return $this->response;
         }
 
-
         $this->transaction()->begin();
 
         try {
 
             $dto = PositionData::fromArray($data);
             $streams = $this->streamService->findStreams($this->organization);
-            $this->taskService->updateTasksPositions($streams[0], $dto, $this->identity());
+            $this->taskService->updateTasksPositions($this->organization, $streams[0], $dto, $this->identity());
 
             $this->transaction()->commit();
 

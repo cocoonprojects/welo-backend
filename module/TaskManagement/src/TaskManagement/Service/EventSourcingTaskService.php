@@ -426,10 +426,14 @@ class EventSourcingTaskService extends AggregateRepository implements TaskServic
         $this->entityManager->refresh($task);
     }
 
-    public function updateTasksPositions(Stream $stream, PositionData $dto, BasicUser $by)
+    public function updateTasksPositions(Organization $organization, Stream $stream, PositionData $dto, BasicUser $by)
     {
         if ($stream->isBoundToKanbanizeBoard()) {
             throw new IllegalStateException('cannot update priorities in a board connected to kanbanize');
+        }
+
+        if (!$organization->getParams()->get('manage_priorities')) {
+            throw new IllegalStateException("cannot update priorities as defined in 'manage_priorities' settings");
         }
 
         foreach ($dto->data as $taskId => $position) {

@@ -49,6 +49,10 @@ class TestFixturesHelper
 
         try {
 
+            $params = $org->getParams()->toArray();
+            $params['manage_priorities'] = 1;
+            $org->setParams($params, $admin);
+
             foreach ($members as $member) {
                 $org->addMember($member, Organization::ROLE_MEMBER);
             }

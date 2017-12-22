@@ -5,6 +5,7 @@ use Behat\Testwork\Hook\Scope\AfterSuiteScope;
 use Behat\Testwork\Hook\Scope\BeforeSuiteScope;
 use Behat\Gherkin\Node\PyStringNode;
 use Test\ZFHttpClient;
+use PHPUnit_Framework_Assert as Assert;
 
 class ZFClientContext implements Context
 {
@@ -146,6 +147,34 @@ class ZFClientContext implements Context
         if(isset(self::$tokens[$email])) {
             $this->currentToken = self::$tokens[$email];
         }
+    }
+
+    /**
+     * @When I send a POST request to :url with JSON body:
+     */
+    public function iSendAPostRequestToWithBody($url, PyStringNode $data)
+    {
+        if ($this->currentToken !== null) {
+            $this->_client->setJWTToken($this->currentToken);
+        }
+
+        $postFields = json_decode($data->getRaw(), true);
+
+        $this->_response = $this->_client->post($url, $postFields);
+    }
+
+    /**
+     * @When I send a PUT request to :url with JSON body:
+     */
+    public function iSendAPutRequestToWithBody($url, PyStringNode $data)
+    {
+        if ($this->currentToken !== null) {
+            $this->_client->setJWTToken($this->currentToken);
+        }
+
+        $postFields = json_decode($data->getRaw(), true);
+
+        $this->_response = $this->_client->put($url, $postFields);
     }
 
     /**
@@ -304,6 +333,15 @@ class ZFClientContext implements Context
                 "Response was not JSON\n" . $this->_response->getBody(true));
         }
     }
+
+    /**
+     * @Then /^the response should be a JSON like:$/
+     */
+    public function theResponseShouldBeAJSONLike(PyStringNode $string)
+    {
+        Assert::assertJsonStringEqualsJsonString($string->getRaw(), $this->_response->getBody(true));
+    }
+
 
     /**
      * @Then /^the response status code should be (\d+)$/

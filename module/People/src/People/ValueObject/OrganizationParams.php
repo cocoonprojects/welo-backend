@@ -28,7 +28,7 @@ class OrganizationParams
             'shiftout_min_item' =>  2,
             'shiftout_min_credits' =>  50,
 
-            'manage_priorities' => false
+            'manage_priorities' => 0
         ];
     }
 
@@ -46,17 +46,6 @@ class OrganizationParams
         }
 
         $this->params[$intervalName] = $interval;
-    }
-
-    private function setBoolValue($data, $boolName)
-    {
-        if (!isset($data[$boolName]) ||
-            !is_bool($data[$boolName])) {
-
-            return;
-        }
-
-        $this->params[$boolName] = $data[$boolName];
     }
 
     private function setTextValue($data, $textName)
@@ -128,7 +117,7 @@ class OrganizationParams
 
         $settings->setTextValue($data, 'flow_welcome_card_text');
 
-        $settings->setBoolValue($data, 'manage_priorities');
+        $settings->setIntValue($data, 'manage_priorities');
 
         return $settings;
     }
