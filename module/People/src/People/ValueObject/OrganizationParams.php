@@ -44,6 +44,9 @@ class OrganizationParams
         if (is_numeric($data[$intervalName])) {
             $interval = new \DateInterval("P{$data[$intervalName]}D");
         }
+        if (is_array($data[$intervalName]) && isset($data[$intervalName]['d'])) {
+            $interval = new \DateInterval("P{$data[$intervalName]['d']}D");
+        }
 
         $this->params[$intervalName] = $interval;
     }
