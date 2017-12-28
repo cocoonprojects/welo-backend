@@ -64,6 +64,7 @@ class PositionsController extends OrganizationAwareController
         } catch (IllegalStateException $e) {
             $this->transaction()->rollback();
             $this->response->setStatusCode(412);
+            $this->response->setContent($e->getMessage());
 
             return $this->response;
 
