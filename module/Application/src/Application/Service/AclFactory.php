@@ -48,6 +48,7 @@ class AclFactory implements FactoryInterface
 			'Kanbanize.Task.import',
 			'Kanbanize.Settings.create',
 			'Kanbanize.BoardSettings.create',
+			'Kanbanize.BoardSettings.delete',
 		], new OwnerOfOrganizationAssertion());
 
 		$acl->addResource('Ora\User');

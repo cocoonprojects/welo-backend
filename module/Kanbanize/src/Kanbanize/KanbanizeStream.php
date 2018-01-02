@@ -65,7 +65,7 @@ class KanbanizeStream extends Stream {
 	
 	protected function whenStreamUpdated(StreamUpdated $event) {
 		parent::whenStreamUpdated($event);
-		if (isset($event->payload()['boardId'])) {
+		if (array_key_exists('boardId', $event->payload())) {
 			$this->boardId = $event->payload()['boardId'];
 		}
 	}

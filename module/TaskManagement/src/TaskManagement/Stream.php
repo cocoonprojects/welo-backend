@@ -67,6 +67,13 @@ class Stream extends DomainEntity
 		]));
 	}
 
+	public function unbindKanbanizeBoard(User $by) {
+		$this->recordThat(StreamUpdated::occur($this->id->toString(), [
+			'boardId' => null,
+			'by' => $by->getId()
+		]));
+	}
+
 	public function getBoardId() {
 		return $this->boardId;
 	}
@@ -98,7 +105,7 @@ class Stream extends DomainEntity
 			$this->subject = $event->payload()['subject'];
 		}
 
-		if (isset($event->payload()['boardId'])) {
+		if (array_key_exists('boardId', $event->payload())) {
 			$this->boardId = $event->payload()['boardId'];
 		}
 	}
