@@ -94,7 +94,11 @@ class CloseItemIdeaListener implements ListenerAggregateInterface {
 			
 			$this->transactionManager->beginTransaction ();
 			try {
-				$task->open ( $owner );
+				$task->open($owner);
+
+                $position = $this->taskService->getNextOpenTaskPosition();
+                $task->setPosition($position, $owner);
+
 				$this->transactionManager->commit ();
 			} catch ( \Exception $e ) {
 				$this->transactionManager->rollback ();
@@ -114,11 +118,15 @@ class CloseItemIdeaListener implements ListenerAggregateInterface {
 		} elseif ($memberhipcount == (count ( $approvals ))) {
 			
 			if ($accept > $reject) {
-				
+
 				$this->transactionManager->beginTransaction ();
 				try {
-					$task->open ( $owner );
-					$this->transactionManager->commit ();
+					$task->open($owner);
+
+                    $position = $this->taskService->getNextOpenTaskPosition();
+					$task->setPosition($position, $owner);
+
+                    $this->transactionManager->commit ();
 				} catch ( \Exception $e ) {
 					$this->transactionManager->rollback ();
 					throw $e;
