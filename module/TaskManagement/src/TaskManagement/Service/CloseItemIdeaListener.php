@@ -96,7 +96,7 @@ class CloseItemIdeaListener implements ListenerAggregateInterface {
 			try {
 				$task->open($owner);
 
-                $position = $this->taskService->getNextOpenTaskPosition();
+                $position = $this->taskService->getNextOpenTaskPosition($organization->getId());
                 $task->setPosition($position, $owner);
 
 				$this->transactionManager->commit ();
@@ -123,7 +123,7 @@ class CloseItemIdeaListener implements ListenerAggregateInterface {
 				try {
 					$task->open($owner);
 
-                    $position = $this->taskService->getNextOpenTaskPosition();
+                    $position = $this->taskService->getNextOpenTaskPosition($organization->getId());
 					$task->setPosition($position, $owner);
 
                     $this->transactionManager->commit ();

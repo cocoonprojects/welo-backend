@@ -182,7 +182,9 @@ class TransitionsController extends HATEOASRestfulController
                 }
                 $this->transaction()->begin();
                 try {
-                    $task->revertToOpen($this->identity());
+                    $position = $this->taskService->getNextOpenTaskPosition($task->getOrganizationId());
+                    $task->revertToOpen($position, $this->identity());
+
 					$this->transaction()->commit();
                     $this->response->setStatusCode ( 200 );
                     $view = new TaskJsonModel($this);

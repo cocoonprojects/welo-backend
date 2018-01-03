@@ -442,14 +442,16 @@ class EventSourcingTaskService extends AggregateRepository implements TaskServic
     }
 
 
-    public function getNextOpenTaskPosition()
+    public function getNextOpenTaskPosition($orgId)
     {
         $builder = $this->entityManager->createQueryBuilder();
 
         $query = $builder->select ( 'COALESCE(MAX(item.position),0) as itemPos' )
             ->from(ReadModelTask::class, 'item')
+			->innerjoin('item.stream', 's', 'WITH', 's.organization = :organization')
             ->where('item.status = :status')
             ->setParameter ( ':status', TaskInterface::STATUS_OPEN)
+            ->setParameter('organization', $orgId)
             ->getQuery();
 
         return $query->getResult()[0]['itemPos'] + 1;

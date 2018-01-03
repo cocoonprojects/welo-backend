@@ -57,7 +57,7 @@ class VotingResultsController extends HATEOASRestfulController {
 					->findItemsCreatedBefore($timeboxForVoting, TaskInterface::STATUS_IDEA);
 
 				if(sizeof($itemIdeas) > 0){
-					array_walk($itemIdeas, function($idea){
+					array_walk($itemIdeas, function($idea) use ($org) {
 						$itemId = $idea->getId();
 						$results = $this->taskService
                                         ->countVotesForIdeaApproval(TaskInterface::STATUS_IDEA, $itemId);
@@ -67,6 +67,9 @@ class VotingResultsController extends HATEOASRestfulController {
 						try {
 							if($results['votesFor'] > $results['votesAgainst']){
 								$item->open($this->identity());
+
+                                $position = $this->taskService->getNextOpenTaskPosition($org->getId());
+                                $item->setPosition($position, $this->identity());
 							}else{
 								$item->reject($this->identity());
 							}

@@ -38,7 +38,7 @@ class TaskPositionChangeTest extends WebTestCase
         ];
 
         $response = $this->client
-            ->post("/{$res['org']->getId()}/task-management/tasks/positions", [
+            ->post("/{$this->org->getId()}/task-management/tasks/positions", [
                 $tasks[0]->getId() => 3,
                 $tasks[1]->getId() => 2,
                 $tasks[2]->getId() => 1
@@ -47,7 +47,7 @@ class TaskPositionChangeTest extends WebTestCase
         $this->assertEquals('200', $response->getStatusCode());
 
         $response = $this->client
-            ->get("/{$res['org']->getId()}/task-management/tasks?orderBy=position&orderType=desc");
+            ->get("/{$this->org->getId()}/task-management/tasks?orderBy=position&orderType=desc");
 
         $this->assertEquals('200', $response->getStatusCode());
 

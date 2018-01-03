@@ -57,6 +57,7 @@ class RollbackStateTransitionProcessTest extends WebTestCase
 
         $this->assertEquals('200', $response->getStatusCode());
         $this->assertEquals(TASK::STATUS_OPEN, $task['status']);
+        $this->assertEquals(1, $task['position']);
         $this->assertEmpty($task['members']);
     }
 

@@ -353,7 +353,7 @@ class Task extends DomainEntity implements TaskInterface
         return $this;
     }
 
-    public function revertToOpen(BasicUser $executedBy)
+    public function revertToOpen($position, BasicUser $executedBy)
     {
         if (!in_array($this->status, [self::STATUS_ONGOING])) {
             throw new IllegalStateException('Cannot revert to open a task in '.$this->status.' state');
@@ -361,6 +361,7 @@ class Task extends DomainEntity implements TaskInterface
 
         $this->recordThat(TaskRevertedToOpen::occur($this->id->toString(), array(
                 'prevStatus' => $this->getStatus(),
+                'position' => $position,
                 'by' => $executedBy->getId(),
         )));
         return $this;
@@ -974,6 +975,7 @@ class Task extends DomainEntity implements TaskInterface
         $this->members = [];
 
         $this->status = self::STATUS_OPEN;
+        $this->position = isset($event->payload()['position']) ? $event->payload()['position'] : null;
         $this->mostRecentEditAt = $event->occurredOn();
     }
 

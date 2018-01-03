@@ -663,9 +663,10 @@ class Task extends EditableEntity implements TaskInterface
 		return $ref > $this->sharesAssignmentExpiresAt;
 	}
 
-	public function revertToOpen(User $user, \DateTime $time)
+	public function revertToOpen(User $user, $position, \DateTime $time)
     {
         $this->setStatus( Task::STATUS_OPEN );
+        $this->setPosition($position);
         $this->setMostRecentEditBy( $user );
         $this->setMostRecentEditAt( $time );
         $this->removeAllParticipants();
