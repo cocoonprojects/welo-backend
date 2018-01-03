@@ -212,10 +212,11 @@ class TaskCommandsListener extends ReadModelProjector {
 
 	protected function onTaskRevertedToOpen(StreamEvent $event) {
 		$id = $event->metadata()['aggregate_id'];
+		$position = $event->payload()['position'];
 		$task = $this->entityManager->find( Task::class, $id );
 		$user = $this->entityManager->find( User::class, $event->payload ()['by'] );
 
-		$task->revertToOpen($user, $event->occurredOn());
+		$task->revertToOpen($user, $position, $event->occurredOn());
 
 		$this->entityManager->persist( $task );
 

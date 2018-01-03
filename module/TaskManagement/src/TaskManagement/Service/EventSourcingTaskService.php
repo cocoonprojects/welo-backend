@@ -21,6 +21,7 @@ use Kanbanize\Entity\KanbanizeTask as ReadModelKanbanizeTask;
 use TaskManagement\Entity\TaskMember;
 use TaskManagement\Entity\ItemIdeaApproval;
 use TaskManagement\Entity\Stream;
+use TaskManagement\TaskInterface;
 
 class EventSourcingTaskService extends AggregateRepository implements TaskService
 {
@@ -439,6 +440,23 @@ class EventSourcingTaskService extends AggregateRepository implements TaskServic
     {
         $this->entityManager->refresh($task);
     }
+
+
+    public function getNextOpenTaskPosition($orgId)
+    {
+        $builder = $this->entityManager->createQueryBuilder();
+
+        $query = $builder->select ( 'COALESCE(MAX(item.position),0) as itemPos' )
+            ->from(ReadModelTask::class, 'item')
+			->innerjoin('item.stream', 's', 'WITH', 's.organization = :organization')
+            ->where('item.status = :status')
+            ->setParameter ( ':status', TaskInterface::STATUS_OPEN)
+            ->setParameter('organization', $orgId)
+            ->getQuery();
+
+        return $query->getResult()[0]['itemPos'] + 1;
+    }
+
 
     public function updateTasksPositions(Organization $organization, Stream $stream, PositionData $dto, BasicUser $by)
     {
