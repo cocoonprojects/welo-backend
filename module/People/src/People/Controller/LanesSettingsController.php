@@ -23,6 +23,12 @@ class LanesSettingsController extends OrganizationAwareController
         $organization = $this->getOrganizationService()
                              ->getOrganization($this->params('orgId'));
 
+        if (!$this->isAllowed($this->identity(), $this->organization, 'People.Organization.manageLanes')) {
+            $this->response->setStatusCode(403);
+
+            return $this->response;
+        }
+
         $this->transaction()->begin();
 
         try {
@@ -46,6 +52,12 @@ class LanesSettingsController extends OrganizationAwareController
         $organization = $this->getOrganizationService()
             ->getOrganization($this->params('orgId'));
 
+        if (!$this->isAllowed($this->identity(), $this->organization, 'People.Organization.manageLanes')) {
+            $this->response->setStatusCode(403);
+
+            return $this->response;
+        }
+
         $this->transaction()->begin();
 
         try {
@@ -68,6 +80,12 @@ class LanesSettingsController extends OrganizationAwareController
     {
         $organization = $this->getOrganizationService()
             ->getOrganization($this->params('orgId'));
+
+        if (!$this->isAllowed($this->identity(), $this->organization, 'People.Organization.manageLanes')) {
+            $this->response->setStatusCode(403);
+
+            return $this->response;
+        }
 
         $this->transaction()->begin();
 
