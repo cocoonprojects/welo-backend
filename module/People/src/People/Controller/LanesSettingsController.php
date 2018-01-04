@@ -42,7 +42,25 @@ class LanesSettingsController extends OrganizationAwareController
 
     public function update($id, $data)
     {
+        $organization = $this->getOrganizationService()
+            ->getOrganization($this->params('orgId'));
 
+        $this->transaction()->begin();
+
+        try {
+
+            $organization->updateLane($id, $data['name'], $this->identity());
+
+            $this->transaction()->commit();
+            $this->response->setStatusCode(201);
+
+        } catch (\Exception $e) {
+            print_r($e->getMessage());
+            $this->transaction()->rollback();
+            $this->response->setStatusCode(204);
+        }
+
+        return $this->response;
     }
 
     public function delete($id)

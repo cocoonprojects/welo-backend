@@ -6,9 +6,12 @@ use Behat\Testwork\Hook\Scope\BeforeSuiteScope;
 use Behat\Gherkin\Node\PyStringNode;
 use Test\ZFHttpClient;
 use PHPUnit_Framework_Assert as Assert;
+use Coduo\PHPMatcher\PHPUnit\PHPMatcherAssertions;
 
 class ZFClientContext implements Context
 {
+    use PHPMatcherAssertions;
+
     private $_client;
 
     private $_restObject;
@@ -347,13 +350,24 @@ class ZFClientContext implements Context
     }
 
     /**
-     * @Then /^the response should be a JSON like:$/
+     * @Then the response should be a JSON like:
      */
     public function theResponseShouldBeAJSONLike(PyStringNode $string)
     {
         Assert::assertJsonStringEqualsJsonString($string->getRaw(), $this->_response->getBody(true));
     }
 
+    /**
+     * @Then the response should be like:
+     */
+    public function theResponseShouldBeLike(PyStringNode $string)
+    {
+        $actual = json_decode($this->_response->getBody(true), true);
+
+        $expected = json_decode($string->getRaw(), true);
+
+        Assert::assertEquals(array_values($expected), array_values($actual));
+    }
 
     /**
      * @Then /^the response status code should be (\d+)$/
@@ -423,7 +437,7 @@ class ZFClientContext implements Context
 
     /**
      * @Then /^echo last response$/
-     * @Then /^echo the response$/
+     * @Then echo the response
      */
     public function echoLastResponse()
     {

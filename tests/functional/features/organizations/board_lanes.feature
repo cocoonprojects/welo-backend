@@ -8,9 +8,12 @@ Feature: Lanes management in Welo
       When I send a POST request to "/00000000-0000-0000-1000-000000000000/settings/lanes" with JSON body:
       """
       {"name": "banana"}
-
       """
       Then the response status code should be 201
 
       When I send a GET request to "/00000000-0000-0000-1000-000000000000/settings/lanes"
-      Then echo last response
+      Then the response should be like:
+      """
+        {"@uuid@": "banana"}
+      """
+      
