@@ -178,6 +178,18 @@ class ZFClientContext implements Context
     }
 
     /**
+     * @When I send a GET request to :url
+     */
+    public function iSendAGetRequestTo($url)
+    {
+        if ($this->currentToken !== null) {
+            $this->_client->setJWTToken($this->currentToken);
+        }
+
+        $this->_response = $this->_client->get($url);
+    }
+
+    /**
      * @When /^I request "([^"]*)"$/
      */
     public function iRequest($pageUrl)

@@ -33,11 +33,26 @@ abstract class OrganizationAwareController extends HATEOASRestfulController
 
         // Register a listener at high priority
         $events->attach('dispatch', array($this, 'loadOrganization'), 50);
+        $events->attach('dispatch', array($this, 'denyUnlessLoggedIn'), 40);
     }
 
     public function getOrganizationService()
     {
         return $this->organizationService;
+    }
+
+    /**
+     * Returns a 401 if the user is not logged in
+     */
+    public function denyUnlessLoggedIn(MvcEvent $e)
+    {
+        $response = $this->getResponse();
+
+        if (is_null($this->identity())) {
+            $response->setStatusCode(401);
+
+            return $response;
+        }
     }
 
     public function loadOrganization(MvcEvent $e)
