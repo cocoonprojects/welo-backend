@@ -2,6 +2,8 @@
 
 namespace People\Entity;
 
+use Application\Entity\BasicUser;
+use Rhumsaa\Uuid\Uuid;
 use Zend\Permissions\Acl\Resource\ResourceInterface;
 use Doctrine\ORM\Mapping AS ORM;
 use Application\Entity\EditableEntity;
@@ -83,9 +85,30 @@ class Organization extends EditableEntity implements ResourceInterface
 		return $this;
 	}
 
-	public function getLanes(){
+	public function getLanes() {
         return $this->lanes;
 	}
+
+	public function getSortedLanes()
+    {
+        natsort($this->lanes);
+
+        return $this->lanes;
+    }
+
+	public function addLane(Uuid $id, $name, BasicUser $user, \DateTime $when) {
+	    $this->lanes[$id->toString()] = $name;
+
+	    $this->setMostRecentEditBy($user);
+	    $this->setMostRecentEditAt($when);
+    }
+
+	public function updateLane(Uuid $id, $name, BasicUser $user, \DateTime $when) {
+	    $this->lanes[$id->toString()] = $name;
+
+	    $this->setMostRecentEditBy($user);
+	    $this->setMostRecentEditAt($when);
+    }
 
 	public function getParams() {
 

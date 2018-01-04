@@ -8,6 +8,9 @@ use Zend\EventManager\EventInterface;
 
 abstract class DomainEvent extends AggregateChanged implements EventInterface
 {
+    /**
+     * Override di reconstitute della classe AggregateChanged, che popola le proprietà dell'evento stesso
+     */
     public static function reconstitute($aggregateId, array $payload, Uuid $uuid, \DateTime $occurredOn, $version)
     {
         $event = new static($aggregateId, $payload, $uuid, $occurredOn, $version);

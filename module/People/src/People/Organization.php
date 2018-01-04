@@ -2,7 +2,8 @@
 
 namespace People;
 
-use People\Entity\OrganizationMembership;
+use People\Event\LaneAdded;
+use People\Event\LaneUpdated;
 use Rhumsaa\Uuid\Uuid;
 use Application\Entity\User;
 use Application\DomainEntity;
@@ -43,6 +44,8 @@ class Organization extends DomainEntity
 	 * @var array
 	 */
 	private $settings = [];
+
+	private $lanes = [];
 
 	private $syncErrorsNotification = false;
 
@@ -115,6 +118,24 @@ class Organization extends DomainEntity
             'by' => $updatedBy->getId(),
         )));
         return $this;
+    }
+
+    public function addLane(Uuid $id, $name, User $by)
+    {
+	    $e = LaneAdded::happened($this->id->toString(), $id, $name, $by);
+
+        $this->recordThat($e);
+    }
+
+    public function updateLane($id, $name, User $by)
+    {
+        if (!array_key_exists($id, $this->lanes)) {
+            throw new InvalidArgumentException("lane with id $id does not exists");
+        }
+
+        $e = LaneUpdated::happened($this->id->toString(), Uuid::fromString($id), $name, $by);
+
+        $this->recordThat($e);
     }
 
     public function getName() {
@@ -237,6 +258,18 @@ class Organization extends DomainEntity
 			return $profile['role'] == self::ROLE_ADMIN;
 		});
 	}
+
+	protected function whenLaneAdded(LaneAdded $event)
+    {
+        $lane = new Lane($event->id(), $event->name());
+
+        $this->lanes[$event->id()->toString()] = $lane;
+    }
+
+	protected function whenLaneUpdated(LaneUpdated $event)
+    {
+        $this->lanes[$event->id()->toString()]->update($event->name());
+    }
 
 	protected function whenShiftOutWarning(ShiftOutWarning $event)
     {

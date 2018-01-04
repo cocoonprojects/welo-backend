@@ -1,6 +1,8 @@
 <?php
 namespace People;
 
+use People\Projector\OrganizationProjector;
+
 return array(
 	'router' => array(
 		'routes' => array(
@@ -24,6 +26,20 @@ return array(
 					'defaults' => [
 						'__NAMESPACE__' => 'People\Controller',
 						'controller' => 'Organizations',
+					],
+				],
+			],
+			'lanesettings' => [
+				'type' => 'Segment',
+				'options' => [
+					'route' => '/:orgId/settings/lanes[/:id]',
+					'constraints' => [
+						'orgId' => '([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})',
+                        'id'    => '([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})'
+                    ],
+					'defaults' => [
+						'__NAMESPACE__' => 'People\Controller',
+						'controller' => 'LanesSettings',
 					],
 				],
 			],
@@ -72,6 +88,7 @@ return array(
 	),
 	'listeners' => array(
 		'People\OrganizationCommandsListener',
+        OrganizationProjector::class,
 		'People\SendMailListener'
 	),
 	'default_members_limit' => 20

@@ -252,4 +252,15 @@ class TestFixturesHelper
         return $userService->findUserByEmail($email);
     }
 
+    public function getOrganization($id)
+    {
+        $orgService = $this->serviceManager->get('People\OrganizationService');
+
+        return $orgService->getOrganization($id);
+    }
+
+    public function getEventStore()
+    {
+        return $this->serviceManager->get('prooph.event_store');
+    }
 }

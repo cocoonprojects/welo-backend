@@ -1,6 +1,6 @@
 default:
     autoload:
-        - functional/bootstrap
+        '' : %paths.base%/functional/bootstrap
 
     suites:
         task_features:

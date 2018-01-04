@@ -32,7 +32,7 @@ Feature: Create organization
     When I send a PUT request to "/00000000-0000-0000-1000-000000000000/settings" with JSON body:
     """
       {
-        "assignment_of_shares_timebox": "10",
+        "assignment_of_shares_timebox": "100",
         "assignment_of_shares_remind_interval": "7",
         "item_idea_voting_timebox": "7",
         "item_idea_voting_remind_interval": "5",
@@ -46,7 +46,8 @@ Feature: Create organization
         "shiftout_days": "90",
         "shiftout_min_item": "2",
         "shiftout_min_credits": "5000",
-        "manage_priorities": "1"
+        "manage_priorities": "1",
+        "manage_lanes": "1"
       }
     """
     Then the response status code should be 202
@@ -55,7 +56,7 @@ Feature: Create organization
     """
       {
         "settings": {
-            "assignment_of_shares_timebox": "10",
+            "assignment_of_shares_timebox": "100",
             "assignment_of_shares_remind_interval": "7",
             "item_idea_voting_timebox": "7",
             "item_idea_voting_remind_interval": "5",
@@ -69,7 +70,8 @@ Feature: Create organization
             "shiftout_days": "90",
             "shiftout_min_item": "2",
             "shiftout_min_credits": "5000",
-            "manage_priorities": "1"
+            "manage_priorities": "1",
+            "manage_lanes": "1"
           }
       }
     """

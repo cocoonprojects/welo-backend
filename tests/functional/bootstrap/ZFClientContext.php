@@ -1,15 +1,20 @@
 <?php
 
 use Behat\Behat\Context\Context;
+use Behat\Gherkin\Node\TableNode;
 use Behat\Testwork\Hook\Scope\AfterSuiteScope;
 use Behat\Testwork\Hook\Scope\BeforeSuiteScope;
 use Behat\Gherkin\Node\PyStringNode;
+use Rhumsaa\Uuid\Uuid;
 use Test\ZFHttpClient;
 use PHPUnit_Framework_Assert as Assert;
+use Test\TestFixturesHelper;
 
 class ZFClientContext implements Context
 {
     private $_client;
+
+    private $_fixtureHelper;
 
     private $_restObject;
     private $_restObjectType;
@@ -30,6 +35,8 @@ class ZFClientContext implements Context
 
     private $currentToken;
 
+    private $currentUser;
+
     /**
      *  @BeforeSuite
      */
@@ -41,14 +48,14 @@ class ZFClientContext implements Context
             die();
         }
 
-        echo shell_exec('../vendor/bin/doctrine-module orm:schema-tool:drop --force');
-        echo shell_exec('../vendor/bin/doctrine-module orm:schema-tool:create');
-        echo shell_exec('../vendor/bin/doctrine-module dbal:import ' . __DIR__ . '/../../sql/init.sql');
+        echo shell_exec(__DIR__ . '/../../../vendor/bin/doctrine-module orm:schema-tool:drop --force');
+        echo shell_exec(__DIR__ . '/../../../vendor/bin/doctrine-module orm:schema-tool:create');
+        echo shell_exec(__DIR__ . '/../../../vendor/bin/doctrine-module dbal:import ' . __DIR__ . '/../../sql/init.sql');
     }
 
     /** @AfterSuite */
     public static function teardownApplication(AfterSuiteScope $scope){
-        echo shell_exec('../vendor/bin/doctrine-module orm:schema-tool:drop --force');
+        echo shell_exec(__DIR__ . '/../../../vendor/bin/doctrine-module orm:schema-tool:drop --force');
 
     }
 
@@ -76,6 +83,8 @@ class ZFClientContext implements Context
             $config = __DIR__ . '/../../../config/application.test.config.php';
             $this->_client = ZFHttpClient::create($config);
             //$this->_client->enableErrorTrace();
+
+            $this->_fixtureHelper = new TestFixturesHelper($this->_client->getServiceManager());
         }
     }
 
@@ -140,11 +149,41 @@ class ZFClientContext implements Context
     }
 
     /**
+     * @Given the organization :id has the following lanes:
+     */
+    public function theOrganizationHasTheFollowingLanes($id, TableNode $table)
+    {
+        $org = $this->_fixtureHelper->getOrganization($id);
+
+        $eventStore = $this->_fixtureHelper->getEventStore();
+
+        $eventStore->beginTransaction();
+
+        try {
+
+            foreach ($table->getHash() as $line) {
+                $org->addLane(Uuid::fromString($line['id']), $line['name'], $this->currentUser);
+            }
+
+            $eventStore->commit();
+
+        } catch (\Exception $e) {
+            var_dump($e->getMessage());
+            var_dump($e->getTraceAsString());
+            $eventStore->rollback();
+
+            throw $e;
+        }
+    }
+
+
+    /**
      * @Given /^that I am authenticated as "([^"]*)"$/
      */
     public function thatIAmAuthenticatedAs($email)
     {
         if(isset(self::$tokens[$email])) {
+            $this->currentUser = $this->_fixtureHelper->findUserByEmail($email);
             $this->currentToken = self::$tokens[$email];
         }
     }
@@ -175,6 +214,18 @@ class ZFClientContext implements Context
         $postFields = json_decode($data->getRaw(), true);
 
         $this->_response = $this->_client->put($url, $postFields);
+    }
+
+    /**
+     * @When I send a GET request to :url
+     */
+    public function iSendAGetRequestTo($url)
+    {
+        if ($this->currentToken !== null) {
+            $this->_client->setJWTToken($this->currentToken);
+        }
+
+        $this->_response = $this->_client->get($url);
     }
 
     /**
@@ -335,13 +386,24 @@ class ZFClientContext implements Context
     }
 
     /**
-     * @Then /^the response should be a JSON like:$/
+     * @Then the response should be a JSON like:
      */
     public function theResponseShouldBeAJSONLike(PyStringNode $string)
     {
         Assert::assertJsonStringEqualsJsonString($string->getRaw(), $this->_response->getBody(true));
     }
 
+    /**
+     * @Then the response should be like:
+     */
+    public function theResponseShouldBeLike(PyStringNode $string)
+    {
+        $actual = json_decode($this->_response->getBody(true), true);
+
+        $expected = json_decode($string->getRaw(), true);
+
+        Assert::assertEquals(array_values($expected), array_values($actual));
+    }
 
     /**
      * @Then /^the response status code should be (\d+)$/
@@ -411,7 +473,7 @@ class ZFClientContext implements Context
 
     /**
      * @Then /^echo last response$/
-     * @Then /^echo the response$/
+     * @Then echo the response
      */
     public function echoLastResponse()
     {
