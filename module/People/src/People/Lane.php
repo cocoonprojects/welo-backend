@@ -21,4 +21,9 @@ class Lane
         return $this->id->toString();
     }
 
+    public function update($name)
+    {
+        $this->name = $name;
+    }
+
 }

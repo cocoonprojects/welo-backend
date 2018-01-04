@@ -89,7 +89,21 @@ class Organization extends EditableEntity implements ResourceInterface
         return $this->lanes;
 	}
 
+	public function getSortedLanes()
+    {
+        natsort($this->lanes);
+
+        return $this->lanes;
+    }
+
 	public function addLane(Uuid $id, $name, BasicUser $user, \DateTime $when) {
+	    $this->lanes[$id->toString()] = $name;
+
+	    $this->setMostRecentEditBy($user);
+	    $this->setMostRecentEditAt($when);
+    }
+
+	public function updateLane(Uuid $id, $name, BasicUser $user, \DateTime $when) {
 	    $this->lanes[$id->toString()] = $name;
 
 	    $this->setMostRecentEditBy($user);

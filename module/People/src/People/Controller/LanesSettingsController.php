@@ -3,6 +3,7 @@
 namespace People\Controller;
 
 use Application\Controller\OrganizationAwareController;
+use Rhumsaa\Uuid\Uuid;
 use Zend\View\Model\JsonModel;
 
 class LanesSettingsController extends OrganizationAwareController
@@ -26,7 +27,7 @@ class LanesSettingsController extends OrganizationAwareController
 
         try {
 
-            $organization->addLane($data['name'], $this->identity());
+            $organization->addLane(Uuid::uuid4(), $data['name'], $this->identity());
 
             $this->transaction()->commit();
             $this->response->setStatusCode(201);
@@ -52,7 +53,7 @@ class LanesSettingsController extends OrganizationAwareController
             $organization->updateLane($id, $data['name'], $this->identity());
 
             $this->transaction()->commit();
-            $this->response->setStatusCode(201);
+            $this->response->setStatusCode(200);
 
         } catch (\Exception $e) {
             print_r($e->getMessage());
@@ -76,7 +77,7 @@ class LanesSettingsController extends OrganizationAwareController
 	{
         $lanes = $this->getOrganizationService()
             ->findOrganization($this->params('orgId'))
-            ->getLanes();
+            ->getSortedLanes();
 
         return new JsonModel($lanes);
 	}

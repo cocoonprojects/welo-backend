@@ -3,6 +3,7 @@
 namespace People;
 
 use People\Event\LaneAdded;
+use People\Event\LaneUpdated;
 use Rhumsaa\Uuid\Uuid;
 use Application\Entity\User;
 use Application\DomainEntity;
@@ -119,9 +120,20 @@ class Organization extends DomainEntity
         return $this;
     }
 
-    public function addLane($name, User $by) {
+    public function addLane(Uuid $id, $name, User $by)
+    {
+	    $e = LaneAdded::happened($this->id->toString(), $id, $name, $by);
 
-	    $e = LaneAdded::happened($this->id->toString(), Uuid::uuid4(), $name, $by);
+        $this->recordThat($e);
+    }
+
+    public function updateLane($id, $name, User $by)
+    {
+        if (!array_key_exists($id, $this->lanes)) {
+            throw new InvalidArgumentException("lane with id $id does not exists");
+        }
+
+        $e = LaneUpdated::happened($this->id->toString(), Uuid::fromString($id), $name, $by);
 
         $this->recordThat($e);
     }
@@ -252,6 +264,11 @@ class Organization extends DomainEntity
         $lane = new Lane($event->id(), $event->name());
 
         $this->lanes[$event->id()->toString()] = $lane;
+    }
+
+	protected function whenLaneUpdated(LaneUpdated $event)
+    {
+        $this->lanes[$event->id()->toString()]->update($event->name());
     }
 
 	protected function whenShiftOutWarning(ShiftOutWarning $event)

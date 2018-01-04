@@ -1,18 +1,20 @@
 <?php
 
 use Behat\Behat\Context\Context;
+use Behat\Gherkin\Node\TableNode;
 use Behat\Testwork\Hook\Scope\AfterSuiteScope;
 use Behat\Testwork\Hook\Scope\BeforeSuiteScope;
 use Behat\Gherkin\Node\PyStringNode;
+use Rhumsaa\Uuid\Uuid;
 use Test\ZFHttpClient;
 use PHPUnit_Framework_Assert as Assert;
-use Coduo\PHPMatcher\PHPUnit\PHPMatcherAssertions;
+use Test\TestFixturesHelper;
 
 class ZFClientContext implements Context
 {
-    use PHPMatcherAssertions;
-
     private $_client;
+
+    private $_fixtureHelper;
 
     private $_restObject;
     private $_restObjectType;
@@ -32,6 +34,8 @@ class ZFClientContext implements Context
     ];
 
     private $currentToken;
+
+    private $currentUser;
 
     /**
      *  @BeforeSuite
@@ -79,6 +83,8 @@ class ZFClientContext implements Context
             $config = __DIR__ . '/../../../config/application.test.config.php';
             $this->_client = ZFHttpClient::create($config);
             //$this->_client->enableErrorTrace();
+
+            $this->_fixtureHelper = new TestFixturesHelper($this->_client->getServiceManager());
         }
     }
 
@@ -143,11 +149,41 @@ class ZFClientContext implements Context
     }
 
     /**
+     * @Given the organization :id has the following lanes:
+     */
+    public function theOrganizationHasTheFollowingLanes($id, TableNode $table)
+    {
+        $org = $this->_fixtureHelper->getOrganization($id);
+
+        $eventStore = $this->_fixtureHelper->getEventStore();
+
+        $eventStore->beginTransaction();
+
+        try {
+
+            foreach ($table->getHash() as $line) {
+                $org->addLane(Uuid::fromString($line['id']), $line['name'], $this->currentUser);
+            }
+
+            $eventStore->commit();
+
+        } catch (\Exception $e) {
+            var_dump($e->getMessage());
+            var_dump($e->getTraceAsString());
+            $eventStore->rollback();
+
+            throw $e;
+        }
+    }
+
+
+    /**
      * @Given /^that I am authenticated as "([^"]*)"$/
      */
     public function thatIAmAuthenticatedAs($email)
     {
         if(isset(self::$tokens[$email])) {
+            $this->currentUser = $this->_fixtureHelper->findUserByEmail($email);
             $this->currentToken = self::$tokens[$email];
         }
     }
