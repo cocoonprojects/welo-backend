@@ -5,6 +5,7 @@ use Behat\Gherkin\Node\TableNode;
 use Behat\Testwork\Hook\Scope\AfterSuiteScope;
 use Behat\Testwork\Hook\Scope\BeforeSuiteScope;
 use Behat\Gherkin\Node\PyStringNode;
+use People\DTO\LaneData;
 use Rhumsaa\Uuid\Uuid;
 use Test\ZFHttpClient;
 use PHPUnit_Framework_Assert as Assert;
@@ -162,7 +163,7 @@ class ZFClientContext implements Context
         try {
 
             foreach ($table->getHash() as $line) {
-                $org->addLane(Uuid::fromString($line['id']), $line['name'], $this->currentUser);
+                $org->addLane(Uuid::fromString($line['id']), LaneData::create($line), $this->currentUser);
             }
 
             $eventStore->commit();
