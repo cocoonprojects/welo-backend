@@ -178,7 +178,7 @@ class ZFClientContext implements Context
 
 
     /**
-     * @Given /^that I am authenticated as "([^"]*)"$/
+     * @Given that I am authenticated as :email
      */
     public function thatIAmAuthenticatedAs($email)
     {
@@ -226,6 +226,18 @@ class ZFClientContext implements Context
         }
 
         $this->_response = $this->_client->get($url);
+    }
+
+    /**
+     * @When I send a DELETE request to :url
+     */
+    public function iSendADeleteRequestTo($url)
+    {
+        if ($this->currentToken !== null) {
+            $this->_client->setJWTToken($this->currentToken);
+        }
+
+        $this->_response = $this->_client->delete($url);
     }
 
     /**

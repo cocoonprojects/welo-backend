@@ -96,15 +96,25 @@ class Organization extends EditableEntity implements ResourceInterface
         return $this->lanes;
     }
 
-	public function addLane(Uuid $id, $name, BasicUser $user, \DateTime $when) {
+	public function addLane(Uuid $id, $name, BasicUser $user, \DateTime $when)
+    {
 	    $this->lanes[$id->toString()] = $name;
 
 	    $this->setMostRecentEditBy($user);
 	    $this->setMostRecentEditAt($when);
     }
 
-	public function updateLane(Uuid $id, $name, BasicUser $user, \DateTime $when) {
+	public function updateLane(Uuid $id, $name, BasicUser $user, \DateTime $when)
+    {
 	    $this->lanes[$id->toString()] = $name;
+
+	    $this->setMostRecentEditBy($user);
+	    $this->setMostRecentEditAt($when);
+    }
+
+	public function deleteLane(Uuid $id, BasicUser $user, \DateTime $when)
+    {
+	    unset($this->lanes[$id->toString()]);
 
 	    $this->setMostRecentEditBy($user);
 	    $this->setMostRecentEditAt($when);
