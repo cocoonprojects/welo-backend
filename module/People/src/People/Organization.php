@@ -2,7 +2,9 @@
 
 namespace People;
 
+use People\DTO\LaneData;
 use People\Event\LaneAdded;
+use People\Event\LaneDeleted;
 use People\Event\LaneUpdated;
 use Rhumsaa\Uuid\Uuid;
 use Application\Entity\User;
@@ -120,20 +122,31 @@ class Organization extends DomainEntity
         return $this;
     }
 
-    public function addLane(Uuid $id, $name, User $by)
+    public function addLane(Uuid $id, LaneData $dto, User $by)
     {
-	    $e = LaneAdded::happened($this->id->toString(), $id, $name, $by);
+	    $e = LaneAdded::happened($this->id->toString(), $id, $dto->name, $by);
 
         $this->recordThat($e);
     }
 
-    public function updateLane($id, $name, User $by)
+    public function updateLane($id, LaneData $dto, User $by)
     {
         if (!array_key_exists($id, $this->lanes)) {
             throw new InvalidArgumentException("lane with id $id does not exists");
         }
 
-        $e = LaneUpdated::happened($this->id->toString(), Uuid::fromString($id), $name, $by);
+        $e = LaneUpdated::happened($this->id->toString(), Uuid::fromString($id), $dto->name, $by);
+
+        $this->recordThat($e);
+    }
+
+    public function deleteLane($id, User $by)
+    {
+        if (!array_key_exists($id, $this->lanes)) {
+            throw new InvalidArgumentException("lane with id $id does not exists");
+        }
+
+        $e = LaneDeleted::happened($this->id->toString(), Uuid::fromString($id), $by);
 
         $this->recordThat($e);
     }
@@ -269,6 +282,11 @@ class Organization extends DomainEntity
 	protected function whenLaneUpdated(LaneUpdated $event)
     {
         $this->lanes[$event->id()->toString()]->update($event->name());
+    }
+
+	protected function whenLaneDeleted(LaneDeleted $event)
+    {
+        unset($this->lanes[$event->id()->toString()]);
     }
 
 	protected function whenShiftOutWarning(ShiftOutWarning $event)

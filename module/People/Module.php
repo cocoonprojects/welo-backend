@@ -66,8 +66,9 @@ class Module
 
 		            $locator = $sm->getServiceLocator();
                     $orgService = $locator->get('People\OrganizationService');
+                    $taskService = $locator->get('TaskManagement\TaskService');
 
-                    return new LanesSettingsController($orgService);
+                    return new LanesSettingsController($orgService, $taskService);
                 }
 			]
 		];

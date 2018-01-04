@@ -1,8 +1,9 @@
+@lanes
 Feature: Lanes management in Welo
   As a user
   I want to create manage board lanes inside welo
 
-  Scenario: lane management
+  Scenario: Updating a lane
       Given that I am authenticated as "mark.rogers@ora.local"
       And the organization "00000000-0000-0000-1000-000000000000" has the following lanes:
         | id                                    | name          |
@@ -25,7 +26,7 @@ Feature: Lanes management in Welo
         }
       """
 
-  Scenario: Create organization lanes settings
+  Scenario: Creating a lane
     Given that I am authenticated as "mark.rogers@ora.local"
     When I send a POST request to "/00000000-0000-0000-1000-000000000000/settings/lanes" with JSON body:
       """
@@ -39,6 +40,20 @@ Feature: Lanes management in Welo
         {
           "@uuid@": "banana",
           "@uuid1@": "cambiata",
+          "@uuid2@": "prima lane",
+          "@uuid3@": "terza lane"
+        }
+      """
+
+    Scenario: Deleting a lane
+    Given that I am authenticated as "mark.rogers@ora.local"
+    When I send a DELETE request to "/00000000-0000-0000-1000-000000000000/settings/lanes/8d1bba08-24c5-4d63-8ee8-031475688edf"
+    Then the response status code should be 200
+    When I send a GET request to "/00000000-0000-0000-1000-000000000000/settings/lanes"
+    Then the response should be like:
+      """
+        {
+          "@uuid@": "banana",
           "@uuid2@": "prima lane",
           "@uuid3@": "terza lane"
         }
