@@ -186,8 +186,10 @@ class TaskMember
 		return $s === null ? null : $s->getValue();
 	}
 
-	public function resetShares() {
+	public function resetShares()
+    {
 		$this->shares->clear();
+
 		return $this;
 	}
 

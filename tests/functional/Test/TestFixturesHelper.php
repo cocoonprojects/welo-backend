@@ -245,6 +245,47 @@ class TestFixturesHelper
         return $task;
     }
 
+    public function createAcceptedTaskWithShares($subject, $stream, $admin, $members)
+    {
+        $taskService = $this->serviceManager->get('TaskManagement\TaskService');
+        $transactionManager = $this->serviceManager->get('prooph.event_store');
+
+        $transactionManager->beginTransaction();
+
+        try {
+            $task = Task::create($stream, $subject, $admin);
+            $taskService->addTask($task);
+
+            $task->open($admin);
+            $task->execute($admin);
+            $task->addMember($admin);
+            $task->addEstimation(100, $admin);
+
+            foreach ($members as $member) {
+                $task->addMember($member);
+                $task->addEstimation(100, $member);
+            }
+
+            $task->complete($admin);
+            $task->accept($admin);
+
+            $task->assignShares([
+                $admin->getId() => '0.4',
+                $members[0]->getId() => '0.4',
+                $members[1]->getId() => '0.2',
+            ], $admin);
+
+            $transactionManager->commit();
+        } catch (\Exception $e) {
+            var_dump($e->getMessage());
+            var_dump($e->getTraceAsString());
+            $transactionManager->rollback();
+            throw $e;
+        }
+
+        return $task;
+    }
+
     public function findUserByEmail($email)
     {
         $userService = $this->serviceManager->get('Application\UserService');

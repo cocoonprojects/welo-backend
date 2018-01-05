@@ -127,4 +127,29 @@ class RollbackStateTransitionProcessTest extends WebTestCase
 
         $this->assertContains('TaskRevertedToOngoing', $events);
     }
+
+    public function testRevertFromAcceptedToCompleted()
+    {
+        $admin = $this->fixtures->findUserByEmail('bruce.wayne@ora.local');
+        $member1 = $this->fixtures->findUserByEmail('phil.toledo@ora.local');
+        $member2 = $this->fixtures->findUserByEmail('paul.smith@ora.local');
+
+        $res = $this->fixtures->createOrganization('my org', $admin, [$member1, $member2]);
+        $task = $this->fixtures->createAcceptedTaskWithShares('Lorem Ipsum Sic Dolor Amit', $res['stream'], $admin, [$member1, $member2]);
+
+        $response = $this->client
+            ->post(
+                "/{$res['org']->getId()}/task-management/tasks/{$task->getId()}/transitions",
+                [ "action" => "backToCompleted" ]
+            );
+
+        $responseTask = json_decode($response->getContent(), true);
+
+        $this->assertEquals('200', $response->getStatusCode());
+        $this->assertEquals(TASK::STATUS_COMPLETED, $responseTask['status']);
+
+        $this->assertArrayNotHasKey('shares', array_shift($responseTask['members']));
+        $this->assertArrayNotHasKey('shares', array_shift($responseTask['members']));
+        $this->assertArrayNotHasKey('shares', array_shift($responseTask['members']));
+    }
 }
