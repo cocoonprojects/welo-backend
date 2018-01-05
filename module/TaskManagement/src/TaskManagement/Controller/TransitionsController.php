@@ -13,9 +13,6 @@ use People\Service\OrganizationService;
 
 class TransitionsController extends HATEOASRestfulController
 {
-	protected static $resourceOptions = ['POST'];
-	protected static $collectionOptions = ['POST'];
-
 	protected static $validTransitions = [
 	    'complete',
         'accept',
@@ -39,6 +36,16 @@ class TransitionsController extends HATEOASRestfulController
 		$this->organizationService = $organizationService;
 		$this->validator = new InArray(['haystack' => self::$validTransitions]);
 	}
+
+    protected function getCollectionOptions()
+    {
+        return ['POST'];
+    }
+
+    protected function getResourceOptions()
+    {
+        return ['POST'];
+    }
 
 	public function invoke($id, $data)
 	{
@@ -275,17 +282,8 @@ class TransitionsController extends HATEOASRestfulController
 		return $view;
 	}
 
-	protected function getCollectionOptions()
-	{
-		return self::$collectionOptions;
-	}
-
-	protected function getResourceOptions()
-	{
-		return self::$resourceOptions;
-	}
-
-	public function getTaskService(){
+	public function getTaskService()
+    {
 		return $this->taskService;
 	}
 }
