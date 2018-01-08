@@ -189,9 +189,23 @@ class TransitionsController extends HATEOASRestfulController
                     $this->response->setStatusCode ( 204 );
                     return $this->response;
                 }
+
+                $org = $this->organizationService
+                    ->findOrganization($this->params('orgId'));
+
+                $manageLanes = $org->getParams()
+                                   ->get('manage_lanes');
+
                 $this->transaction()->begin();
+                
                 try {
-                    $position = $this->taskService->getNextOpenTaskPosition($task->getOrganizationId());
+
+                    $lane = $manageLanes ? $task->getLane() : null;
+
+                    $position = $this->taskService
+                                     ->getNextOpenTaskPosition($task->getOrganizationId(), $lane);
+
+
                     $task->revertToOpen($position, $this->identity());
 
 					$this->transaction()->commit();
