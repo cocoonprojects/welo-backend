@@ -13,6 +13,7 @@ use People\MissingOrganizationMembershipException;
 use Rhumsaa\Uuid\Uuid;
 use TaskManagement\Entity\TaskMember;
 use TaskManagement\Event\TaskPositionUpdated;
+use TaskManagement\Event\TaskRevertedToAccepted;
 use TaskManagement\Event\TaskRevertedToCompleted;
 
 class Task extends DomainEntity implements TaskInterface
@@ -405,6 +406,25 @@ class Task extends DomainEntity implements TaskInterface
         $e = TaskRevertedToCompleted::happened(
             $this->id->toString(),
             $this->getStatus(),
+            $executedBy->getId()
+        );
+
+        $this->recordThat($e);
+
+        return $this;
+    }
+
+    public function revertToAccepted(BasicUser $executedBy)
+    {
+        if ($this->status !== self::STATUS_CLOSED) {
+            throw new IllegalStateException('Cannot revert to completed a task in '.$this->status.' state');
+        }
+
+        $e = TaskRevertedToAccepted::happened(
+            $this->id->toString(),
+            $this->getSubject(),
+            $this->getMembersCredits(),
+            $this->getOrganizationId(),
             $executedBy->getId()
         );
 
@@ -1015,6 +1035,7 @@ class Task extends DomainEntity implements TaskInterface
     protected function whenTaskRevertedToCompleted(TaskRevertedToCompleted $event)
     {
         $this->status = self::STATUS_COMPLETED;
+        $this->organizationMembersAcceptances = [];
         $this->mostRecentEditAt = $event->occurredOn();
 
         $unsetShares = function($member) {
@@ -1024,6 +1045,20 @@ class Task extends DomainEntity implements TaskInterface
         };
 
         $this->members = array_map($unsetShares, $this->members);
+    }
+
+    protected function whenTaskRevertedToAccepted(TaskRevertedToAccepted $event)
+    {
+        $this->status = self::STATUS_ACCEPTED;
+        $this->mostRecentEditAt = $event->occurredOn();
+
+        $resetShareAndCredits = function($member) {
+            unset($member['shares'], $member['share'], $member['delta'], $member['credits']);
+
+            return $member;
+        };
+
+        $this->members = array_map($resetShareAndCredits, $this->members);
     }
 
     protected function whenTaskArchived(TaskArchived $event)
@@ -1259,6 +1294,10 @@ class Task extends DomainEntity implements TaskInterface
 
     protected function whenCreditsAssigned(CreditsAssigned $event)
     {
+        foreach($this->getMembersCredits() as $memberId => $credits ) {
+            $this->members[$memberId]['credits'] = $credits;
+        }
+
         $this->mostRecentEditAt = $event->occurredOn();
     }
 

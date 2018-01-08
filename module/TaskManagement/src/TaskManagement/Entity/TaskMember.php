@@ -222,9 +222,14 @@ class TaskMember
 		return $this->credits;
 	}
 
-	public function setCredits($credits){
+	public function setCredits($credits) {
 		$this->credits = $credits;
 	}
+
+	public function resetCredits(\DateTime $when) {
+	    $this->setCredits(null);
+        $this->mostRecentEditAt = $when;
+    }
 
 	public function setRole($role){
 		$this->role = $role;

@@ -278,11 +278,12 @@ class TaskJsonModel extends JsonModel {
 						'createdAt' => date_format ( $share->getCreatedAt (), 'c' )
 				);
 			}
-			if ($tm->getCredits () !== null) {
-				$rv ['credits'] = $tm->getCredits ();
-			}
+			//if ($tm->getCredits() !== null) {
+				$rv ['credits'] = $tm->getCredits();
+			//}
 		} else {
-			$rv = $tm; // Copy the array
+
+            $rv = $tm; // Copy the array
 			foreach ( $rv as $key => $value ) {
 				if ($value instanceof \DateTime) {
 					$rv [$key] = date_format ( $value, 'c' );

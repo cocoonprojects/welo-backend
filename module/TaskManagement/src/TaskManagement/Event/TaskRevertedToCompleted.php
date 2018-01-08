@@ -12,7 +12,7 @@ class TaskRevertedToCompleted extends DomainEvent
 
     public static function happened($aggregateId, $previousState, $by)
     {
-        $event = self::occur($aggregateId, ['previousState'=> $previousState, 'by' => $by]);
+        $event = self::occur($aggregateId, ['previousState' => $previousState, 'by' => $by]);
         $event->previousState = $previousState;
         $event->by = $by;
 
