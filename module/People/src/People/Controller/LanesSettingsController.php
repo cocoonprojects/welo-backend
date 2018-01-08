@@ -142,7 +142,20 @@ class LanesSettingsController extends OrganizationAwareController
             ->findOrganization($this->params('orgId'))
             ->getSortedLanes();
 
-        return new JsonModel($lanes);
+        $data = [];
+
+        foreach ($lanes as $id => $name) {
+
+            $items = $this->taskService
+                          ->countItemsInLane($id);
+
+            $data[$id] = [
+                'name' => $name,
+                'items' => $items
+            ];
+        }
+
+        return new JsonModel($data);
 	}
 
 }
