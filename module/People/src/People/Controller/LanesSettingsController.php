@@ -107,13 +107,6 @@ class LanesSettingsController extends OrganizationAwareController
             return $this->response;
         }
 
-        $count = $this->taskService->countItemsInLane($id);
-
-        if ($count) {
-            $this->response->setStatusCode(409);
-            return $this->response;
-        }
-
         $this->transaction()->begin();
 
         try {
