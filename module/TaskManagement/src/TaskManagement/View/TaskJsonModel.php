@@ -175,6 +175,7 @@ class TaskJsonModel extends JsonModel {
 			$approvalswithkey = $task->getApprovals();
 			$acceptanceswithkey = $task->getAcceptances();
 		}
+
 		$rv = [
 				'id' => $task->getId (),
 				'subject' => $task->getSubject (),
@@ -253,6 +254,7 @@ class TaskJsonModel extends JsonModel {
 
 	protected function serializeOneMember($tm) {
 		if ($tm instanceof TaskMember) {
+
 			$member = $tm->getMember ();
 			$rv = [
 					'id' => $member->getId (),

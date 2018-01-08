@@ -198,6 +198,7 @@ class Account extends DomainEntity implements ResourceInterface
         if ($amount >= 0) {
             throw new IllegalAmountException($amount);
         }
+
         $event = OutgoingCreditsTransferred::occur($this->id->toString(), [
                 'amount' => $amount,
                 'description' => $description,
@@ -207,7 +208,9 @@ class Account extends DomainEntity implements ResourceInterface
                 'source' => $source,
                 'by' => $by->getId(),
         ]);
+
         $this->recordThat($event);
+
         return [
                 'account' => [
                         'id' => $this->getId()

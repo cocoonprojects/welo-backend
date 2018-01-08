@@ -1,4 +1,5 @@
 <?php
+
 namespace TaskManagement;
 
 use Application\DomainEntity;
@@ -316,6 +317,7 @@ class Task extends DomainEntity implements TaskInterface
         $this->recordThat(TaskClosed::occur($this->id->toString(), array(
             'by' => $closedBy->getId(),
         )));
+
         return $this;
     }
 
