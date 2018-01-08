@@ -20,9 +20,18 @@ Feature: Lanes management in Welo
       Then the response should be like:
       """
         {
-          "@uuid@": "cambiata",
-          "@uuid1@": "prima lane",
-          "@uuid2@": "terza lane"
+            "@uuid@": {
+                "name": "cambiata",
+                "items": "0"
+            },
+            "@uuid1@": {
+                "name": "prima lane",
+                "items": "0"
+            },
+            "@uuid2@": {
+                "name": "terza lane",
+                "items": "0"
+            }
         }
       """
 
@@ -33,15 +42,26 @@ Feature: Lanes management in Welo
       {"name": "banana"}
       """
     Then the response status code should be 201
-
     When I send a GET request to "/00000000-0000-0000-1000-000000000000/settings/lanes"
     Then the response should be like:
       """
         {
-          "@uuid@": "banana",
-          "@uuid1@": "cambiata",
-          "@uuid2@": "prima lane",
-          "@uuid3@": "terza lane"
+            "@uuid@": {
+                "name": "banana",
+                "items": "0"
+            },
+            "@uuid1@": {
+                "name": "cambiata",
+                "items": "0"
+            },
+            "@uuid2@": {
+                "name": "prima lane",
+                "items": "0"
+            },
+            "@uuid3@": {
+                "name": "terza lane",
+                "items": "0"
+            }
         }
       """
 
@@ -53,8 +73,17 @@ Feature: Lanes management in Welo
     Then the response should be like:
       """
         {
-          "@uuid@": "banana",
-          "@uuid2@": "prima lane",
-          "@uuid3@": "terza lane"
+            "@uuid@": {
+                "name": "banana",
+                "items": "0"
+            },
+            "@uuid1@": {
+                "name": "prima lane",
+                "items": "0"
+            },
+            "@uuid2@": {
+                "name": "terza lane",
+                "items": "0"
+            }
         }
       """

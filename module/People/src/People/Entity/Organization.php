@@ -36,7 +36,7 @@ class Organization extends EditableEntity implements ResourceInterface
 
 	/**
 	 * @ORM\Column(type="json_array", nullable=true)
-	 * @var string
+	 * @var array
 	 */
 	private $lanes = [];
 
