@@ -36,6 +36,7 @@ class AssignCreditsListener implements ListenerAggregateInterface{
 	public function attach(EventManagerInterface $events) {
 		$this->listeners[] = $events->getSharedManager()->attach(Application::class, TaskClosed::class,
 			function(Event $event) {
+
 				$streamEvent = $event->getTarget();
 				$taskId = $streamEvent->metadata()['aggregate_id'];
 				$task = $this->taskService->getTask($taskId);

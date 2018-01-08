@@ -245,6 +245,91 @@ class TestFixturesHelper
         return $task;
     }
 
+    public function createAcceptedTaskWithShares($subject, $stream, $admin, $members)
+    {
+        $taskService = $this->serviceManager->get('TaskManagement\TaskService');
+        $transactionManager = $this->serviceManager->get('prooph.event_store');
+
+        $transactionManager->beginTransaction();
+
+        try {
+            $task = Task::create($stream, $subject, $admin);
+            $taskService->addTask($task);
+
+            $task->open($admin);
+            $task->execute($admin);
+            $task->addMember($admin);
+            $task->addEstimation(100, $admin);
+
+            foreach ($members as $member) {
+                $task->addMember($member);
+                $task->addEstimation(100, $member);
+            }
+
+            $task->complete($admin);
+            $task->accept($admin);
+
+            $task->assignShares([
+                $admin->getId() => '0.4',
+                $members[0]->getId() => '0.4',
+                $members[1]->getId() => '0.2',
+            ], $admin);
+
+            $transactionManager->commit();
+        } catch (\Exception $e) {
+            var_dump($e->getMessage());
+            var_dump($e->getTraceAsString());
+            $transactionManager->rollback();
+            throw $e;
+        }
+
+        return $task;
+    }
+
+    public function createClosedTask($subject, $stream, $admin, $member1, $member2)
+    {
+        $taskService = $this->serviceManager->get('TaskManagement\TaskService');
+        $transactionManager = $this->serviceManager->get('prooph.event_store');
+
+        $transactionManager->beginTransaction();
+
+        try {
+            $task = Task::create($stream, $subject, $admin);
+            $taskService->addTask($task);
+
+            $task->open($admin);
+            $task->execute($admin);
+            $task->addMember($admin);
+            $task->addEstimation(100, $admin);
+
+            $task->addMember($member1);
+            $task->addEstimation(100, $member1);
+
+            $task->addMember($member2);
+            $task->addEstimation(100, $member2);
+
+            $task->complete($admin);
+            $task->addAcceptance(Vote::VOTE_FOR, $admin, 'bella li');
+
+            $task->accept($admin);
+
+            $task->assignShares([$admin->getId() => '0.4', $member1->getId() => '0.4', $member2->getId() => '0.2'], $admin);
+            $task->assignShares([$admin->getId() => '0.1', $member1->getId() => '0.8', $member2->getId() => '0.1'], $member1);
+            $task->assignShares([$admin->getId() => '0.5', $member1->getId() => '0.2', $member2->getId() => '0.3'], $member2);
+
+            $task->close($admin);
+
+            $transactionManager->commit();
+        } catch (\Exception $e) {
+            var_dump($e->getMessage());
+            var_dump($e->getTraceAsString());
+            $transactionManager->rollback();
+            throw $e;
+        }
+
+        return $task;
+    }
+
     public function findUserByEmail($email)
     {
         $userService = $this->serviceManager->get('Application\UserService');

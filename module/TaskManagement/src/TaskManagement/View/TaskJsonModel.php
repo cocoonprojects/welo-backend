@@ -175,6 +175,7 @@ class TaskJsonModel extends JsonModel {
 			$approvalswithkey = $task->getApprovals();
 			$acceptanceswithkey = $task->getAcceptances();
 		}
+
 		$rv = [
 				'id' => $task->getId (),
 				'subject' => $task->getSubject (),
@@ -252,6 +253,7 @@ class TaskJsonModel extends JsonModel {
 
 	protected function serializeOneMember($tm) {
 		if ($tm instanceof TaskMember) {
+
 			$member = $tm->getMember ();
 			$rv = [
 					'id' => $member->getId (),
@@ -275,11 +277,12 @@ class TaskJsonModel extends JsonModel {
 						'createdAt' => date_format ( $share->getCreatedAt (), 'c' )
 				);
 			}
-			if ($tm->getCredits () !== null) {
-				$rv ['credits'] = $tm->getCredits ();
-			}
+			//if ($tm->getCredits() !== null) {
+				$rv ['credits'] = $tm->getCredits();
+			//}
 		} else {
-			$rv = $tm; // Copy the array
+
+            $rv = $tm; // Copy the array
 			foreach ( $rv as $key => $value ) {
 				if ($value instanceof \DateTime) {
 					$rv [$key] = date_format ( $value, 'c' );

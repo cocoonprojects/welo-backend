@@ -13,9 +13,6 @@ use People\Service\OrganizationService;
 
 class TransitionsController extends HATEOASRestfulController
 {
-	protected static $resourceOptions = ['POST'];
-	protected static $collectionOptions = ['POST'];
-
 	protected static $validTransitions = [
 	    'complete',
         'accept',
@@ -24,6 +21,8 @@ class TransitionsController extends HATEOASRestfulController
         'backToOpen',
         'backToIdea',
         'backToOngoing',
+        'backToCompleted',
+        'backToAccepted',
     ];
 
 	private $taskService;
@@ -38,6 +37,16 @@ class TransitionsController extends HATEOASRestfulController
 		$this->organizationService = $organizationService;
 		$this->validator = new InArray(['haystack' => self::$validTransitions]);
 	}
+
+    protected function getCollectionOptions()
+    {
+        return ['POST'];
+    }
+
+    protected function getResourceOptions()
+    {
+        return ['POST'];
+    }
 
 	public function invoke($id, $data)
 	{
@@ -218,18 +227,21 @@ class TransitionsController extends HATEOASRestfulController
                 }
                 break;
             case "backToOngoing":
-                if($task->getStatus() === Task::STATUS_ONGOING) {
+
+                if ($task->getStatus() === Task::STATUS_ONGOING) {
                     $this->response->setStatusCode ( 204 );
                     return $this->response;
                 }
+
                 $this->transaction()->begin();
+
                 try {
                     $task->revertToOngoing($this->identity());
 					$this->transaction()->commit();
                     $this->response->setStatusCode ( 200 );
                     $view = new TaskJsonModel($this);
                     $view->setVariable('resource', $task);
-                }catch ( IllegalStateException $e ) {
+                } catch ( IllegalStateException $e ) {
                     $this->transaction()->rollback();
                     $this->response->setStatusCode ( 412 ); // Preconditions failed
                     $view = new ErrorJsonModel();
@@ -237,6 +249,60 @@ class TransitionsController extends HATEOASRestfulController
                     $view->setDescription($e->getMessage());
                 }
                 break;
+
+            case "backToCompleted":
+
+                if ($task->getStatus() === Task::STATUS_COMPLETED) {
+                    $this->response->setStatusCode ( 204 );
+                    return $this->response;
+                }
+
+                $this->transaction()->begin();
+
+                try {
+                    $task->revertToCompleted($this->identity());
+                    $this->transaction()->commit();
+
+                    $this->response->setStatusCode ( 200 );
+                    $view = new TaskJsonModel($this);
+                    $view->setVariable('resource', $task);
+
+                } catch ( IllegalStateException $e ) {
+                    $this->transaction()->rollback();
+                    $this->response->setStatusCode ( 412 ); // Preconditions failed
+                    $view = new ErrorJsonModel();
+                    $view->setCode(412);
+                    $view->setDescription($e->getMessage());
+                }
+                break;
+
+            case "backToAccepted":
+
+                if ($task->getStatus() === Task::STATUS_ACCEPTED) {
+                    $this->response->setStatusCode ( 204 );
+                    return $this->response;
+                }
+
+                $this->transaction()->begin();
+
+                try {
+
+                    $task->revertToAccepted($this->identity());
+                    $this->transaction()->commit();
+
+                    $this->response->setStatusCode ( 200 );
+                    $view = new TaskJsonModel($this);
+                    $view->setVariable('resource', $task);
+
+                } catch ( IllegalStateException $e ) {
+                    $this->transaction()->rollback();
+                    $this->response->setStatusCode ( 412 ); // Preconditions failed
+                    $view = new ErrorJsonModel();
+                    $view->setCode(412);
+                    $view->setDescription($e->getMessage());
+                }
+                break;
+
 			default :
 				$this->response->setStatusCode ( 400 );
 				$view = new ErrorJsonModel();
@@ -247,17 +313,8 @@ class TransitionsController extends HATEOASRestfulController
 		return $view;
 	}
 
-	protected function getCollectionOptions()
-	{
-		return self::$collectionOptions;
-	}
-
-	protected function getResourceOptions()
-	{
-		return self::$resourceOptions;
-	}
-
-	public function getTaskService(){
+	public function getTaskService()
+    {
 		return $this->taskService;
 	}
 }

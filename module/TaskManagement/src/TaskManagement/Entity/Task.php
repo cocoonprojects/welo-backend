@@ -284,8 +284,10 @@ class Task extends EditableEntity implements TaskInterface
 		return $this;
 	}
 
-	public function removeAcceptances(){
+	public function removeAcceptances() {
 		$this->acceptances->clear();
+		$this->acceptedAt = null;
+
 		return $this;
 	}
 
@@ -414,6 +416,12 @@ class Task extends EditableEntity implements TaskInterface
 			$member->setShare(null, new \DateTime());
 		}
 	}
+
+	public function resetCredits() {
+        foreach ($this->members as $member) {
+            $member->resetCredits(new \DateTime());
+        }
+    }
 
 	public function updateMembersShare(\DateTime $when) {
 		$shares = $this->getMembersShare();

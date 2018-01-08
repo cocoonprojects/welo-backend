@@ -42,6 +42,7 @@ class TransferCreditsListener implements ListenerAggregateInterface
 	
 	public function attach(EventManagerInterface $events) {
 		$this->listeners[] = $events->getSharedManager()->attach(Application::class, CreditsAssigned::class,
+
 			function(Event $event) {
 				$streamEvent = $event->getTarget();
 				$taskId = $streamEvent->metadata()['aggregate_id'];
@@ -51,6 +52,7 @@ class TransferCreditsListener implements ListenerAggregateInterface
 				$credits = $event->getParam('credits');
 				$this->execute($task, $by, $credits);
 			});
+
 	}
 	
 	public function detach(EventManagerInterface $events)
@@ -61,6 +63,7 @@ class TransferCreditsListener implements ListenerAggregateInterface
 	}
 
 	public function execute(Task $task, User $by, $credits) {
+
 		$organization = $this->organizationService->getOrganization($task->getOrganizationId());
 		$payer = $this->accountService->getAccount($organization->getAccountId());
 		foreach ($credits as $memberId => $amount) {
