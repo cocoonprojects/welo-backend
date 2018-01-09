@@ -113,7 +113,6 @@ class Task extends DomainEntity implements TaskInterface
         ]));
 
         $rv->setSubject($subject, $createdBy);
-        $rv->is_decision = $decision;
 
         return $rv;
     }
@@ -188,6 +187,10 @@ class Task extends DomainEntity implements TaskInterface
 
     public function getLane()
     {
+        if (is_a($this->lane, Uuid::class)) {
+            return $this->lane->toString();
+        }
+
         return $this->lane;
     }
 
@@ -904,6 +907,8 @@ class Task extends DomainEntity implements TaskInterface
         $this->streamId = Uuid::fromString($p['streamId']);
         $this->createdAt = $this->mostRecentEditAt = $event->occurredOn();
         $this->createdBy = User::createUser(Uuid::fromString($p['by']));
+        $this->is_decision = array_key_exists('decision', $p) ? $p['decision'] : false;
+        $this->lane = array_key_exists('lane', $p) ? $p['lane'] : null;
     }
 
     protected function whenTaskOngoing(TaskOngoing $event)
@@ -1003,6 +1008,7 @@ class Task extends DomainEntity implements TaskInterface
     protected function whenTaskUpdated(TaskUpdated $event)
     {
         $pl = $event->payload();
+
         if (array_key_exists('subject', $pl)) {
             $this->subject = $pl['subject'];
         }
@@ -1012,9 +1018,11 @@ class Task extends DomainEntity implements TaskInterface
         if (array_key_exists('attachments', $pl)) {
             $this->attachments = $pl['attachments'];
         }
+
         if (array_key_exists('lane', $pl)) {
             $this->lane = $pl['lane'];
         }
+
         if (array_key_exists('position', $pl)) {
             $this->position = $pl['position'];
         }
