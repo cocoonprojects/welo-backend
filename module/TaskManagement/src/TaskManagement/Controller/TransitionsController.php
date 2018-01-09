@@ -194,7 +194,7 @@ class TransitionsController extends HATEOASRestfulController
                     $lane = $manageLanes ? $task->getLane() : null;
 
                     $position = $this->taskService
-                                     ->getNextOpenTaskPosition($task->getOrganizationId(), $lane);
+                                     ->getNextOpenTaskPosition($task->getId(), $task->getOrganizationId(), $lane);
 
 
                     $task->revertToOpen($position, $this->identity());

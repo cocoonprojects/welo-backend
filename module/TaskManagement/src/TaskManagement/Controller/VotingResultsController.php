@@ -72,7 +72,7 @@ class VotingResultsController extends HATEOASRestfulController {
 
 							    $lane = $manageLanes ? $item->getLane() : null;
                                 $position = $this->taskService
-                                                 ->getNextOpenTaskPosition($org->getId(), $lane);
+                                                 ->getNextOpenTaskPosition($itemId, $org->getId(), $lane);
 
 							    $item->open($this->identity());
                                 $item->setPosition($position, $this->identity());
