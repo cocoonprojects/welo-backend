@@ -446,7 +446,7 @@ class EventSourcingTaskService extends AggregateRepository implements TaskServic
     {
         $builder = $this->entityManager->createQueryBuilder();
 
-        $query = $builder->select ( 'COALESCE(MAX(item.position),0) as itemPos' )
+        $query = $builder->select ( 'COALESCE(MAX(item.position), 0) as itemPos' )
             ->from(ReadModelTask::class, 'item')
 			->innerJoin('item.stream', 's', 'WITH', 's.organization = :organization')
             ->where('item.status = :status')
@@ -454,7 +454,6 @@ class EventSourcingTaskService extends AggregateRepository implements TaskServic
             ->setParameter('organization', $orgId);
 
         if ($laneId) {
-
             $query->andWhere('item.lane = :lane')
                   ->setParameter(':lane', $laneId);
         }

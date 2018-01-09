@@ -91,12 +91,18 @@ class CloseItemIdeaListener implements ListenerAggregateInterface {
 		}
 
 		if ($accept > $memberhipcount / 2) {
+
+            $manageLanes = $organization->getParams()
+                ->get('manage_lanes');
+
+            $lane = $manageLanes ? $task->getLane() : null;
+
+			$this->transactionManager->beginTransaction();
 			
-			$this->transactionManager->beginTransaction ();
 			try {
 				$task->open($owner);
 
-                $position = $this->taskService->getNextOpenTaskPosition($organization->getId());
+                $position = $this->taskService->getNextOpenTaskPosition($organization->getId(), $lane);
                 $task->setPosition($position, $owner);
 
 				$this->transactionManager->commit ();
