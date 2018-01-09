@@ -94,7 +94,7 @@ class CloseItemIdeaListener implements ListenerAggregateInterface {
 
             $lane = $manageLanes ? $task->getLane() : null;
 
-			$this->transactionManager->beginTransaction();
+            $this->transactionManager->beginTransaction();
 			
 			try {
 				$task->open($owner);
