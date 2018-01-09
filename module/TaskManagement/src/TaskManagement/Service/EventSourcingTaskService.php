@@ -421,10 +421,13 @@ class EventSourcingTaskService extends AggregateRepository implements TaskServic
 
 		foreach($streamEvents as $k => $v) {
 			$payload = $v->payload();
+
 			$type = explode('\\', $v->eventName()->toString());
+            $type = array_pop($type);
+
 			$events[] = [
 				'id' => $v->eventId()->toString(),
-				'name' => $type[1],
+				'name' => $type,
 				'on' => $v->occurredOn()->format('d/m/Y H:i:s'),
 				'user' => [
 				    'id' => $payload['by'],
