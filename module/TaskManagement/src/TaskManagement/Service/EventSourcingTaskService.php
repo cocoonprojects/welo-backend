@@ -451,15 +451,15 @@ class EventSourcingTaskService extends AggregateRepository implements TaskServic
 			->innerJoin('item.stream', 's', 'WITH', 's.organization = :organization')
             ->where('item.status = :status')
             ->setParameter( ':status', TaskInterface::STATUS_OPEN)
-            ->setParameter('organization', $orgId)
-            ->getQuery();
+            ->setParameter('organization', $orgId);
 
         if ($laneId) {
+
             $query->andWhere('item.lane = :lane')
                   ->setParameter(':lane', $laneId);
         }
 
-        return $query->getResult()[0]['itemPos'] + 1;
+        return $query->getQuery()->getResult()[0]['itemPos'] + 1;
     }
 
 

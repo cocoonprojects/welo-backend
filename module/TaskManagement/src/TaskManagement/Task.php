@@ -12,6 +12,7 @@ use People\MissingOrganizationMembershipException;
 use Rhumsaa\Uuid\Uuid;
 use TaskManagement\Entity\TaskMember;
 use TaskManagement\Event\TaskPositionUpdated;
+use TaskManagement\Event\TaskUpdated;
 
 class Task extends DomainEntity implements TaskInterface
 {
@@ -192,16 +193,15 @@ class Task extends DomainEntity implements TaskInterface
 
     public function update(array $data, BasicUser $updatedBy)
     {
-        $eventData = [];
-        $eventData['subject'] = $data['subject'];
-        $eventData['description'] = $data['description'];
-        $eventData['by'] = $updatedBy->getId();
+        $e = TaskUpdated::happened(
+            $this->id->toString(),
+            $data['subject'],
+            $data['description'],
+            isset($data['lane']) ? $data['lane'] : null,
+            $updatedBy->getId()
+        );
 
-        if (isset($data['lane'])) {
-            $eventData['lane'] = $data['lane'];
-        }
-
-        $this->recordThat(TaskUpdated::occur($this->id->toString(), $eventData));
+        $this->recordThat($e);
     }
 
     /**

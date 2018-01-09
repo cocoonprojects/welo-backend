@@ -18,7 +18,8 @@ abstract class Processor implements ListenerAggregateInterface
 
         foreach ($this->getRegisteredEvents() as $eventFullName) {
 
-            $eventName = explode('\\', $eventFullName)[1];
+            $eventChunks = explode('\\', $eventFullName);
+            $eventName = array_pop($eventChunks);
 
             $this->listeners[] = $sm->attach(
                 Application::class,
