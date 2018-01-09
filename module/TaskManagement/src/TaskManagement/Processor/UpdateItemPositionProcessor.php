@@ -42,7 +42,7 @@ class UpdateItemPositionProcessor extends Processor
                      ->getTask($event->aggregateId());
 
         $position = $this->taskService
-                         ->getNextOpenTaskPosition($task->getOrganizationId(), $event->lane());
+                         ->getNextOpenTaskPosition($task->getId(), $task->getOrganizationId(), $event->lane());
 
 
         $this->eventStore->beginTransaction();

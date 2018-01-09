@@ -82,6 +82,7 @@ class TaskPositionWithLanesChangeTest extends WebTestCase
 
         $this->assertEquals(1, $data['position']);
 
+        // aggiornando la lane la priorità viene aggiornata
         $this->client
              ->put(
                 "/{$this->org->getId()}/task-management/tasks/{$task3->getId()}",
@@ -94,5 +95,19 @@ class TaskPositionWithLanesChangeTest extends WebTestCase
         $data = json_decode($response->getContent(), true);
 
         $this->assertEquals(3, $data['position']);
+
+        //riportando l'item nella lane iniziale la priorità viene aggiornta
+        $this->client
+            ->put(
+                "/{$this->org->getId()}/task-management/tasks/{$task3->getId()}",
+                ['lane' => (string) $this->lanes[1]['id'], 'subject' => '222', 'description' => 'brazorf']
+            );
+
+        $response = $this->client
+            ->get("/{$this->org->getId()}/task-management/tasks/{$task3->getId()}");
+
+        $data = json_decode($response->getContent(), true);
+
+        $this->assertEquals(1, $data['position']);
     }
 }
