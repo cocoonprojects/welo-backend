@@ -5,6 +5,7 @@ namespace TaskManagement\Processor;
 use Application\Entity\User;
 use Application\Service\Processor;
 use Doctrine\ORM\EntityManager;
+use Prooph\EventStore\EventStore;
 use TaskManagement\Event\TaskUpdated;
 use TaskManagement\Service\TaskService;
 
@@ -14,10 +15,11 @@ class UpdateItemPositionProcessor extends Processor
 
     protected $entityManager;
 
-    public function __construct(TaskService $taskService, EntityManager $em)
+    public function __construct(TaskService $taskService, EntityManager $em, EventStore $es)
     {
         $this->taskService = $taskService;
         $this->entityManager = $em;
+        $this->eventStore = $es;
     }
 
     public function getRegisteredEvents()
@@ -42,7 +44,19 @@ class UpdateItemPositionProcessor extends Processor
         $position = $this->taskService
                          ->getNextOpenTaskPosition($task->getOrganizationId(), $event->lane());
 
-        $task->setPosition($position, $by);
+
+        $this->eventStore->beginTransaction();
+
+        try{
+
+            $task->setPosition($position, $by);
+            $this->eventStore->commit();
+
+        } catch (\Exception $e) {
+            $this->eventStore->rollback();
+            throw $e;
+        }
+
     }
 
 }

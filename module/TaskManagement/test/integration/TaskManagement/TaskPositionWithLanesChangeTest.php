@@ -82,6 +82,17 @@ class TaskPositionWithLanesChangeTest extends WebTestCase
 
         $this->assertEquals(1, $data['position']);
 
+        $this->client
+             ->put(
+                "/{$this->org->getId()}/task-management/tasks/{$task3->getId()}",
+                ['lane' => (string) $this->lanes[0]['id'], 'subject' => '111', 'description' => 'gvnn']
+             );
 
+        $response = $this->client
+            ->get("/{$this->org->getId()}/task-management/tasks/{$task3->getId()}");
+
+        $data = json_decode($response->getContent(), true);
+
+        $this->assertEquals(3, $data['position']);
     }
 }
