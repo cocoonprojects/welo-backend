@@ -7,13 +7,12 @@ use Doctrine\ORM\EntityManager;
 use Kanbanize\KanbanizeTask;
 use Kanbanize\Entity\KanbanizeTask as ReadModelKanbanizeTask;
 use TaskManagement\Entity\Stream;
+use TaskManagement\Event\TaskUpdated;
 use TaskManagement\Service\TaskService;
 use TaskManagement\TaskCreated;
-use TaskManagement\TaskUpdated;
+use Zend\EventManager\EventInterface;
 use Zend\EventManager\EventManagerInterface;
-use Zend\EventManager\Event;
 use Zend\Mvc\Application;
-use TaskManagement\TaskMemberAdded;
 
 class TaskCommandsListener extends ReadModelProjector {
 
@@ -30,7 +29,7 @@ class TaskCommandsListener extends ReadModelProjector {
 		parent::attach($events);
 
 		$this->listeners[] = $events->getSharedManager()->attach(Application::class, TaskCreated::class,
-			function(Event $event) {
+			function(EventInterface $event) {
 				$streamEvent = $event->getTarget();
 				$id = $streamEvent->metadata()['aggregate_id'];
 				if($streamEvent->metadata()['aggregate_type'] == KanbanizeTask::class){
@@ -57,18 +56,21 @@ class TaskCommandsListener extends ReadModelProjector {
 		}, 200);
 
 		$this->listeners[] = $events->getSharedManager()->attach(Application::class, TaskUpdated::class,
-			function(Event $event) {
-				$streamEvent = $event->getTarget();
-				if($streamEvent->metadata()['aggregate_type'] == KanbanizeTask::class){
-					$id = $streamEvent->metadata()['aggregate_id'];
-					$entity = $this->taskService->findTask($id);
-					$by = $this->entityManager->find(User::class, $streamEvent->payload()['by']);
+			function(TaskUpdated $event) {
 
-					$entity = $this->updateEntity($entity, $by, $streamEvent);
+                $entity = $this->taskService->findTask($event->aggregateId());
 
-					$this->entityManager->persist($entity);
-					$this->entityManager->flush($entity);
-			    }
+				if(!is_a($entity, ReadModelKanbanizeTask::class)) {
+                    return;
+				}
+
+				$by = $this->entityManager->find(User::class, $event->by());
+
+                $entity = $this->updateEntity($entity, $by, $event);
+
+                $this->entityManager->persist($entity);
+                $this->entityManager->flush($entity);
+
 		    }, 200
         );
     }

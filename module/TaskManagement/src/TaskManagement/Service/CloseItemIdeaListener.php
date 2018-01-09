@@ -101,7 +101,8 @@ class CloseItemIdeaListener implements ListenerAggregateInterface {
 
 				$this->transactionManager->commit ();
 			} catch ( \Exception $e ) {
-				$this->transactionManager->rollback ();
+                var_dump ( $e->getMessage() );
+                $this->transactionManager->rollback ();
 				throw $e;
 			}
 		} elseif ($reject > $memberhipcount / 2) {
@@ -111,7 +112,7 @@ class CloseItemIdeaListener implements ListenerAggregateInterface {
 				$task->reject( $owner );
 				$this->transactionManager->commit ();
 			} catch ( \Exception $e ) {
-				var_dump ( $e );
+				var_dump ( $e->getMessage() );
 				$this->transactionManager->rollback ();
 				throw $e;
 			}

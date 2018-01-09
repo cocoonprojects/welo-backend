@@ -2,15 +2,9 @@
 namespace Kanbanize;
 
 use Application\Entity\BasicUser;
-use Application\IllegalStateException;
 use TaskManagement\Task;
 use TaskManagement\TaskCreated;
-use TaskManagement\TaskOngoing;
-use TaskManagement\TaskCompleted;
-use TaskManagement\TaskClosed;
-use TaskManagement\TaskAccepted;
-use TaskManagement\TaskUpdated;
-use TaksManagement\TaskMoved;
+use TaskManagement\Event\TaskUpdated;
 use Rhumsaa\Uuid\Uuid;
 use TaskManagement\Stream;
 

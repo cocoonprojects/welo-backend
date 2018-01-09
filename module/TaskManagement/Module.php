@@ -25,6 +25,7 @@ use TaskManagement\Controller\VotingResultsController;
 use TaskManagement\Controller\HistoryController;
 use TaskManagement\Processor\RevertCreditsAssignedProcessor;
 use TaskManagement\Projector\TaskProjector;
+use TaskManagement\Processor\UpdateItemPositionProcessor;
 use TaskManagement\Service\AssignCreditsListener;
 use TaskManagement\Service\CloseTaskListener;
 use TaskManagement\Service\EventSourcingStreamService;
@@ -302,7 +303,13 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
 				        $locator->get('doctrine.entitymanager.orm_default')
                     );
                 },
+                TaskManagement\Processor\UpdateItemPositionProcessor::class => function($locator) {
 
+				    return new UpdateItemPositionProcessor(
+				        $locator->get('TaskManagement\TaskService'),
+                        $locator->get('doctrine.entitymanager.orm_default')
+                    );
+                },
 				'TaskManagement\TaskService' => function ($locator) {
 					$eventStore = $locator->get('prooph.event_store');
 					$entityManager = $locator->get('doctrine.entitymanager.orm_default');
