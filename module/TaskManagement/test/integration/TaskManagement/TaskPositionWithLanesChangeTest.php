@@ -61,25 +61,15 @@ class TaskPositionWithLanesChangeTest extends WebTestCase
                           $this->lanes[1]['id']
                       );
 
-        $response = $this->client
-            ->get("/{$this->org->getId()}/task-management/tasks/{$task1->getId()}");
 
-        $data = json_decode($response->getContent(), true);
-
+        // i task hanno tutti la priorità giusta inizialmente
+        $data = $this->getTask($task1);
         $this->assertEquals(1, $data['position']);
 
-        $response = $this->client
-            ->get("/{$this->org->getId()}/task-management/tasks/{$task2->getId()}");
-
-        $data = json_decode($response->getContent(), true);
-
+        $data = $this->getTask($task2);
         $this->assertEquals(2, $data['position']);
 
-        $response = $this->client
-            ->get("/{$this->org->getId()}/task-management/tasks/{$task3->getId()}");
-
-        $data = json_decode($response->getContent(), true);
-
+        $data = $this->getTask($task3);
         $this->assertEquals(1, $data['position']);
 
         // aggiornando la lane la priorità viene aggiornata
@@ -89,11 +79,7 @@ class TaskPositionWithLanesChangeTest extends WebTestCase
                 ['lane' => (string) $this->lanes[0]['id'], 'subject' => '111', 'description' => 'gvnn']
              );
 
-        $response = $this->client
-            ->get("/{$this->org->getId()}/task-management/tasks/{$task3->getId()}");
-
-        $data = json_decode($response->getContent(), true);
-
+        $data = $this->getTask($task3);
         $this->assertEquals(3, $data['position']);
 
         //riportando l'item nella lane iniziale la priorità viene aggiornta
@@ -103,11 +89,30 @@ class TaskPositionWithLanesChangeTest extends WebTestCase
                 ['lane' => (string) $this->lanes[1]['id'], 'subject' => '222', 'description' => 'brazorf']
             );
 
+        $data = $this->getTask($task3);
+        $this->assertEquals(1, $data['position']);
+
+        // se sposto un item, gli item successivi vengono aggiornati
+        $this->client
+            ->put(
+                "/{$this->org->getId()}/task-management/tasks/{$task1->getId()}",
+                ['lane' => (string) $this->lanes[1]['id'], 'subject' => '333', 'description' => 'ajeje']
+            );
+
+        $data = $this->getTask($task1);
+        $this->assertEquals(2, $data['position']);
+
+        $data = $this->getTask($task2);
+        $this->assertEquals(1, $data['position']);
+    }
+
+    protected function getTask($task)
+    {
         $response = $this->client
-            ->get("/{$this->org->getId()}/task-management/tasks/{$task3->getId()}");
+            ->get("/{$this->org->getId()}/task-management/tasks/{$task->getId()}");
 
         $data = json_decode($response->getContent(), true);
 
-        $this->assertEquals(1, $data['position']);
+        return $data;
     }
 }
