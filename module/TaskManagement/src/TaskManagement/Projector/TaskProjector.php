@@ -8,6 +8,7 @@ use TaskManagement\Entity\Task;
 use TaskManagement\Event\TaskPositionUpdated;
 use TaskManagement\Event\TaskRevertedToAccepted;
 use TaskManagement\Event\TaskRevertedToCompleted;
+use TaskManagement\TaskInterface;
 
 class TaskProjector extends Projector
 {
@@ -39,6 +40,7 @@ class TaskProjector extends Projector
         $task = $this->entityManager
                      ->find(Task::class, $event->aggregateId());
 
+        $task->setStatus(TaskInterface::STATUS_COMPLETED);
         $task->removeAcceptances();
         $task->resetShares();
 
@@ -51,6 +53,7 @@ class TaskProjector extends Projector
         $task = $this->entityManager
             ->find(Task::class, $event->aggregateId());
 
+        $task->setStatus(TaskInterface::STATUS_ACCEPTED);
         $task->resetCredits();
         $task->resetShares();
 
