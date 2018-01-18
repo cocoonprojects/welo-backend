@@ -102,6 +102,10 @@ class VotingResultsController extends AbstractConsoleController {
 							->countVotesForIdeaApproval(TaskInterface::STATUS_IDEA, $itemId);
 
 			$item = $this->taskService->getTask($itemId);
+			if (!$item) {
+                $this->write("error: no item found with id $itemId");
+                return;
+            }
 
 			$this->transaction()->begin();
 
