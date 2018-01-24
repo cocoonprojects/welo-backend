@@ -198,7 +198,7 @@ class TaskMember
 	public function setShare($value, \DateTime $when) {
 		$this->share = $value;
 		$share = $this->shares->get($this->user->getId()); 
-		$this->delta = is_null($share) ? null : number_format(($share->getValue() - $value), 3);
+		$this->delta = (is_null($share) || is_null($share->getValue())) ? null : number_format(($share->getValue() - $value), 3);
 		$this->mostRecentEditAt = $when;
 		return $this;
 	}
