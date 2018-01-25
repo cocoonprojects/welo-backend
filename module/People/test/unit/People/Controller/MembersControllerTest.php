@@ -4,6 +4,7 @@ namespace People\Controller;
 use Application\Service\UserService;
 use People\Organization;
 use Rhumsaa\Uuid\Uuid;
+use TaskManagement\Service\TaskService;
 use ZFX\Test\Controller\ControllerTest;
 use People\Service\OrganizationService;
 use Application\Entity\User;
@@ -34,12 +35,25 @@ class MembersControllerTest extends ControllerTest
             ->with($this->organization->getId())
             ->willReturn($this->organization);
 
+        $userService = $this->getMockBuilder(UserService::class)->getMock();
+
+        $taskService = $this->getMockBuilder(TaskService::class)->getMock();
+        $taskService->expects($this->exactly(2))
+            ->method('findMemberInvolvement')
+            ->withAnyParameters()
+            ->willReturn([
+                'ownershipsCount' => 2,
+                'membershipsCount' => 7
+            ],[
+                'ownershipsCount' => 5,
+                'membershipsCount' => 6
+            ]);
+
         $this->user = User::createUser(Uuid::uuid4(), null, 'John', 'Doe');
         $this->user2 = User::createUser(Uuid::uuid4(), 'jane.doe@foo.com', 'Jane', 'Doe');
 
         return new MembersController(
-            $orgService,
-            $this->getMockBuilder(UserService::class)->getMock()
+            $orgService, $userService, $taskService
         );
     }
     
@@ -130,6 +144,10 @@ class MembersControllerTest extends ControllerTest
         $this->assertArrayHasKey($this->user2->getId(), $arrayResult['_embedded']['ora:member']);
         $this->assertEquals($this->user->getFirstname(), $arrayResult['_embedded']['ora:member'][$this->user->getId()]['firstname']);
         $this->assertEquals($this->user->getLastname(), $arrayResult['_embedded']['ora:member'][$this->user->getId()]['lastname']);
+        $this->assertEquals(2, $arrayResult['_embedded']['ora:member'][$this->user->getId()]['involvement']['ownershipsCount']);
+        $this->assertEquals(7, $arrayResult['_embedded']['ora:member'][$this->user->getId()]['involvement']['membershipsCount']);
+        $this->assertEquals(5, $arrayResult['_embedded']['ora:member'][$this->user2->getId()]['involvement']['ownershipsCount']);
+        $this->assertEquals(6, $arrayResult['_embedded']['ora:member'][$this->user2->getId()]['involvement']['membershipsCount']);
     }
 
     public function testGetIncompleteList()

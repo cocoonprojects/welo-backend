@@ -48,8 +48,9 @@ class Module
 					$locator = $sm->getServiceLocator();
 					$orgService = $locator->get('People\OrganizationService');
 					$userService = $locator->get('Application\UserService');
+					$taskService = $locator->get('TaskManagement\TaskService');
 
-					$controller = new MembersController($orgService, $userService);
+					$controller = new MembersController($orgService, $userService, $taskService);
 
 					return $controller;
 				},

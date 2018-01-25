@@ -93,7 +93,14 @@ interface TaskService
 	 * @param \DateTime $filters["endOn"]
 	 */
 	public function findMemberStats(Organization $org, $memberId, $filters);
-	
+
+    /**
+     * Get tasks actual involvement for $memberId
+     * @param Organization $org
+     * @param string $memberId
+     */
+    public function findMemberInvolvement(Organization $org, $memberId);
+
 	/**
 	 * Find items with creation date before $interval days from now
 	 * @param \DateInterval $interval

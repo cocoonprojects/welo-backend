@@ -344,6 +344,30 @@ class EventSourcingTaskService extends AggregateRepository implements TaskServic
 
 		return $query->getQuery()->getResult()[0];
 	}
+
+
+    public function findMemberInvolvement(Organization $org, $memberId)
+    {
+		if(is_null($memberId)){
+			return [];
+		}
+
+		$builder = $this->entityManager->createQueryBuilder();
+		$query = $builder->select('COALESCE(SUM( CASE WHEN m.role=:role AND t.status <=:taskStatus THEN 1 ELSE 0 END ),0) as ownershipsCount')
+			->addSelect('COUNT(m.task) as membershipsCount')
+			->from(TaskMember::class, 'm')
+			->innerJoin('m.task', 't')
+			->innerjoin('t.stream', 's', 'WITH', 's.organization = :organization')
+			->innerjoin('m.user', 'u', 'WITH', 'u.id = :memberId')
+			->setParameter('role', TaskMember::ROLE_OWNER)
+			->setParameter('taskStatus', Task::STATUS_CLOSED)
+			->setParameter('memberId', $memberId)
+			->setParameter('organization', $org->getId());
+
+		return $query->getQuery()->getResult()[0];
+	}
+
+
 	/**
 	 * (non-PHPdoc)
 	 * @see \TaskManagement\Service\TaskService::findItemsCreatedBefore()

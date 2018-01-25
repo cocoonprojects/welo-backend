@@ -8,6 +8,7 @@ use Application\DuplicatedDomainEntityException;
 use Application\Service\UserService;
 use People\Entity\OrganizationMembership;
 use People\Service\OrganizationService;
+use TaskManagement\Service\TaskService;
 use Zend\I18n\Validator\IsInt;
 use Zend\Validator\GreaterThan;
 use Zend\Validator\ValidatorChain;
@@ -23,12 +24,20 @@ class MembersController extends OrganizationAwareController
 	 */
 	protected $userService;
 
+	/**
+	 * @var TaskService
+	 */
+	protected $taskService;
+
 	public function __construct(
 		OrganizationService $organizationService,
-		UserService $userService)
+		UserService $userService,
+        TaskService $taskService
+    )
 	{
 		parent::__construct($organizationService);
 		$this->userService = $userService;
+		$this->taskService = $taskService;
 	}
 
 	public function getList()
@@ -42,6 +51,7 @@ class MembersController extends OrganizationAwareController
 			$this->response->setStatusCode(403);
 			return $this->response;
 		}
+
 		$validator = new ValidatorChain();
 		$validator->attach(new IsInt())
 			->attach(new GreaterThan(['min' => 0, 'inclusive' => false]));
@@ -52,11 +62,17 @@ class MembersController extends OrganizationAwareController
 		$memberships = $this->getOrganizationService()->findOrganizationMemberships($this->organization, $limit, $offset);
 		$totalMemberships = $this->getOrganizationService()->countOrganizationMemberships($this->organization);
 
+		$involvements = [];
+        foreach ($memberships as $membership) {
+            $memberId = $membership->getMember()->getId();
+            $involvements[$memberId] = $this->taskService->findMemberInvolvement($this->organization, $memberId);
+		}
+
 		$hal = [
 			'count' => count($memberships),
 			'total' => $totalMemberships,
 			'_embedded' => [
-				'ora:member' => array_column(array_map([$this, 'serializeOne'], $memberships), null, 'id')
+				'ora:member' => array_column(array_map([$this, 'serializeOne'], $memberships, $involvements), null, 'id')
 			],
 			'_links' => [
 				'self' => [
@@ -259,8 +275,9 @@ class MembersController extends OrganizationAwareController
 		return self::$resourceOptions;
 	}
 
-	protected function serializeOne(OrganizationMembership $membership) {
-		return [
+	protected function serializeOne(OrganizationMembership $membership, $involvements = null) {
+
+		$member = [
 			'id'        => $membership->getMember()->getId(),
 			'firstname' => $membership->getMember()->getFirstname(),
 			'lastname'  => $membership->getMember()->getLastname(),
@@ -282,6 +299,12 @@ class MembersController extends OrganizationAwareController
 				]
 			]
 		];
+
+		if (!is_null($involvements) && is_array($involvements)) {
+		    $member['involvement'] = $involvements;
+        }
+
+		return $member;
 	}
 
 }
