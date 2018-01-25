@@ -38,7 +38,7 @@ class MembersControllerTest extends ControllerTest
         $userService = $this->getMockBuilder(UserService::class)->getMock();
 
         $taskService = $this->getMockBuilder(TaskService::class)->getMock();
-        $taskService->expects($this->exactly(2))
+        $taskService
             ->method('findMemberInvolvement')
             ->withAnyParameters()
             ->willReturn([

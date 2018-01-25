@@ -36,7 +36,9 @@ class MembersAPITest extends \PHPUnit_Framework_TestCase
 		$serviceManager = Bootstrap::getServiceManager();
 		$this->orgService = $serviceManager->get('People\OrganizationService');
 		$userService = $serviceManager->get('Application\UserService');
-		$this->controller = new MembersController($this->orgService, $userService);
+        $taskService = $serviceManager->get('TaskManagement\TaskService');
+
+        $this->controller = new MembersController($this->orgService, $userService, $taskService);
 		$this->request	= new Request();
 		$this->routeMatch = new RouteMatch(array('controller' => 'members'));
 		$this->event	  = new MvcEvent();

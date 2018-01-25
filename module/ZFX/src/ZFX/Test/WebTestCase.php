@@ -7,8 +7,14 @@ use Test\ZFHttpClient;
 
 class WebTestCase extends \PHPUnit_Framework_TestCase
 {
+    /**
+     * @var $client ZFHttpClient
+     */
     protected $client;
 
+    /**
+     * @var $fixtures TestFixturesHelper
+     */
     protected $fixtures;
 
     public function setUp()

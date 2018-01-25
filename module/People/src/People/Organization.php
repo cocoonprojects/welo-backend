@@ -6,6 +6,7 @@ use People\DTO\LaneData;
 use People\Event\LaneAdded;
 use People\Event\LaneDeleted;
 use People\Event\LaneUpdated;
+use People\Event\OrganizationMemberRemoved;
 use Rhumsaa\Uuid\Uuid;
 use Application\Entity\User;
 use Application\DomainEntity;
@@ -201,10 +202,12 @@ class Organization extends DomainEntity
 		if (!array_key_exists($member->getId(), $this->members)) {
 			throw new DomainEntityUnavailableException($this, $member);
 		}
-		$this->recordThat(OrganizationMemberRemoved::occur($this->id->toString(), array(
-			'userId' => $member->getId(),
-			'by' => $removedBy == null ? $member->getId() : $removedBy->getId(),
-		)));
+
+		$by = $removedBy == null ? $member : $removedBy;
+		$uuid = Uuid::fromString($member->getId());
+        $e = OrganizationMemberRemoved::happened($this->id->toString(), $uuid, $by);
+
+        $this->recordThat($e);
 	}
 	
     public function hasSyncErrorsNotificationSet()
@@ -346,8 +349,7 @@ class Organization extends DomainEntity
 	}
 
 	protected function whenOrganizationMemberRemoved(OrganizationMemberRemoved $event) {
-		$p = $event->payload();
-		$id = $p['userId'];
+		$id = $event->userId();
 		unset($this->members[$id]);
 	}
 }

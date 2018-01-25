@@ -72,7 +72,7 @@ return array(
 			'kanbanize-settings' => array(
 				'type' => 'Segment',
 				'options' => array(
-					'route'		=> '/:orgId/kanbanize/settings[/:controller/:id]',
+					'route'		=> '/:orgId/kanbanize/settings[/:controller][/:id]',
 					'defaults' => array(
 						'__NAMESPACE__' => 'Kanbanize\Controller',
 						'controller' => 'Settings'

@@ -2,6 +2,7 @@
 
 namespace Test;
 
+use People\DTO\LaneData;
 use People\Organization;
 use TaskManagement\Entity\Vote;
 use TaskManagement\Task;
@@ -36,7 +37,7 @@ class TestFixturesHelper
         return static::$tokens[$email];
     }
 
-    public function createOrganization($name, $admin, array $members = [], array $contributors = [])
+    public function createOrganization($name, $admin, array $members = [], array $contributors = [], $lanes = [])
     {
         $orgService = $this->serviceManager->get('People\OrganizationService');
         $streamService = $this->serviceManager->get('TaskManagement\StreamService');
@@ -51,7 +52,6 @@ class TestFixturesHelper
 
             $params = $org->getParams()->toArray();
             $params['manage_priorities'] = 1;
-            $org->setParams($params, $admin);
 
             foreach ($members as $member) {
                 $org->addMember($member, Organization::ROLE_MEMBER);
@@ -61,8 +61,20 @@ class TestFixturesHelper
                 $org->addMember($contributor, Organization::ROLE_CONTRIBUTOR);
             }
 
+            if ($lanes) {
+
+                $params['manage_lanes'] = 1;
+
+                foreach ($lanes as $lane) {
+                    $org->addLane($lane['id'], LaneData::create(['name' => $lane['name']]), $admin);
+                }
+            }
+
+            $org->setParams($params, $admin);
+
             $transactionManager->commit();
         } catch (\Exception $e) {
+            dump($e->getMessage());
             $transactionManager->rollback();
             throw $e;
         }
@@ -104,7 +116,7 @@ class TestFixturesHelper
         return $task;
     }
 
-    public function createIdea($subject, $stream, $admin)
+    public function createIdea($subject, $stream, $admin, $lane = null)
     {
         $taskService = $this->serviceManager->get('TaskManagement\TaskService');
         $transactionManager = $this->serviceManager->get('prooph.event_store');
@@ -113,7 +125,13 @@ class TestFixturesHelper
 
         try {
 
-            $task = Task::create($stream, $subject, $admin);
+            $options = [];
+
+            if ($lane) {
+                $options = ['lane' => $lane];
+            }
+
+            $task = Task::create($stream, $subject, $admin, $options);
             $taskService->addTask($task);
 
             $transactionManager->commit();
@@ -127,7 +145,7 @@ class TestFixturesHelper
         return $task;
     }
 
-    public function createOpenTask($subject, $stream, $admin)
+    public function createOpenTask($subject, $stream, $admin, $lane = null)
     {
         $taskService = $this->serviceManager->get('TaskManagement\TaskService');
         $transactionManager = $this->serviceManager->get('prooph.event_store');
@@ -136,7 +154,13 @@ class TestFixturesHelper
 
         try {
 
-            $task = Task::create($stream, $subject, $admin);
+            $options = [];
+
+            if ($lane) {
+                $options = ['lane' => $lane];
+            }
+
+            $task = Task::create($stream, $subject, $admin, $options);
             $task->addApproval(Vote::VOTE_FOR, $admin, 'Voto a favore '.$admin->getId());
 
             $taskService->addTask($task);
@@ -233,6 +257,91 @@ class TestFixturesHelper
             $task->complete($admin);
             $task->accept($admin);
 
+
+            $transactionManager->commit();
+        } catch (\Exception $e) {
+            var_dump($e->getMessage());
+            var_dump($e->getTraceAsString());
+            $transactionManager->rollback();
+            throw $e;
+        }
+
+        return $task;
+    }
+
+    public function createAcceptedTaskWithShares($subject, $stream, $admin, $members)
+    {
+        $taskService = $this->serviceManager->get('TaskManagement\TaskService');
+        $transactionManager = $this->serviceManager->get('prooph.event_store');
+
+        $transactionManager->beginTransaction();
+
+        try {
+            $task = Task::create($stream, $subject, $admin);
+            $taskService->addTask($task);
+
+            $task->open($admin);
+            $task->execute($admin);
+            $task->addMember($admin);
+            $task->addEstimation(100, $admin);
+
+            foreach ($members as $member) {
+                $task->addMember($member);
+                $task->addEstimation(100, $member);
+            }
+
+            $task->complete($admin);
+            $task->accept($admin);
+
+            $task->assignShares([
+                $admin->getId() => '0.4',
+                $members[0]->getId() => '0.4',
+                $members[1]->getId() => '0.2',
+            ], $admin);
+
+            $transactionManager->commit();
+        } catch (\Exception $e) {
+            var_dump($e->getMessage());
+            var_dump($e->getTraceAsString());
+            $transactionManager->rollback();
+            throw $e;
+        }
+
+        return $task;
+    }
+
+    public function createClosedTask($subject, $stream, $admin, $member1, $member2)
+    {
+        $taskService = $this->serviceManager->get('TaskManagement\TaskService');
+        $transactionManager = $this->serviceManager->get('prooph.event_store');
+
+        $transactionManager->beginTransaction();
+
+        try {
+            $task = Task::create($stream, $subject, $admin);
+            $taskService->addTask($task);
+
+            $task->open($admin);
+            $task->execute($admin);
+            $task->addMember($admin);
+            $task->addEstimation(100, $admin);
+
+            $task->addMember($member1);
+            $task->addEstimation(100, $member1);
+
+            $task->addMember($member2);
+            $task->addEstimation(100, $member2);
+
+            $task->complete($admin);
+            $task->addAcceptance(Vote::VOTE_FOR, $admin, 'bella li');
+
+            $task->accept($admin);
+
+            $task->assignShares([$admin->getId() => '0.4', $member1->getId() => '0.4', $member2->getId() => '0.2'], $admin);
+            $task->assignShares([$admin->getId() => '0.1', $member1->getId() => '0.8', $member2->getId() => '0.1'], $member1);
+            $task->assignShares([$admin->getId() => '0.5', $member1->getId() => '0.2', $member2->getId() => '0.3'], $member2);
+
+            $task->close($admin);
 
             $transactionManager->commit();
         } catch (\Exception $e) {

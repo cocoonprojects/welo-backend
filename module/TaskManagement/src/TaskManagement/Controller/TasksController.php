@@ -450,6 +450,7 @@ class TasksController extends OrganizationAwareController
 
 		$this->transaction ()->begin ();
 		try {
+
             $task->update($data, $this->identity());
 
 			$this->transaction ()->commit ();
@@ -459,6 +460,7 @@ class TasksController extends OrganizationAwareController
 			$view->setVariable ( 'resource', $task );
 			return $view;
 		} catch ( \Exception $e ) {
+		    var_dump($e->getMessage());
 			$this->response->setStatusCode ( 500 );
 			$this->transaction ()->rollback ();
 		}

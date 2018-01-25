@@ -215,6 +215,13 @@ class EventSourcingOrganizationService extends AggregateRepository implements Or
             return;
         }
 
+        //siamo nel caso di un revert
+        if ($contribution && $credit < 0) {
+            $this->entityManager->remove($contribution);
+
+            return;
+        }
+
         $contribution->update($credit, $occurredOn);
         $this->entityManager->persist($contribution);
     }

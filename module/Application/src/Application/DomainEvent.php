@@ -17,12 +17,13 @@ abstract class DomainEvent extends AggregateChanged implements EventInterface
 
         foreach ($payload as $property => $value)
         {
+            //salto le proprietà non mappate, mi permette di mappare gli attributi dell'evento in modo incrementale
             if (!property_exists($event, $property)) {
-                throw new \RuntimeException('cannot populate event object');
+                continue;
             }
 
             if ($event->$property != null) {
-                continue; // skip properties already populated by parent constructor
+                continue; // salto le proprietà già popolate dal costruttore del padre
             }
 
             $event->$property = $value;

@@ -53,11 +53,14 @@ class VotingResultsController extends HATEOASRestfulController {
 				$timeboxForVoting = $org->getParams()
 										->get('item_idea_voting_timebox');
 
+				$manageLanes = $org->getParams()
+                                   ->get('manage_lanes');
+
 				$itemIdeas = $this->taskService
 					->findItemsCreatedBefore($timeboxForVoting, TaskInterface::STATUS_IDEA);
 
 				if(sizeof($itemIdeas) > 0){
-					array_walk($itemIdeas, function($idea){
+					array_walk($itemIdeas, function($idea) use ($org, $manageLanes) {
 						$itemId = $idea->getId();
 						$results = $this->taskService
                                         ->countVotesForIdeaApproval(TaskInterface::STATUS_IDEA, $itemId);
@@ -66,7 +69,14 @@ class VotingResultsController extends HATEOASRestfulController {
 						$this->transaction()->begin();
 						try {
 							if($results['votesFor'] > $results['votesAgainst']){
-								$item->open($this->identity());
+
+							    $lane = $manageLanes ? $item->getLane() : null;
+                                $position = $this->taskService
+                                                 ->getNextOpenTaskPosition($itemId, $org->getId(), $lane);
+
+							    $item->open($this->identity());
+                                $item->setPosition($position, $this->identity());
+
 							}else{
 								$item->reject($this->identity());
 							}

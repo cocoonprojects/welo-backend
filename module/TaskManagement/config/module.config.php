@@ -127,6 +127,8 @@ return array(
 	    'TaskManagement\AcceptCompletedItemListener',
 		'TaskManagement\TransferCreditsListener',
 		'TaskManagement\AssignCreditsListener',
-        'TaskManagement\Projector\TaskProjector'
+        TaskManagement\Projector\TaskProjector::class,
+        TaskManagement\Processor\RevertCreditsAssignedProcessor::class,
+        TaskManagement\Processor\UpdateItemPositionProcessor::class
 	],
 );

@@ -56,9 +56,6 @@ class CloseItemIdeaListener implements ListenerAggregateInterface {
 		$streamEvent = $event->getTarget ();
 		$taskId = $streamEvent->metadata ()['aggregate_id'];
 		$task = $this->taskService->getTask ( $taskId );
-		//$ownerid = $task->getOwner ();
-		//$owner = $this->userService->findUser ( $ownerid );
-		$byId = $event->getParam ( 'by' );
 
 		$organization = $this->organizationService->findOrganization ( $task->getOrganizationId () );
 
@@ -90,14 +87,25 @@ class CloseItemIdeaListener implements ListenerAggregateInterface {
 			}
 		}
 
+        $manageLanes = $organization->getParams()
+            ->get('manage_lanes');
+
+        $lane = $manageLanes ? $task->getLane() : null;
+
 		if ($accept > $memberhipcount / 2) {
+
+            $this->transactionManager->beginTransaction();
 			
-			$this->transactionManager->beginTransaction ();
 			try {
-				$task->open ( $owner );
+				$task->open($owner);
+
+                $position = $this->taskService->getNextOpenTaskPosition($task->getId(), $organization->getId(), $lane);
+                $task->setPosition($position, $owner);
+
 				$this->transactionManager->commit ();
 			} catch ( \Exception $e ) {
-				$this->transactionManager->rollback ();
+                var_dump ( $e->getMessage() );
+                $this->transactionManager->rollback ();
 				throw $e;
 			}
 		} elseif ($reject > $memberhipcount / 2) {
@@ -107,18 +115,22 @@ class CloseItemIdeaListener implements ListenerAggregateInterface {
 				$task->reject( $owner );
 				$this->transactionManager->commit ();
 			} catch ( \Exception $e ) {
-				var_dump ( $e );
+				var_dump ( $e->getMessage() );
 				$this->transactionManager->rollback ();
 				throw $e;
 			}
 		} elseif ($memberhipcount == (count ( $approvals ))) {
 			
 			if ($accept > $reject) {
-				
+
 				$this->transactionManager->beginTransaction ();
 				try {
-					$task->open ( $owner );
-					$this->transactionManager->commit ();
+					$task->open($owner);
+
+                    $position = $this->taskService->getNextOpenTaskPosition($task->getId(), $organization->getId(), $lane);
+					$task->setPosition($position, $owner);
+
+                    $this->transactionManager->commit ();
 				} catch ( \Exception $e ) {
 					$this->transactionManager->rollback ();
 					throw $e;

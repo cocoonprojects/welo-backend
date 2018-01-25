@@ -1,6 +1,7 @@
 <?php
 
 namespace TaskManagement;
+
 use TaskManagement\Controller\AcceptancesController;
 use TaskManagement\Controller\ApprovalsController;
 use TaskManagement\Controller\AttachmentsController;
@@ -22,7 +23,9 @@ use TaskManagement\Controller\TasksController;
 use TaskManagement\Controller\TransitionsController;
 use TaskManagement\Controller\VotingResultsController;
 use TaskManagement\Controller\HistoryController;
+use TaskManagement\Processor\RevertCreditsAssignedProcessor;
 use TaskManagement\Projector\TaskProjector;
+use TaskManagement\Processor\UpdateItemPositionProcessor;
 use TaskManagement\Service\AssignCreditsListener;
 use TaskManagement\Service\CloseTaskListener;
 use TaskManagement\Service\EventSourcingStreamService;
@@ -287,10 +290,26 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
 
 					return $rv;
 				},
-                'TaskManagement\Projector\TaskProjector' => function($locator) {
+                TaskManagement\Projector\TaskProjector::class => function($locator) {
                     $entityManager = $locator->get('doctrine.entitymanager.orm_default');
 
 				    return new TaskProjector($entityManager);
+                },
+                TaskManagement\Processor\RevertCreditsAssignedProcessor::class => function($locator) {
+
+				    return new RevertCreditsAssignedProcessor(
+                        $locator->get('Accounting\CreditsAccountsService'),
+                        $locator->get('People\OrganizationService'),
+				        $locator->get('doctrine.entitymanager.orm_default')
+                    );
+                },
+                TaskManagement\Processor\UpdateItemPositionProcessor::class => function($locator) {
+
+				    return new UpdateItemPositionProcessor(
+				        $locator->get('TaskManagement\TaskService'),
+                        $locator->get('doctrine.entitymanager.orm_default'),
+                        $locator->get('prooph.event_store')
+                    );
                 },
 				'TaskManagement\TaskService' => function ($locator) {
 					$eventStore = $locator->get('prooph.event_store');

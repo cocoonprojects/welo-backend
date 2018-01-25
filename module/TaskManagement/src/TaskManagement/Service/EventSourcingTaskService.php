@@ -21,6 +21,7 @@ use Kanbanize\Entity\KanbanizeTask as ReadModelKanbanizeTask;
 use TaskManagement\Entity\TaskMember;
 use TaskManagement\Entity\ItemIdeaApproval;
 use TaskManagement\Entity\Stream;
+use TaskManagement\TaskInterface;
 
 class EventSourcingTaskService extends AggregateRepository implements TaskService
 {
@@ -353,7 +354,7 @@ class EventSourcingTaskService extends AggregateRepository implements TaskServic
 		}
 
 		$builder = $this->entityManager->createQueryBuilder();
-		$query = $builder->select('COALESCE(SUM( CASE WHEN m.role=:role AND t.status <=:taskStatus THEN 1 ELSE 0 END ),0) as ownershipsCount')
+		$query = $builder->select('COALESCE(SUM( CASE WHEN m.role=:role AND t.status <:taskStatus THEN 1 ELSE 0 END ),0) as ownershipsCount')
 			->addSelect('COUNT(m.task) as membershipsCount')
 			->from(TaskMember::class, 'm')
 			->innerJoin('m.task', 't')
@@ -444,10 +445,13 @@ class EventSourcingTaskService extends AggregateRepository implements TaskServic
 
 		foreach($streamEvents as $k => $v) {
 			$payload = $v->payload();
+
 			$type = explode('\\', $v->eventName()->toString());
+            $type = array_pop($type);
+
 			$events[] = [
 				'id' => $v->eventId()->toString(),
-				'name' => $type[1],
+				'name' => $type,
 				'on' => $v->occurredOn()->format('d/m/Y H:i:s'),
 				'user' => [
 				    'id' => $payload['by'],
@@ -463,6 +467,44 @@ class EventSourcingTaskService extends AggregateRepository implements TaskServic
     {
         $this->entityManager->refresh($task);
     }
+
+    public function findTasksInLaneAfter($orgId, $lane, $position)
+    {
+        $builder = $this->entityManager->createQueryBuilder();
+
+        $query = $builder->select('item')
+            ->from(ReadModelTask::class, 'item')
+            ->innerJoin('item.stream', 's', 'WITH', 's.organization = :organization')
+            ->where('item.lane = :lane')
+            ->andWhere('item.position > :position')
+            ->setParameter('organization', $orgId)
+            ->setParameter('lane', $lane)
+            ->setParameter('position', $position);
+
+        return $query->getQuery()->getResult();
+    }
+
+    public function getNextOpenTaskPosition($taskId, $orgId, $laneId = null)
+    {
+        $builder = $this->entityManager->createQueryBuilder();
+
+        $query = $builder->select ( 'COALESCE(MAX(item.position), 0) as itemPos' )
+            ->from(ReadModelTask::class, 'item')
+			->innerJoin('item.stream', 's', 'WITH', 's.organization = :organization')
+            ->where('item.status = :status')
+            ->andWhere('item.id != :id')
+            ->setParameter( ':status', TaskInterface::STATUS_OPEN)
+            ->setParameter( ':id', $taskId)
+            ->setParameter('organization', $orgId);
+
+        if ($laneId) {
+            $query->andWhere('item.lane = :lane')
+                  ->setParameter(':lane', $laneId);
+        }
+
+        return $query->getQuery()->getResult()[0]['itemPos'] + 1;
+    }
+
 
     public function updateTasksPositions(Organization $organization, Stream $stream, PositionData $dto, BasicUser $by)
     {

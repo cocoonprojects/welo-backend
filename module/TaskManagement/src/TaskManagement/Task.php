@@ -1,4 +1,5 @@
 <?php
+
 namespace TaskManagement;
 
 use Application\DomainEntity;
@@ -12,6 +13,9 @@ use People\MissingOrganizationMembershipException;
 use Rhumsaa\Uuid\Uuid;
 use TaskManagement\Entity\TaskMember;
 use TaskManagement\Event\TaskPositionUpdated;
+use TaskManagement\Event\TaskRevertedToAccepted;
+use TaskManagement\Event\TaskRevertedToCompleted;
+use TaskManagement\Event\TaskUpdated;
 
 class Task extends DomainEntity implements TaskInterface
 {
@@ -112,7 +116,6 @@ class Task extends DomainEntity implements TaskInterface
         ]));
 
         $rv->setSubject($subject, $createdBy);
-        $rv->is_decision = $decision;
 
         return $rv;
     }
@@ -187,21 +190,25 @@ class Task extends DomainEntity implements TaskInterface
 
     public function getLane()
     {
+        if (is_a($this->lane, Uuid::class)) {
+            return $this->lane->toString();
+        }
+
         return $this->lane;
     }
 
     public function update(array $data, BasicUser $updatedBy)
     {
-        $eventData = [];
-        $eventData['subject'] = $data['subject'];
-        $eventData['description'] = $data['description'];
-        $eventData['by'] = $updatedBy->getId();
+        $e = TaskUpdated::happened(
+            $this->id->toString(),
+            $data['subject'],
+            $data['description'],
+            isset($data['lane']) ? $data['lane'] : null,
+            $this->getLane(),
+            $updatedBy->getId()
+        );
 
-        if (isset($data['lane'])) {
-            $eventData['lane'] = $data['lane'];
-        }
-
-        $this->recordThat(TaskUpdated::occur($this->id->toString(), $eventData));
+        $this->recordThat($e);
     }
 
     /**
@@ -315,6 +322,7 @@ class Task extends DomainEntity implements TaskInterface
         $this->recordThat(TaskClosed::occur($this->id->toString(), array(
             'by' => $closedBy->getId(),
         )));
+
         return $this;
     }
 
@@ -353,7 +361,7 @@ class Task extends DomainEntity implements TaskInterface
         return $this;
     }
 
-    public function revertToOpen(BasicUser $executedBy)
+    public function revertToOpen($position, BasicUser $executedBy)
     {
         if (!in_array($this->status, [self::STATUS_ONGOING])) {
             throw new IllegalStateException('Cannot revert to open a task in '.$this->status.' state');
@@ -361,6 +369,7 @@ class Task extends DomainEntity implements TaskInterface
 
         $this->recordThat(TaskRevertedToOpen::occur($this->id->toString(), array(
                 'prevStatus' => $this->getStatus(),
+                'position' => $position,
                 'by' => $executedBy->getId(),
         )));
         return $this;
@@ -389,6 +398,42 @@ class Task extends DomainEntity implements TaskInterface
                 'prevStatus' => $this->getStatus(),
                 'by' => $executedBy->getId(),
         )));
+
+        return $this;
+    }
+
+    public function revertToCompleted(BasicUser $executedBy)
+    {
+        if ($this->status !== self::STATUS_ACCEPTED) {
+            throw new IllegalStateException('Cannot revert to completed a task in '.$this->status.' state');
+        }
+
+        $e = TaskRevertedToCompleted::happened(
+            $this->id->toString(),
+            $this->getStatus(),
+            $executedBy->getId()
+        );
+
+        $this->recordThat($e);
+
+        return $this;
+    }
+
+    public function revertToAccepted(BasicUser $executedBy)
+    {
+        if ($this->status !== self::STATUS_CLOSED) {
+            throw new IllegalStateException('Cannot revert to completed a task in '.$this->status.' state');
+        }
+
+        $e = TaskRevertedToAccepted::happened(
+            $this->id->toString(),
+            $this->getSubject(),
+            $this->getMembersCredits(),
+            $this->getOrganizationId(),
+            $executedBy->getId()
+        );
+
+        $this->recordThat($e);
 
         return $this;
     }
@@ -903,6 +948,8 @@ class Task extends DomainEntity implements TaskInterface
         $this->streamId = Uuid::fromString($p['streamId']);
         $this->createdAt = $this->mostRecentEditAt = $event->occurredOn();
         $this->createdBy = User::createUser(Uuid::fromString($p['by']));
+        $this->is_decision = array_key_exists('decision', $p) ? $p['decision'] : false;
+        $this->lane = array_key_exists('lane', $p) ? $p['lane'] : null;
     }
 
     protected function whenTaskOngoing(TaskOngoing $event)
@@ -974,6 +1021,7 @@ class Task extends DomainEntity implements TaskInterface
         $this->members = [];
 
         $this->status = self::STATUS_OPEN;
+        $this->position = isset($event->payload()['position']) ? $event->payload()['position'] : null;
         $this->mostRecentEditAt = $event->occurredOn();
     }
 
@@ -992,6 +1040,35 @@ class Task extends DomainEntity implements TaskInterface
         $this->mostRecentEditAt = $event->occurredOn();
     }
 
+    protected function whenTaskRevertedToCompleted(TaskRevertedToCompleted $event)
+    {
+        $this->status = self::STATUS_COMPLETED;
+        $this->organizationMembersAcceptances = [];
+        $this->mostRecentEditAt = $event->occurredOn();
+
+        $unsetShares = function($member) {
+            unset($member['shares'], $member['share'], $member['delta']);
+
+            return $member;
+        };
+
+        $this->members = array_map($unsetShares, $this->members);
+    }
+
+    protected function whenTaskRevertedToAccepted(TaskRevertedToAccepted $event)
+    {
+        $this->status = self::STATUS_ACCEPTED;
+        $this->mostRecentEditAt = $event->occurredOn();
+
+        $resetShareAndCredits = function($member) {
+            unset($member['shares'], $member['share'], $member['delta'], $member['credits']);
+
+            return $member;
+        };
+
+        $this->members = array_map($resetShareAndCredits, $this->members);
+    }
+
     protected function whenTaskArchived(TaskArchived $event)
     {
         $this->status = self::STATUS_ARCHIVED;
@@ -1001,6 +1078,7 @@ class Task extends DomainEntity implements TaskInterface
     protected function whenTaskUpdated(TaskUpdated $event)
     {
         $pl = $event->payload();
+
         if (array_key_exists('subject', $pl)) {
             $this->subject = $pl['subject'];
         }
@@ -1010,9 +1088,11 @@ class Task extends DomainEntity implements TaskInterface
         if (array_key_exists('attachments', $pl)) {
             $this->attachments = $pl['attachments'];
         }
+
         if (array_key_exists('lane', $pl)) {
             $this->lane = $pl['lane'];
         }
+
         if (array_key_exists('position', $pl)) {
             $this->position = $pl['position'];
         }
@@ -1225,6 +1305,10 @@ class Task extends DomainEntity implements TaskInterface
 
     protected function whenCreditsAssigned(CreditsAssigned $event)
     {
+        foreach($this->getMembersCredits() as $memberId => $credits ) {
+            $this->members[$memberId]['credits'] = $credits;
+        }
+
         $this->mostRecentEditAt = $event->occurredOn();
     }
 

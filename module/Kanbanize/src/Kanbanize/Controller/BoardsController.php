@@ -26,9 +26,6 @@ use Kanbanize\Service\KanbanizeService;
 
 class BoardsController extends OrganizationAwareController{
 
-	protected static $resourceOptions = ['POST', 'GET'];
-	protected static $collectionOptions= [];
-
 	protected static $valid_statuses = [
 		Task::STATUS_IDEA,
 		Task::STATUS_OPEN,
@@ -65,7 +62,18 @@ class BoardsController extends OrganizationAwareController{
 		$this->kanbanizeService = $kanbanizeService;
 	}
 
-	public function invoke($id, $data){
+
+    protected function getCollectionOptions() {
+        return ['DELETE'];
+    }
+
+
+    protected function getResourceOptions() {
+        return  ['POST', 'GET'];
+    }
+
+
+    public function invoke($id, $data){
 		if(is_null($this->identity())) {
 			$this->response->setStatusCode(401);
 			return $this->response;
@@ -168,6 +176,7 @@ class BoardsController extends OrganizationAwareController{
 		}
 	}
 
+
 	public function get($id){
 		if(is_null($this->identity())) {
 			$this->response->setStatusCode(401);
@@ -218,12 +227,57 @@ class BoardsController extends OrganizationAwareController{
 			return $error;
 		}
 	}
-	protected function getCollectionOptions() {
-		return self::$collectionOptions;
-	}
-	protected function getResourceOptions() {
-		return self::$resourceOptions;
-	}
+
+
+    public function deleteList($data)
+    {
+        if(is_null($this->identity())) {
+            $this->response->setStatusCode(401);
+            return $this->response;
+        }
+
+        if(!$this->isAllowed($this->identity(), $this->organization, 'Kanbanize.BoardSettings.delete')) {
+            $this->response->setStatusCode(403);
+            return $this->response;
+        }
+
+        $organization = $this->getOrganizationService()->getOrganization($this->organization->getId());
+        $kanbanizeSettings = "";
+
+        $stream = $this->kanbanizeService
+            ->findStreamByOrganization($organization);
+
+        $this->transaction()->begin();
+
+        try{
+            $aggrStream = $this->streamService->getStream($stream->getId());
+            $aggrStream->unbindKanbanizeBoard($this->identity());
+
+            $organization->setSettings(
+                Organization::KANBANIZE_SETTINGS,
+                $kanbanizeSettings,
+                $this->identity()
+            );
+
+            $lanes = [];
+            $organization->setLanes($lanes, $this->identity());
+
+            $this->transaction()->commit();
+            $this->response->setStatusCode(200);
+
+            return new JsonModel([]);
+
+        } catch (InvalidArgumentException $ex) {
+            $this->transaction()->rollback();
+            $this->response->setStatusCode(422);
+            $error->setCode(ErrorJsonModel::$ERROR_INPUT_VALIDATION);
+            $error->setDescription($ex->getMessage());
+            return $error;
+        }
+
+    }
+
+
 	private function initApi($apiKey, $subdomain){
 		if(is_null($apiKey)){
 			throw new KanbanizeApiException("Cannot connect to Kanbanize due to missing api key");
