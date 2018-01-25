@@ -2,10 +2,12 @@
 namespace People;
 
 use People\Controller\HistoryController;
+use People\Controller\LanesSettingsController;
 use People\Controller\MembersController;
 use People\Controller\OrganizationsController;
 use People\Controller\InvitesController;
 use People\Controller\AcceptInviteController;
+use People\Projector\OrganizationProjector;
 use People\Service\EventSourcingOrganizationService;
 use People\Service\OrganizationCommandsListener;
 use People\Service\SendMailListener;
@@ -60,7 +62,15 @@ class Module
 					$controller = new HistoryController($entityManager);
 
 					return $controller;
-				}
+				},
+                'People\Controller\LanesSettings' => function($sm) {
+
+		            $locator = $sm->getServiceLocator();
+                    $orgService = $locator->get('People\OrganizationService');
+                    $taskService = $locator->get('TaskManagement\TaskService');
+
+                    return new LanesSettingsController($orgService, $taskService);
+                }
 			]
 		];
 	}
@@ -69,6 +79,11 @@ class Module
 	{
 		return [
 			'factories' => [
+                OrganizationProjector::class => function($locator) {
+                    $entityManager = $locator->get('doctrine.entitymanager.orm_default');
+
+                    return new OrganizationProjector($entityManager);
+                },
 				'People\OrganizationService' => function ($serviceLocator) {
 					$eventStore = $serviceLocator->get('prooph.event_store');
 					$entityManager = $serviceLocator->get('doctrine.entitymanager.orm_default');

@@ -28,7 +28,8 @@ class OrganizationParams
             'shiftout_min_item' =>  2,
             'shiftout_min_credits' =>  50,
 
-            'manage_priorities' => 0
+            'manage_priorities' => 0,
+            'manage_lanes' => 0
         ];
     }
 
@@ -41,9 +42,11 @@ class OrganizationParams
         if ($data[$intervalName] instanceof \DateInterval) {
             $interval = new \DateInterval("P{$data[$intervalName]->d}D");
         }
+
         if (is_numeric($data[$intervalName])) {
             $interval = new \DateInterval("P{$data[$intervalName]}D");
         }
+
         if (is_array($data[$intervalName]) && isset($data[$intervalName]['d'])) {
             $interval = new \DateInterval("P{$data[$intervalName]['d']}D");
         }
@@ -121,6 +124,7 @@ class OrganizationParams
         $settings->setTextValue($data, 'flow_welcome_card_text');
 
         $settings->setIntValue($data, 'manage_priorities');
+        $settings->setIntValue($data, 'manage_lanes');
 
         return $settings;
     }
