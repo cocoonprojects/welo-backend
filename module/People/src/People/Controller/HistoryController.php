@@ -29,7 +29,7 @@ class HistoryController extends HATEOASRestfulController {
             ->andWhere('(
                 e.eventName = \'People\OrganizationMemberAdded\' 
                 OR e.eventName = \'People\OrganizationMemberRoleChanged\'
-                OR e.eventName = \'People\OrganizationMemberRemoved\'
+                OR e.eventName = \'People\Event\OrganizationMemberRemoved\'
             )')
             ->setParameter(':id', $orgId)
             ->setParameter(':type', 'People\Organization')
