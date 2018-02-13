@@ -354,6 +354,12 @@ class TestFixturesHelper
         return $task;
     }
 
+    public function saveUser($user)
+    {
+        $userService = $this->serviceManager->get('Application\UserService');
+        $userService->saveUser($user);
+    }
+
     public function findUserByEmail($email)
     {
         $userService = $this->serviceManager->get('Application\UserService');

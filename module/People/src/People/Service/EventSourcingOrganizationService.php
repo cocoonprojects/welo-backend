@@ -100,22 +100,30 @@ class EventSourcingOrganizationService extends AggregateRepository implements Or
 	 * @param integer $limit
 	 * @return array
 	 */
-	public function findOrganizationMemberships(ReadModelOrg $organization, $limit, $offset, $roles=[])
+	public function findOrganizationMemberships(ReadModelOrg $organization, $limit, $offset, $roles = [])
 	{
-		$criteria = ['organization' => $organization];
-		// diff contains elements not available in the second array, so not good
-		$diff = array_diff($roles, [OrganizationMembership::ROLE_ADMIN, OrganizationMembership::ROLE_MEMBER, OrganizationMembership::ROLE_CONTRIBUTOR]);
+        $builder = $this->entityManager->createQueryBuilder();
 
-		if (!empty($roles) && empty($diff)) {
-			$criteria['role'] = $roles;
-		}
+        $query = $builder->select('om')
+            ->addSelect("(CASE WHEN om.role = 'admin' THEN 0 WHEN om.role = 'member' THEN 1 ELSE 2 END) AS HIDDEN ord")
+            ->from(OrganizationMembership::class, 'om')
+            ->leftJoin(User::class, 'u', 'WITH', 'om.member = u.id')
+            ->where('om.organization = :organization')
+            ->orderBy('ord', 'ASC')
+            ->addOrderBy('u.firstname', 'ASC')
+            ->addOrderBy('u.lastname', 'ASC')
+            ->setParameter(':organization', $organization)
+        ;
 
-		$rv = $this->entityManager
-                ->getRepository(OrganizationMembership::class)
-                ->findBy($criteria, ['createdAt' => 'ASC'], $limit, $offset);
+        $diff = array_diff($roles, [OrganizationMembership::ROLE_ADMIN, OrganizationMembership::ROLE_MEMBER, OrganizationMembership::ROLE_CONTRIBUTOR]);
 
-		return $rv;
+        if (!empty($roles) && empty($diff)) {
+            $query
+                ->andWhere('om.role in (:roles)')
+                ->setParameter(':roles', $roles);
+        }
 
+        return $query->getQuery()->getResult();
 	}
 
     /**
