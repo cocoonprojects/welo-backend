@@ -185,5 +185,19 @@ class RollbackStateTransitionProcessTest extends WebTestCase
         //transfer is reverted
         $this->assertEquals(-33.33, $response['_embedded']['transactions'][0]['amount'], '', 0.01);
 
+        // total credits are reverted
+        $response = $this->client->get("/{$res['org']->getId()}/accounting/members/{$member1->getId()}");
+        $response = json_decode($response->getContent(), true);
+
+        $expected = [
+            'balance' => 0,
+            'total' => 0,
+            'last3M' => 0,
+            'last6M' => 0,
+            'last1Y' => 0,
+        ];
+
+        $this->assertEquals($expected, $response);
+
     }
 }

@@ -9,7 +9,6 @@ use Accounting\Entity\Account as ReadModelAccount;
 use Application\Entity\User;
 use People\Entity\Organization as ReadModelOrganization;
 use People\Organization;
-use Accounting\Entity\Transaction;
 
 interface AccountService
 {

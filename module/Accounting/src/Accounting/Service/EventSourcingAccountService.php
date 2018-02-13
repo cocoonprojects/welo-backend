@@ -215,7 +215,7 @@ class EventSourcingAccountService extends AggregateRepository implements Account
 			$payer->transferOut(-$amount, $payee, $description, $by, Account::CREDITS_FROM_SHARES);
 			$payee->transferIn($amount, $payer, $description, $by);
 			$this->eventStore->commit();
-		}catch (\Exception $e) {
+		} catch (\Exception $e) {
 			$this->eventStore->rollback();
 			throw $e;
 		}

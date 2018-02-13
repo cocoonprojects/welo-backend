@@ -150,4 +150,11 @@ abstract class Transaction
 		}
 		return null;
 	}
+
+	public function isRevert() {
+
+	    //workaround, source is not propagated in readmodels
+
+	    return strpos($this->description, 'Reverted Item') === 0;
+    }
 }
