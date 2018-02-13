@@ -111,7 +111,7 @@ class AccountsController extends OrganizationAwareController
         $lastYearCredits = 0;
 
         foreach ($transactions as $t) {
-            if ($t->getAmount()>= 0) {
+            if ($t->getAmount()>= 0 || $t->isRevert()) {
                 $totalGeneratedCredits+=$t->getAmount();
                 if ($t->getCreatedAt()>$dateLimitThreeMonths) {
                     $lastThreeMonthsCredits+=$t->getAmount();//Last 3 Months
