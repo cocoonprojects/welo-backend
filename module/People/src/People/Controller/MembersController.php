@@ -59,7 +59,9 @@ class MembersController extends OrganizationAwareController
 		$offset = $validator->isValid($this->getRequest()->getQuery("offset")) ? intval($this->getRequest()->getQuery("offset")) : 0;
 		$limit = $validator->isValid($this->getRequest()->getQuery("limit")) ? intval($this->getRequest()->getQuery("limit")) : $this->organization->getParams()->get('org_members_limit_per_page');
 
-		$memberships = $this->getOrganizationService()->findOrganizationMemberships($this->organization, $limit, $offset);
+		$memberships = $this->getOrganizationService()
+                            ->findOrganizationMemberships($this->organization, $limit, $offset);
+
 		$totalMemberships = $this->getOrganizationService()->countOrganizationMemberships($this->organization);
 
 		$involvements = [];
