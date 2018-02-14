@@ -15,7 +15,8 @@ class ItemOwnerChangedCard extends FlowCard {
         $type = FlowCardInterface::ITEM_OWNER_CHANGED_CARD;
         $content = $this->getContent()[$type];
         $item = $this->getItem();
-        $owner = $item->getOwner()->getMember();
+        $owner = $item->getOwner() ? $item->getOwner()->getMember() : null;
+        $name = $owner ? $owner->getFirstname().' '.$owner->getLastname() : 'nobody';
 
         $rv = [];
         $rv['type'] = $type;
@@ -23,7 +24,7 @@ class ItemOwnerChangedCard extends FlowCard {
 		$rv['id'] = $this->getId();
 		$rv['title'] = "Owner changed for '".$item->getSubject()."'";
 		$rv['content'] = [
-			'description' => 'The new Item owner is '.$owner->getFirstname().' '.$owner->getLastname(),
+			'description' => "The new Item owner is $name",
 			'actions' => [
 				'primary' => [
 					'text' => '',
