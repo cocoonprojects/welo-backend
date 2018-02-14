@@ -104,7 +104,7 @@ class EventSourcingOrganizationService extends AggregateRepository implements Or
 	{
         $builder = $this->entityManager->createQueryBuilder();
 
-        $query = $builder->select('om')
+        $qb = $builder->select('om')
             ->addSelect("(CASE WHEN om.role = 'admin' THEN 0 WHEN om.role = 'member' THEN 1 ELSE 2 END) AS HIDDEN ord")
             ->from(OrganizationMembership::class, 'om')
             ->leftJoin(User::class, 'u', 'WITH', 'om.member = u.id')
@@ -118,12 +118,16 @@ class EventSourcingOrganizationService extends AggregateRepository implements Or
         $diff = array_diff($roles, [OrganizationMembership::ROLE_ADMIN, OrganizationMembership::ROLE_MEMBER, OrganizationMembership::ROLE_CONTRIBUTOR]);
 
         if (!empty($roles) && empty($diff)) {
-            $query
+            $qb
                 ->andWhere('om.role in (:roles)')
                 ->setParameter(':roles', $roles);
         }
 
-        return $query->getQuery()->getResult();
+        $query = $qb->setMaxResults($limit)
+                    ->setFirstResult($offset)
+                    ->getQuery();
+
+        return $query->getResult();
 	}
 
     /**
