@@ -42,7 +42,7 @@ class TaskMember
 	private $estimation;
 
 	/**
-	 * @ORM\OneToMany(targetEntity="TaskManagement\Entity\Share", mappedBy="evaluator", cascade="persist", orphanRemoval=TRUE, indexBy="valued_id");
+	 * @ORM\OneToMany(targetEntity="TaskManagement\Entity\Share", mappedBy="evaluator", cascade={"persist","remove"}, orphanRemoval=TRUE, indexBy="valued_id");
 	 * @var Share[]
 	 */
 	private $shares;

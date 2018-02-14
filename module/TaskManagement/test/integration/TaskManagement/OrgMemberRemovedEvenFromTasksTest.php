@@ -38,9 +38,10 @@ class OrgMemberRemovedEvenFromTasksTest extends WebTestCase
     {
 
         $tasks = [
-            $this->fixtures->createOngoingTask('Lorem First Ipsum Sic Dolor Amit', $this->stream, $this->admin, [$this->member1]),
-            $this->fixtures->createCompletedTask('Lorem Second Ipsum Sic Dolor Amit', $this->stream, $this->admin, [$this->member1]),
-            $this->fixtures->createAcceptedTask('Lorem Third Ipsum Sic Dolor Amit', $this->stream, $this->admin, [$this->member1]),
+//            $this->fixtures->createIdea('Lorem First Ipsum Sic Dolor Amit', $this->stream, $this->admin),
+//            $this->fixtures->createOngoingTask('Lorem First Ipsum Sic Dolor Amit', $this->stream, $this->admin, [$this->member1]),
+//            $this->fixtures->createCompletedTask('Lorem Second Ipsum Sic Dolor Amit', $this->stream, $this->admin, [$this->member1]),
+//            $this->fixtures->createAcceptedTask('Lorem Third Ipsum Sic Dolor Amit', $this->stream, $this->admin, [$this->member1]),
             $this->fixtures->createAcceptedTaskWithShares('Lorem Fourth Ipsum Sic Dolor Amit', $this->stream, $this->admin, [$this->member1, $this->member2])
         ];
 
@@ -56,7 +57,7 @@ class OrgMemberRemovedEvenFromTasksTest extends WebTestCase
 
         $tasks = json_decode($response->getContent(), true);
         $members = $tasks['_embedded']['ora:task'][0]['members'];
-
+dump($members);
         $this->assertArrayNotHasKey($this->member1->getId(), $members);
 
     }

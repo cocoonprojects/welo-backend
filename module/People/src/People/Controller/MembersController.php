@@ -126,14 +126,6 @@ class MembersController extends OrganizationAwareController
 			return $this->response;
 		}
 
-/*
-		$organization = $this->getOrganizationService()->getOrganization($this->params('orgId'));
-		if(is_null($organization)) {
-			$this->response->setStatusCode(404);
-			return $this->response;
-		}
-*/
-
 		$memberToRemove = $this->identity();
 		try {
 			$memberId = $id;
