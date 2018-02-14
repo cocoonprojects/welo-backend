@@ -16,6 +16,7 @@ use TaskManagement\Event\TaskPositionUpdated;
 use TaskManagement\Event\TaskRevertedToAccepted;
 use TaskManagement\Event\TaskRevertedToCompleted;
 use TaskManagement\Event\TaskUpdated;
+use TaskManagement\Event\TaskMemberRemoved;
 
 class Task extends DomainEntity implements TaskInterface
 {
@@ -553,9 +554,10 @@ class Task extends DomainEntity implements TaskInterface
      */
     public function removeMember(User $member, BasicUser $removedBy = null)
     {
-        if ($this->status >= self::STATUS_COMPLETED) {
-            throw new IllegalStateException('Cannot remove a member from a task in '.$this->status.' state');
-        }
+//        if ($this->status == self::STATUS_COMPLETED) {
+//            throw new IllegalStateException('Cannot remove a member from a task in '.$this->status.' state');
+//        }
+
         // TODO: Integrare controllo per cui è possibile effettuare l'UNJOIN
         // solo nel caso in cui non sia stata ancora effettuata nessuna stima
         if (!array_key_exists($member->getId(), $this->members)) {
@@ -564,12 +566,15 @@ class Task extends DomainEntity implements TaskInterface
 
         $by = is_null($removedBy) ? $member : $removedBy;
 
-        $this->recordThat(TaskMemberRemoved::occur($this->id->toString(), array(
-            'organizationId' => $this->getOrganizationId(),
-            'userId' => $member->getId(),
-            'userName' => $member->getFirstname().' '.$member->getLastname(),
-            'by' => $by->getId(),
-        )));
+        $event = TaskMemberRemoved::happened(
+            $this->id->toString(),
+            $this->getOrganizationId(),
+            $member->getId(),
+            $member->getFirstname().' '.$member->getLastname(),
+            $by->getId()
+        );
+
+        $this->recordThat($event);
     }
 
     public function addEstimation($value, BasicUser $member)
@@ -701,6 +706,11 @@ class Task extends DomainEntity implements TaskInterface
         $this->recordThat(SharesSkipped::occur($this->id->toString(), array(
             'by' => $member->getId(),
         )));
+    }
+
+    public function removeAllShares()
+    {
+        
     }
 
     /**
@@ -1115,7 +1125,16 @@ class Task extends DomainEntity implements TaskInterface
     {
         $p = $event->payload();
         $id = $p['userId'];
+
+        $resetShareAndCredits = function($member) {
+            unset($member['shares'], $member['share'], $member['delta']);
+
+            return $member;
+        };
+
+        $this->members = array_map($resetShareAndCredits, $this->members);
         unset($this->members[$id]);
+
         $this->mostRecentEditAt = $event->occurredOn();
     }
 
@@ -1129,6 +1148,9 @@ class Task extends DomainEntity implements TaskInterface
         $this->mostRecentEditAt = $event->occurredOn();
     }
 
+    /**
+     * Maybe this function is not useful
+     */
     protected function whenTaskOwnerRemoved(TaskMemberRemoved $event)
     {
         $p = $event->payload();

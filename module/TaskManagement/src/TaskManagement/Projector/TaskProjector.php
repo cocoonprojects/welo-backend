@@ -10,6 +10,7 @@ use TaskManagement\Event\TaskRevertedToAccepted;
 use TaskManagement\Event\TaskRevertedToCompleted;
 use TaskManagement\TaskInterface;
 use People\Event\OrganizationMemberRemoved;
+use TaskManagement\Event\TaskMemberRemoved;
 
 class TaskProjector extends Projector
 {
@@ -19,7 +20,7 @@ class TaskProjector extends Projector
             TaskPositionUpdated::class,
             TaskRevertedToCompleted::class,
             TaskRevertedToAccepted::class,
-            OrganizationMemberRemoved::class
+            TaskMemberRemoved::class
         ];
     }
 
@@ -60,34 +61,6 @@ class TaskProjector extends Projector
         $task->resetShares();
 
         $this->entityManager->persist($task);
-        $this->entityManager->flush();
-    }
-
-    public function applyOrganizationMemberRemoved(OrganizationMemberRemoved $event)
-    {
-        $orgId = $event->aggregateId();
-        $userId = $event->userId();
-
-        $builder = $this->entityManager->createQueryBuilder();
-        $query = $builder
-            ->select('t')
-            ->from(Task::class, 't')
-            ->innerJoin('t.members', 'm', 'WITH', 'm.user = :userId')
-            ->innerjoin('t.stream', 's', 'WITH', 's.organization = :organization')
-            ->where('t.status < :taskStatus')
-            ->setParameter('taskStatus', Task::STATUS_CLOSED)
-            ->setParameter('userId', $userId)
-            ->setParameter('organization', $orgId)
-            ->getQuery()
-        ;
-
-        $tasks = $query->getResult();
-
-        array_map(function($task) use ($event) {
-            $task->removeMember($event->userId());
-            $this->entityManager->persist($task);
-        }, $tasks);
-
         $this->entityManager->flush();
     }
 }

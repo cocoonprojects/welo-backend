@@ -18,7 +18,7 @@ use TaskManagement\TaskAccepted;
 use TaskManagement\TaskReopened;
 use TaskManagement\TaskOngoing;
 use TaskManagement\OwnerAdded;
-use TaskManagement\TaskMemberRemoved;
+use TaskManagement\Event\TaskMemberRemoved;
 use FlowManagement\Entity\ItemClosedCard;
 use FlowManagement\FlowCardInterface;
 use Rhumsaa\Uuid\Uuid;
@@ -277,8 +277,11 @@ class ItemCommandsListener implements ListenerAggregateInterface {
 		$exMemberId = $exMember->getId();
 		$exMemberFound = false;
 
+		$item->removeAcceptances($exMember);
+		$item->removeAllShares();
+
         $ownerId = $item->getOwner();
-        $owner = $item->getOwner() ? $this->userService->findUser($item->getOwner()) : null;
+        $owner = $ownerId ? $this->userService->findUser($ownerId) : null;
         $ownerFound = false;
 
 		foreach ($orgAdminsMemberships as $member) {
@@ -299,7 +302,6 @@ class ItemCommandsListener implements ListenerAggregateInterface {
         }
 
 		$params = [$this->flowService, $itemId, $organization, $changedBy, $exMember];
-
 		array_walk($orgAdmins, function($recipient) use($params){
 			$flowService = $params[0];
 			$itemId = $params[1];
