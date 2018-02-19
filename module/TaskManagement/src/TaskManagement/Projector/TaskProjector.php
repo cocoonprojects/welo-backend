@@ -9,8 +9,6 @@ use TaskManagement\Event\TaskPositionUpdated;
 use TaskManagement\Event\TaskRevertedToAccepted;
 use TaskManagement\Event\TaskRevertedToCompleted;
 use TaskManagement\TaskInterface;
-use People\Event\OrganizationMemberRemoved;
-use TaskManagement\Event\TaskMemberRemoved;
 
 class TaskProjector extends Projector
 {
@@ -19,8 +17,7 @@ class TaskProjector extends Projector
         return [
             TaskPositionUpdated::class,
             TaskRevertedToCompleted::class,
-            TaskRevertedToAccepted::class,
-            TaskMemberRemoved::class
+            TaskRevertedToAccepted::class
         ];
     }
 

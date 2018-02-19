@@ -26,4 +26,14 @@ class TaskMemberRemoved extends DomainEvent
     {
         return $this->by;
     }
+
+    public function userId()
+    {
+        return $this->userId;
+    }
+
+    public function organizationId()
+    {
+        return $this->organizationId;
+    }
 }

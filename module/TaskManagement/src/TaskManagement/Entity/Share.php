@@ -31,7 +31,7 @@ class Share {
 
 	/**
 	 * 
-	 * @ORM\ManyToOne(targetEntity="TaskMember")
+	 * @ORM\ManyToOne(targetEntity="TaskMember", cascade={"persist"})
 	 * @ORM\JoinColumns({
 	 * 		@ORM\JoinColumn(name="valued_id", referencedColumnName="member_id", onDelete="CASCADE", nullable=FALSE),
 	 * 		@ORM\JoinColumn(name="task_id", referencedColumnName="task_id", onDelete="CASCADE", nullable=FALSE)

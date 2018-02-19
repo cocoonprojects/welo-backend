@@ -259,19 +259,18 @@ class ItemCommandsListener implements ListenerAggregateInterface {
         }
 	}
 
-	public function processItemMemberRemoved(Event $event) {
-		if (is_null($event->getParam('userId'))) {
+	public function processItemMemberRemoved(TaskMemberRemoved $event) {
+		if (is_null($event->userId())) {
 			return;
 		}
 
-		$streamEvent = $event->getTarget();
-		$itemId = $streamEvent->metadata()['aggregate_id'];
+		$itemId = $event->aggregateId();
         $item = $this->taskService->getTask($itemId);
 
-		$exMember = $this->userService->findUser($event->getParam('userId'));
-		$changedBy = $this->userService->findUser($event->getParam('by'));
+		$exMember = $this->userService->findUser($event->userId());
+		$changedBy = $this->userService->findUser($event->by());
 
-		$organization = $this->organizationService->findOrganization($event->getParam('organizationId'));
+		$organization = $this->organizationService->findOrganization($event->organizationId());
 		$orgAdminsMemberships = $this->organizationService->findOrganizationMemberships($organization, null, null, [OrganizationMembership::ROLE_ADMIN]);
 
 		$exMemberId = $exMember->getId();
