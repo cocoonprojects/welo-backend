@@ -632,11 +632,13 @@ class Task extends DomainEntity implements TaskInterface
 
     public function removeAcceptances(BasicUser $member)
     {
+        /*
         if (! in_array($this->status, [
-                self::STATUS_COMPLETED
+            self::STATUS_COMPLETED
         ])) {
-            throw new IllegalStateException('Cannot remove acceptances from item in a status different from closed');
+            throw new IllegalStateException('Cannot remove acceptances from item in a status different from closed ['.$this->status.']');
         }
+        */
 
         $this->recordThat(AcceptancesRemoved::occur($this->id->toString(), array(
                 'by' => $member->getId(),
@@ -1123,8 +1125,7 @@ class Task extends DomainEntity implements TaskInterface
 
     protected function whenTaskMemberRemoved(TaskMemberRemoved $event)
     {
-        $p = $event->payload();
-        $id = $p['userId'];
+        $id = $event->userId();
 
         $resetShareAndCredits = function($member) {
             unset($member['shares'], $member['share'], $member['delta']);
