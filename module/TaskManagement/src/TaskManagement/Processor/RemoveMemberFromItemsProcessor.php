@@ -57,14 +57,11 @@ class RemoveMemberFromItemsProcessor extends Processor
 
             try {
                 $task = $this->taskService->getTask($taskReadModel->getId());
-
                 $task->removeMember($member, $by);
 
                 $this->eventStore->commit();
 
             } catch (\Exception $e) {
-                dump($e->getMessage());
-                dump($e->getTraceAsString());
                 $this->eventStore->rollback();
                 throw $e;
             }

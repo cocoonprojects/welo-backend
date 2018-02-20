@@ -121,36 +121,35 @@ class MembersController extends OrganizationAwareController
 
 	public function delete($id)
 	{
-		if(is_null($this->identity()) || !$this->identity()->isOwnerOf($this->organization) ) {
-			$this->response->setStatusCode(401);
-			return $this->response;
-		}
+        if (is_null($this->identity()) || !$this->identity()->isOwnerOf($this->organization)) {
+            $this->response->setStatusCode(401);
+            return $this->response;
+        }
+        $memberToRemove = $this->identity();
+        try {
+            $memberId = $id;
+            if (!empty($memberId)
+                && ($member = $this->userService->findUser($memberId))
+                && preg_match('/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/', $member->getId()) !== false
+            ) {
+                $memberToRemove = $member;
+            }
+        } catch (DomainEntityUnavailableException $e) {
+            $this->transaction()->rollback();
+            $this->response->setStatusCode(204);    // No content = nothing changed
+        }
 
-		$memberToRemove = $this->identity();
-		try {
-			$memberId = $id;
-			if (!empty($memberId) 
-				&& ($member=$this->userService->findUser($memberId))
-				&& preg_match('/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/', $member->getId())!==false
-				) {
-					$memberToRemove = $member;
-			}
-		} catch (DomainEntityUnavailableException $e) {
-			$this->transaction()->rollback();
-			$this->response->setStatusCode(204);	// No content = nothing changed
-		}		
-
-		$organization = $this->getOrganizationService()->getOrganization($this->params('orgId'));
-		$this->transaction()->begin();
-		try {
-			$organization->removeMember($memberToRemove);
-			$this->transaction()->commit();
-			$this->response->setStatusCode(200);
-		} catch (DomainEntityUnavailableException $e) {
-			$this->transaction()->rollback();
-			$this->response->setStatusCode(204);
-		}
-		return $this->response;
+        $organization = $this->getOrganizationService()->getOrganization($this->params('orgId'));
+        $this->transaction()->begin();
+        try {
+            $organization->removeMember($memberToRemove);
+            $this->transaction()->commit();
+            $this->response->setStatusCode(200);
+        } catch (DomainEntityUnavailableException $e) {
+            $this->transaction()->rollback();
+            $this->response->setStatusCode(204);
+        }
+        return $this->response;
 	}
 
 	public function deleteList($data)
