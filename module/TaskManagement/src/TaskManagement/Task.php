@@ -554,10 +554,6 @@ class Task extends DomainEntity implements TaskInterface
      */
     public function removeMember(User $member, BasicUser $removedBy = null)
     {
-//        if ($this->status == self::STATUS_COMPLETED) {
-//            throw new IllegalStateException('Cannot remove a member from a task in '.$this->status.' state');
-//        }
-
         // TODO: Integrare controllo per cui è possibile effettuare l'UNJOIN
         // solo nel caso in cui non sia stata ancora effettuata nessuna stima
         if (!array_key_exists($member->getId(), $this->members)) {

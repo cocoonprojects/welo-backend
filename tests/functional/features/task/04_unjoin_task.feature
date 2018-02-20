@@ -20,13 +20,15 @@ Scenario: Cannot unjoin a not existing task
 	And that I want to delete a "Member"
 	When I request "/00000000-0000-0000-1000-000000000000/task-management/tasks/00000000-0000-0000-0000-0000000000x0/members"
 	Then the response status code should be 404
-	
+
+@skip
 Scenario: Cannot unjoin a completed task
 	Given that I am authenticated as "paul.smith@ora.local" 
 	And that I want to delete a "Member"
 	When I request "/00000000-0000-0000-1000-000000000000/task-management/tasks/00000000-0000-0000-0000-000000000001/members"
 	Then the response status code should be 412
 
+@skip
 Scenario: Cannot unjoin an accepted task
 	Given that I am authenticated as "paul.smith@ora.local" 
 	And that I want to delete a "Member"

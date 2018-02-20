@@ -61,11 +61,9 @@ Feature: View User Profile page
     Given that I am authenticated as "mark.rogers@ora.local"
     When I request "/flow-management/cards"
     Then the response should contain 'User Phil Toledo role changed'
-    #And echo last response
 
   Scenario: Successfully removing an organization user as organization admin
     Given that I am authenticated as "mark.rogers@ora.local"
     And that I want to delete a "Member"
     When I request "/00000000-0000-0000-1000-000000000000/people/members/80000000-0000-0000-0000-000000000000"
     Then the response status code should be 200
-    And echo last response
