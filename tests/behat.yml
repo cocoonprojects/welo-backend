@@ -1,10 +1,14 @@
 default:
+
     autoload:
         '' : %paths.base%/functional/bootstrap
 
     suites:
         task_features:
-            paths: 
+            filters:
+                tags: '~@skip'
+
+            paths:
                 - functional/features/organizations
                 - functional/features/accounts
                 - functional/features/streams
