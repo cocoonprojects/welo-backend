@@ -261,7 +261,7 @@ class TaskTest extends \PHPUnit_Framework_TestCase
         $task = Task::create($this->stream, null, $this->owner);
         $task->addMember($this->owner, Task::ROLE_OWNER);
         $task->addMember($this->user1, Task::ROLE_MEMBER);
-        $task->changeOwner($this->user1, $this->owner);
+        $task->changeOwner($this->user1, $this->owner, $this->owner);
         $task->open($this->user1);
         $task->execute($this->user1);
 

@@ -110,11 +110,12 @@ class ItemCommandsListener implements ListenerAggregateInterface {
 		$itemId = $streamEvent->metadata()['aggregate_id'];
 		$item = $this->taskService->getTask($itemId);		
 
+		$exOwner = $this->userService->findUser($item->getOwner());
 		$changedBy = $this->userService->findUser($event->getParam('by'));
 
 		$this->transactionManager->beginTransaction();
 		try {
-			$item->changeOwner($changedBy, $changedBy);
+			$item->changeOwner($changedBy, $exOwner, $changedBy);
 			$this->transactionManager->commit();
 		}catch( \Exception $e ) {
 			$this->transactionManager->rollback();
