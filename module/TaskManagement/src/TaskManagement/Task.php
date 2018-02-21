@@ -567,6 +567,7 @@ class Task extends DomainEntity implements TaskInterface
             $this->getOrganizationId(),
             $member->getId(),
             $member->getFirstname().' '.$member->getLastname(),
+            $member->getRole(),
             $by->getId()
         );
 
