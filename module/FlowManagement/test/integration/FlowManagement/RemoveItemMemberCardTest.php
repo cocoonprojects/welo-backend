@@ -30,7 +30,6 @@ class RemoveItemMemberCardTest extends WebTestCase
             ->delete("/{$res['org']->getId()}/task-management/tasks/{$task->getId()}/members/{$member->getId()}");
 
         $this->assertEquals('200', $response->getStatusCode());
-
         $this->assertEquals(1, $this->countOwnerRemovedFlowCard());
     }
 

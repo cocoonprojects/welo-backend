@@ -716,28 +716,40 @@ class Task extends DomainEntity implements TaskInterface
      * @throws MissingOrganizationMembershipException
      * @throws DomainEntityUnavailableException
      */
-    public function changeOwner(BasicUser $new_owner, BasicUser $by)
+    public function changeOwner(BasicUser $newOwner, $exOwner, BasicUser $by)
     {
-        if (!$new_owner->isMemberOf($this->getOrganizationId())) {
+        if (!$newOwner->isMemberOf($this->getOrganizationId())) {
             throw new MissingOrganizationMembershipException(
-                $this->getOrganizationId(), $new_owner->getId()
+                $this->getOrganizationId(), $newOwner->getId()
             );
         }
 
-        $ex_owner = $this->getOwner();
+        if ($exOwner && (!$exOwner->isMemberOf($this->getOrganizationId()) || $exOwner->getId()!=$this->getOwner())) {
+            throw new MissingOrganizationMembershipException(
+                $this->getOrganizationId(), $exOwner->getId()
+            );
+        }
+
+        $exOwnerId = $exOwnerName = null;
+        if ($exOwner) {
+            $exOwnerId = $exOwner->getId();
+            $exOwnerName = $exOwner->getFirstname().' '.$exOwner->getLastname();
+        }
 
         $this->recordThat(OwnerAdded::occur($this->id->toString(), array(
             'organizationId' => $this->getOrganizationId(),
-            'ex_owner' => $ex_owner,
-            'new_owner' => $new_owner->getId(),
+            'ex_owner' => $exOwnerId,
+            'ex_owner_name' => $exOwnerName,
+            'new_owner' => $newOwner->getId(),
             'by' => $by->getId()
         )));
 
-        if (!is_null($ex_owner)) {
+        if (!is_null($exOwner)) {
             $this->recordThat(OwnerRemoved::occur($this->id->toString(), array(
                 'organizationId' => $this->getOrganizationId(),
-                'ex_owner' => $ex_owner,
-                'by' => $new_owner->getId()
+                'ex_owner' => $exOwner->getId(),
+                'ex_owner_name' => $exOwner->getFirstname().' '.$exOwner->getLastname(),
+                'by' => $newOwner->getId()
             )));
         }
     }
@@ -747,6 +759,7 @@ class Task extends DomainEntity implements TaskInterface
         $ex_owner = $this->getOwner();
         if (!is_null($ex_owner)) {
             $this->recordThat(OwnerRemoved::occur($this->id->toString(), array(
+                'organizationId' => $this->getOrganizationId(),
                 'ex_owner' => $ex_owner,
                 'by' => $by->getId()
             )));

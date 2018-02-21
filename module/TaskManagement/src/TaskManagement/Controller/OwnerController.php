@@ -49,15 +49,16 @@ class OwnerController extends OrganizationAwareController
 		}
 
 		$ownerId = $data['ownerId'];
-		$user = $this->userService->findUser($ownerId);
-		if(is_null($user)){
+		$newOwner = $this->userService->findUser($ownerId);
+		$exOwner = $this->userService->findUser($task->getOwner());
+		if(is_null($newOwner)){
 			$this->response->setStatusCode(404);
 			return $this->response;
 		}
 		
 		$this->transaction()->begin();
 		try {
-			$task->changeOwner($user, $this->identity());
+			$task->changeOwner($newOwner, $exOwner, $this->identity());
 			$this->transaction()->commit();
 			$this->response->setStatusCode(201);
 			$view = new TaskJsonModel($this);
