@@ -38,6 +38,10 @@ INSERT INTO users (id, status, createdAt, mostRecentEditAt, firstname, lastname,
 INSERT INTO users (id, status, createdAt, mostRecentEditAt, firstname, lastname, email, role) VALUES
   ('70000000-0000-0000-0000-000000000000', 1, '2014-10-09 11:33:45', '2014-10-09 11:33:45', 'Phil', 'Toledo',
    'phil.toledo@ora.local', 'user');
+# user 30000000-0000-0000-0000-000000000000 Clark Kent
+INSERT INTO users (id, status, createdAt, mostRecentEditAt, firstname, lastname, email, role) VALUES
+  ('30000000-0000-0000-0000-000000000000', 1, '2014-10-09 11:33:45', '2014-10-09 11:33:45', 'Clark', 'Kent',
+   'clark.kent@ora.local', 'user');
 
 # organization 00000000-0000-0000-1000-000000000000
 INSERT INTO event_stream (eventId, version, eventName, payload, occurredOn, aggregate_type, aggregate_id) VALUES
@@ -50,6 +54,9 @@ INSERT INTO event_stream (eventId, version, eventName, payload, occurredOn, aggr
   ('74548e90-569c-4e1b-958f-5b644243210c', 3, 'People\\OrganizationMemberAdded',
    'a:4:{s:6:"userId";s:36:"60000000-0000-0000-0000-000000000000";s:4:"role";s:5:"admin";s:2:"by";s:36:"60000000-0000-0000-0000-000000000000";s:12:"aggregate_id";s:36:"00000000-0000-0000-1000-000000000000";}',
    '2015-03-11T13:35:32.000000+0100', 'People\\Organization', '00000000-0000-0000-1000-000000000000'),
+  ('74548e90-569c-4e1b-958f-5b644243210d', 3, 'People\\OrganizationMemberAdded',
+   'a:4:{s:6:"userId";s:36:"30000000-0000-0000-0000-000000000000";s:4:"role";s:5:"admin";s:2:"by";s:36:"60000000-0000-0000-0000-000000000000";s:12:"aggregate_id";s:36:"00000000-0000-0000-1000-000000000000";}',
+   '2015-03-11T13:35:32.000000+0100', 'People\\Organization', '00000000-0000-0000-1000-000000000000'),
   ('75548e90-569c-4e1b-958f-5b644243210c', 4, 'People\\OrganizationAccountChanged',
    'a:3:{s:9:"accountId";s:36:"dcde992b-5aa9-4447-98ae-c8115906dcb7";s:2:"by";s:36:"60000000-0000-0000-0000-000000000000";s:12:"aggregate_id";s:36:"00000000-0000-0000-1000-000000000000";}',
    '2015-03-11T13:35:32.000000+0100', 'People\\Organization', '00000000-0000-0000-1000-000000000000');
@@ -59,6 +66,8 @@ INSERT INTO `organizations` (id, name, createdAt, mostRecentEditAt, createdBy_id
 INSERT INTO organization_members (member_id, organization_id, role, createdAt, mostRecentEditAt, createdBy_id, mostRecentEditBy_id)
 VALUES
   ('60000000-0000-0000-0000-000000000000', '00000000-0000-0000-1000-000000000000', 'admin', '2014-10-09 11:33:45',
+   '2014-10-09 11:33:45', '60000000-0000-0000-0000-000000000000', '60000000-0000-0000-0000-000000000000'),
+  ('30000000-0000-0000-0000-000000000000', '00000000-0000-0000-1000-000000000000', 'member', '2014-10-09 11:33:45',
    '2014-10-09 11:33:45', '60000000-0000-0000-0000-000000000000', '60000000-0000-0000-0000-000000000000');
 
 # organization configured for Kanbanize integration 00000000-0000-0000-2000-000000000000
@@ -559,8 +568,8 @@ INSERT INTO event_stream (eventId, version, eventName, payload, occurredOn, aggr
   ('c033eb32-2ad4-49d5-b25c-3c0b600b7de1', 4, 'TaskManagement\\TaskMemberAdded',
    'a:4:{s:6:\"userId\";s:36:\"60000000-0000-0000-0000-000000000000\";s:4:\"role\";s:5:\"owner\";s:2:\"by\";s:36:\"60000000-0000-0000-0000-000000000000\";s:12:\"aggregate_id\";s:36:\"00000000-0000-0000-0000-000000000108\";}',
    '2014-05-16T19:07:59.000000+0100', 'Kanbanize\\KanbanizeTask', '00000000-0000-0000-0000-000000000108'),
-  ('c033eb32-2ad4-49d5-b25c-3c0b600b7de1', 4, 'TaskManagement\\TaskMemberAdded',
-   'a:4:{s:6:\"userId\";s:36:\"80000000-0000-0000-0000-000000000000\";s:4:\"role\";s:6:\"member\";s:2:\"by\";s:36:\"60000000-0000-0000-0000-000000000000\";s:12:\"aggregate_id\";s:36:\"00000000-0000-0000-0000-000000000108\";}',
+  ('c033eb32-2ad4-49d5-b25c-3c0b600b7de2', 6, 'TaskManagement\\TaskMemberAdded',
+   'a:4:{s:6:\"userId\";s:36:\"30000000-0000-0000-0000-000000000000\";s:4:\"role\";s:6:\"member\";s:2:\"by\";s:36:\"60000000-0000-0000-0000-000000000000\";s:12:\"aggregate_id\";s:36:\"00000000-0000-0000-0000-000000000108\";}',
    '2014-05-16T19:07:59.000000+0100', 'Kanbanize\\KanbanizeTask', '00000000-0000-0000-0000-000000000108'),
   ('68696c0b-0790-48b7-a122-ff2078c5bf20', 5, 'TaskManagement\\EstimationAdded',
    'a:3:{s:2:"by";s:36:"60000000-0000-0000-0000-000000000000";s:5:"value";s:2:"-1";s:12:"aggregate_id";s:36:"00000000-0000-0000-0000-000000000108";}',
