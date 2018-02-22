@@ -64,7 +64,7 @@ class SettingsControllerTest extends ControllerTest
         $this->assertEquals(400, $response->getStatusCode());
         $arrayResult = json_decode($result->serialize(), true);
         $this->assertEquals($arrayResult['code'], "400");
-        $this->assertEquals($arrayResult['description'], "Cannot import projects due to: The request cannot be processed. Please make sure you've specified all input parameters correctly");
+        $this->assertEquals($arrayResult['description'], "error_on_kanbanize_get_board");
     }
 
     public function testKanbanizeFailsForWrongAccountSubdomain()
@@ -85,7 +85,7 @@ class SettingsControllerTest extends ControllerTest
         $this->controller->getKanbanizeClient()
             ->expects($this->once())
             ->method('getProjectsAndBoards')
-            ->will($this->throwException(new KanbanizeApiException("Cannot import projects due to problem with call: Could not resolve host: .kanbanize.com")));
+            ->will($this->throwException(new KanbanizeApiException("error_on_kanbanize_get_board")));
 
         $this->routeMatch->setParam('orgId', $this->organization->getId());
         $result = $this->controller->dispatch($this->request);
@@ -94,6 +94,6 @@ class SettingsControllerTest extends ControllerTest
         $this->assertEquals(400, $response->getStatusCode());
         $arrayResult = json_decode($result->serialize(), true);
         $this->assertEquals($arrayResult['code'], "400");
-        $this->assertEquals($arrayResult['description'], "Cannot import projects due to problem with call: Could not resolve host: .kanbanize.com");
+        $this->assertEquals($arrayResult['description'], "error_on_kanbanize_get_board");
     }
 }
