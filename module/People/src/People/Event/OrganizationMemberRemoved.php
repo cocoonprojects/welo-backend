@@ -24,7 +24,7 @@ class OrganizationMemberRemoved extends DomainEvent
 
     public function userId()
     {
-        return $this->userId->toString();
+        return is_string($this->userId) ? $this->userId : $this->userId->toString();
     }
 
     public function by()
