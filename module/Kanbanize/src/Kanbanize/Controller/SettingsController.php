@@ -77,7 +77,7 @@ class SettingsController extends OrganizationAwareController
 				//TODO: il metodo getProjectsAndBoards, se va a buon fine, restituisce un array. Migliorare questo comportamento
 				$error = new ErrorJsonModel();
 				$error->setCode(400);
-				$error->setDescription("Cannot import projects due to: The request cannot be processed. Please make sure you've specified all input parameters correctly");
+				$error->setDescription("error_on_kanbanize_get_board");
 
 				$this->response
 					 ->setStatusCode(400);
