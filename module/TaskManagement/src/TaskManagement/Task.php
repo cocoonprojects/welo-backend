@@ -549,25 +549,25 @@ class Task extends DomainEntity implements TaskInterface
     }
 
     /**
-     * @param User $member
+     * @param User $user
      * @param BasicUser|null $removedBy
      */
-    public function removeMember(User $member, BasicUser $removedBy = null)
+    public function removeMember(User $user, BasicUser $removedBy = null)
     {
         // TODO: Integrare controllo per cui è possibile effettuare l'UNJOIN
         // solo nel caso in cui non sia stata ancora effettuata nessuna stima
-        if (!array_key_exists($member->getId(), $this->members)) {
-            throw new DomainEntityUnavailableException($this, $member);
+        if (!array_key_exists($user->getId(), $this->members)) {
+            throw new DomainEntityUnavailableException($this, $user);
         }
 
-        $by = is_null($removedBy) ? $member : $removedBy;
+        $by = is_null($removedBy) ? $user : $removedBy;
 
         $event = TaskMemberRemoved::happened(
             $this->id->toString(),
             $this->getOrganizationId(),
-            $member->getId(),
-            $member->getFirstname().' '.$member->getLastname(),
-            $member->getRole(),
+            $user->getId(),
+            $user->getFirstname().' '.$user->getLastname(),
+            $this->getMemberRole($user),
             $by->getId()
         );
 
