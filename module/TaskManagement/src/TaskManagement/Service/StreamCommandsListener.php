@@ -48,7 +48,7 @@ class StreamCommandsListener extends ReadModelProjector {
 			$stream->setSubject($event->payload()['subject']);
 		}
 
-		if (isset($event->payload()['boardId'])) {
+		if (array_key_exists('boardId', $event->payload())) {
 			$stream->setBoardId($event->payload()['boardId']);
 		}
 
