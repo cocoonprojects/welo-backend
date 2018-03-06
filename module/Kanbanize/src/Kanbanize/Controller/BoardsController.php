@@ -259,8 +259,8 @@ class BoardsController extends OrganizationAwareController{
                 $this->identity()
             );
 
-            $lanes = [];
-            $organization->setLanes($lanes, $this->identity());
+//            $lanes = [];
+//            $organization->setLanes($lanes, $this->identity());
 
             $this->transaction()->commit();
             $this->response->setStatusCode(200);
