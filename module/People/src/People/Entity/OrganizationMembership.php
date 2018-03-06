@@ -37,6 +37,12 @@ class OrganizationMembership
 	 */
 	protected $organization;
 
+    /**
+     * @ORM\Column(type="boolean", nullable=true, options={"default": true})
+     * @var boolean
+     */
+    protected $active;
+
 	/**
 	 * @ORM\Column(type="datetime")
 	 * @var \DateTime
