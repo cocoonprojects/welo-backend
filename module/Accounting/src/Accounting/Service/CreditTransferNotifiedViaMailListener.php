@@ -77,7 +77,7 @@ class CreditTransferNotifiedViaMailListener implements ListenerAggregateInterfac
 
 
         $data = $streamEvent->payload();
-        $amount = abs($data['amount']);
+        $amount = number_format(abs($data['amount']), 1, ',', '.');
 
         $source = $data['source'];
         $description = $data['description'];
@@ -101,7 +101,7 @@ class CreditTransferNotifiedViaMailListener implements ListenerAggregateInterfac
         }
 
         $data = $streamEvent->payload();
-        $amount = abs($data['amount']);
+        $amount = number_format(abs($data['amount']), 1, ',', '.');
 
         $description = $data['description'];
 

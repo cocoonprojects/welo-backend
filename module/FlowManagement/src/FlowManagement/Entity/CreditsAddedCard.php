@@ -52,7 +52,7 @@ class CreditsAddedCard extends FlowCard
             'userId'    => $payee->getId(),
             'orgName'   => $org->getName(),
             'orgId'     => $org->getId(),
-            'amount'    => abs($amount),
+            'amount'    => number_format(abs($amount), 1, ',', '.'),
 		    'source'    => $source
         ];
 
