@@ -100,6 +100,16 @@ class OrganizationMembership
 		return $this->role;
 	}
 
+    public function setActive($active)
+    {
+        $this->active = $active;
+    }
+
+    public function getActive()
+    {
+        return $this->active;
+    }
+
 	public function getMember()
 	{
 		return $this->member;

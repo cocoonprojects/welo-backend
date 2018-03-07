@@ -25,6 +25,7 @@ use TaskManagement\Controller\VotingResultsController;
 use TaskManagement\Controller\HistoryController;
 use TaskManagement\Processor\RemoveMemberFromItemsProcessor;
 use TaskManagement\Processor\RevertCreditsAssignedProcessor;
+use TaskManagement\Processor\UpdateMembershipActivationProcessor;
 use TaskManagement\Projector\TaskProjector;
 use TaskManagement\Processor\UpdateItemPositionProcessor;
 use TaskManagement\Service\AssignCreditsListener;

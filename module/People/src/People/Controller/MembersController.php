@@ -237,7 +237,13 @@ class MembersController extends OrganizationAwareController
 			$this->transaction()->begin();
 			try {
 
-				$organization->changeMemberRole($user, $data['role'], $this->identity());
+			    if (array_key_exists('role', $data)) {
+				    $organization->changeMemberRole($user, $data['role'], $this->identity());
+                }
+
+			    if (array_key_exists('active', $data)) {
+				    $organization->changeMemberActivation($user, $data['active'], $this->identity());
+                }
 
 				$this->transaction()->commit();
 				$this->response->setStatusCode(201);
@@ -278,6 +284,7 @@ class MembersController extends OrganizationAwareController
 			'secondaryEmails'     => $membership->getMember()->getSecondaryEmails(),
 			'picture'   => $membership->getMember()->getPicture(),
 			'role'      => $membership->getRole(),
+			'active'      => $membership->getActive(),
 			'createdAt' => date_format($membership->getCreatedAt(), 'c'),
 			'createdBy' => is_null ( $membership->getCreatedBy() ) ? "" : $membership->getCreatedBy ()->getFirstname () . " " . $membership->getCreatedBy ()->getLastname (),
 			'_links' => [
