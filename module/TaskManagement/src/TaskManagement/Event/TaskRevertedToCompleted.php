@@ -21,7 +21,7 @@ class TaskRevertedToCompleted extends DomainEvent
 
     public function previousState()
     {
-        return $this->position;
+        return $this->previousState;
     }
 
     public function by()
