@@ -30,6 +30,19 @@ return array(
 						'__NAMESPACE__' => 'Accounting\Controller'
 					]
 				]
+			],
+			'statements-export' => [
+				'type'    => 'Segment',
+				'options' => [
+					'route'       => '/:orgId/accounting/organization-statement-export[/:id]',
+					'constraints' => [
+						'orgId'      => '([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})',
+					],
+					'defaults'    => [
+						'__NAMESPACE__' => 'Accounting\Controller',
+						'controller' => 'OrganizationStatementExport'
+					]
+				]
 			]
 		),
 	),

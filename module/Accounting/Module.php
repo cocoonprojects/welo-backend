@@ -7,6 +7,7 @@ use Accounting\Controller\IncomingTransfersController;
 use Accounting\Controller\IndexController;
 use Accounting\Controller\MembersController;
 use Accounting\Controller\OrganizationStatementController;
+use Accounting\Controller\OrganizationStatementsExportController;
 use Accounting\Controller\OutgoingTransfersController;
 use Accounting\Controller\PersonalStatementController;
 use Accounting\Controller\StatementsController;
@@ -17,6 +18,7 @@ use Accounting\Service\AccountCommandsListener;
 use Accounting\Service\CreateOrganizationAccountListener;
 use Accounting\Service\CreatePersonalAccountListener;
 use Accounting\Service\EventSourcingAccountService;
+use Application\Service\CsvWriter;
 use Zend\ModuleManager\Feature\AutoloaderProviderInterface;
 use Zend\ModuleManager\Feature\ConfigProviderInterface;
 
@@ -72,6 +74,19 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
 						$accountService,
 						$acl,
 						$organizationService
+					);
+
+					return $controller;
+				},
+				'Accounting\Controller\OrganizationStatementExport' => function ($sm) {
+					$locator = $sm->getServiceLocator();
+					$organizationService = $locator->get('People\OrganizationService');
+					$accountService = $locator->get('Accounting\CreditsAccountsService');
+
+					$controller = new OrganizationStatementsExportController(
+                        $organizationService,
+						$accountService,
+						new CsvWriter()
 					);
 
 					return $controller;
