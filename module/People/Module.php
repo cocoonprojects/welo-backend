@@ -7,6 +7,7 @@ use People\Controller\MembersController;
 use People\Controller\OrganizationsController;
 use People\Controller\InvitesController;
 use People\Controller\AcceptInviteController;
+use People\Projector\OrganizationMembershipProjector;
 use People\Projector\OrganizationProjector;
 use People\Service\EventSourcingOrganizationService;
 use People\Service\OrganizationCommandsListener;
@@ -83,6 +84,11 @@ class Module
                     $entityManager = $locator->get('doctrine.entitymanager.orm_default');
 
                     return new OrganizationProjector($entityManager);
+                },
+                OrganizationMembershipProjector::class => function($locator) {
+                    $entityManager = $locator->get('doctrine.entitymanager.orm_default');
+
+                    return new OrganizationMembershipProjector($entityManager);
                 },
 				'People\OrganizationService' => function ($serviceLocator) {
 					$eventStore = $serviceLocator->get('prooph.event_store');
