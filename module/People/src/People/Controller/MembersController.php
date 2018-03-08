@@ -284,7 +284,7 @@ class MembersController extends OrganizationAwareController
 			'secondaryEmails'     => $membership->getMember()->getSecondaryEmails(),
 			'picture'   => $membership->getMember()->getPicture(),
 			'role'      => $membership->getRole(),
-			'active'      => $membership->getActive(),
+			'active'      => $membership->getActive() ? true : false,
 			'createdAt' => date_format($membership->getCreatedAt(), 'c'),
 			'createdBy' => is_null ( $membership->getCreatedBy() ) ? "" : $membership->getCreatedBy ()->getFirstname () . " " . $membership->getCreatedBy ()->getLastname (),
 			'_links' => [

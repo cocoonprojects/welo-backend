@@ -39,22 +39,22 @@ class OrgMemberActivationTest extends WebTestCase
 
         $response = $this->client
             ->put("/{$this->org->getId()}/people/members/{$this->member1->getId()}", [
-                'active' => 0
+                'active' => false
             ]);
         $membership = json_decode($response->getContent());
 
         $this->assertEquals('201', $response->getStatusCode());
-        $this->assertEquals(0, $membership->active);
+        $this->assertFalse($membership->active);
 
 
         $response = $this->client
             ->put("/{$this->org->getId()}/people/members/{$this->member1->getId()}", [
-                'active' => 1
+                'active' => true
             ]);
         $membership = json_decode($response->getContent());
 
         $this->assertEquals('201', $response->getStatusCode());
-        $this->assertEquals(1, $membership->active);
+        $this->assertTrue($membership->active);
     }
 
 
