@@ -1,0 +1,60 @@
+<?php
+
+namespace TaskManagement;
+
+use ZFX\Test\WebTestCase;
+
+class AddItemMemberCardTest extends WebTestCase
+{
+    protected $client;
+    protected $fixtures;
+    protected $flowService;
+
+    public function setUp()
+    {
+        parent::setUp();
+
+        $this->client->setJWTToken($this->fixtures->getJWTToken('bruce.wayne@ora.local'));
+    }
+
+    public function testAddMemberCard()
+    {
+        $admin = $this->fixtures->findUserByEmail('bruce.wayne@ora.local');
+        $owner = $this->fixtures->findUserByEmail('phil.toledo@ora.local');
+        $member = $this->fixtures->findUserByEmail('paul.smith@ora.local');
+
+        $res = $this->fixtures->createOrganization('my org', $admin, [$owner, $member]);
+
+        $task = $this->fixtures->createOngoingTask('Lorem Ipsum Sic Dolor Amit', $res['stream'], $owner, [$member]);
+
+        $response = $this->client
+            ->post("/{$res['org']->getId()}/task-management/tasks/{$task->getId()}/members", []);
+
+
+        $this->assertEquals('201', $response->getStatusCode());
+        $this->assertEquals(1, $this->countMemberAddedFlowCard());
+
+
+        $this->client->setJWTToken($this->fixtures->getJWTToken('paul.smith@ora.local'));
+        $this->assertEquals(3, $this->countMemberAddedFlowCard());
+    }
+
+
+    protected function countMemberAddedFlowCard()
+    {
+        //users get notified via flowcard
+        $response = $this->client
+                         ->get('/flow-management/cards?limit=10&offset=0');
+
+        $flowCards = json_decode($response->getContent(), true);
+
+        $count = 0;
+        foreach ($flowCards['_embedded']['ora:flowcard'] as $idx => $flowCard) {
+            if ($flowCard['type'] == 'ItemMemberAdded') {
+                $count++;
+            }
+        }
+
+        return $count;
+    }
+}

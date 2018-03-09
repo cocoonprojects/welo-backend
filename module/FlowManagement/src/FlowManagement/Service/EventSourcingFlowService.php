@@ -157,6 +157,7 @@ class EventSourcingFlowService extends AggregateRepository implements FlowServic
 		}
 		return $card;
 	}
+
 	/**
 	 * (non-PHPdoc)
 	 * @see \FlowManagement\Service\FlowService::createItemMemberRemovedCard()
@@ -178,6 +179,7 @@ class EventSourcingFlowService extends AggregateRepository implements FlowServic
 		}
 		return $card;
 	}
+
 	/**
 	 * (non-PHPdoc)
 	 * @see \FlowManagement\Service\FlowService::createItemMemberRemovedCard()
