@@ -73,8 +73,6 @@ class OrganizationStatementsExportController extends OrganizationAwareController
         $dumper = new StatementsDumper();
         $dumper->dump($results, [], $this->csvWriter);
 
-        dump(file_get_contents($tmpname));
-
         $this->response
             ->setContent(file_get_contents($tmpname))
             ->setStatusCode(200);
