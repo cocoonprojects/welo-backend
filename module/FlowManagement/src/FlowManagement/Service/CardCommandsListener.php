@@ -4,6 +4,7 @@ namespace FlowManagement\Service;
 
 use Application\Service\UserService;
 use Application\Service\ReadModelProjector;
+use FlowManagement\Entity\ItemMemberAddedCard;
 use Prooph\EventStore\Stream\StreamEvent;
 use Application\Entity\User;
 use FlowManagement\Entity\WelcomeCard;
@@ -97,6 +98,14 @@ class CardCommandsListener extends ReadModelProjector {
 					$entity->setItem($item);
 				}
 				$entity->setContent(FlowCardInterface::ITEM_OWNER_CHANGED_CARD, $content);
+				break;
+			case 'FlowManagement\ItemMemberAddedCard':
+				$entity = new ItemMemberAddedCard($id, $recipient);
+				$item = $this->entityManager->find(Task::class, $event->payload()['item']);
+				if(!is_null($item)){
+					$entity->setItem($item);
+				}
+				$entity->setContent(FlowCardInterface::ITEM_MEMBER_ADDED_CARD, $content);
 				break;
 			case 'FlowManagement\ItemMemberRemovedCard':
 				$entity = new ItemMemberRemovedCard($id, $recipient);

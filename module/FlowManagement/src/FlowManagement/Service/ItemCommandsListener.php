@@ -177,6 +177,7 @@ class ItemCommandsListener implements ListenerAggregateInterface {
 		array_walk($flowCards, function($card) use($params){
 			$flowService = $params[0];
 			$transactionManager = $params[1];
+
 			$wmCard = $flowService->getCard($card->getId());
 			$transactionManager->beginTransaction();
 			try {
@@ -280,23 +281,15 @@ class ItemCommandsListener implements ListenerAggregateInterface {
 		$newMember = $this->userService->findUser($memberId);
         $addedBy = $this->userService->findUser($payload['by']);
 
-        $flowcardContent = [
-            'orgId' => $item->getOrganizationId(),
-            'userId' => $memberId,
-            'userName' => $newMember->getFirstname().' '.$newMember->getLastname()
-        ];
-
-		$params = [$item, $addedBy, $flowcardContent];
+		$params = [$this->flowService, $item, $item->getOrganizationId(), $addedBy, $newMember];
 		array_walk($itemMembers, function($recipient) use($params){
-            $flowCard = new ItemMemberAddedCard(Uuid::uuid4(), $recipient->getUser());
-            $flowCard->setContent(FlowCardInterface::ITEM_MEMBER_ADDED_CARD, $params[2]);
-            $flowCard->setItem($params[0]);
-            $flowCard->setCreatedBy($params[1]);
-
-            $this->entityManager->persist($flowCard);
-
+            $flowService = $params[0];
+            $itemId = $params[1];
+            $organizationId = $params[2];
+            $addedBy = $params[3];
+            $newMember = $params[4];
+            $flowService->createItemMemberAddedCard($recipient->getUser(), $itemId, $newMember, $organizationId, $addedBy);
 		});
-        $this->entityManager->flush();
 	}
 
 	public function processItemMemberRemoved(TaskMemberRemoved $event) {
