@@ -2,6 +2,7 @@
 
 namespace TaskManagement;
 
+use Test\Mailbox;
 use ZFX\Test\WebTestCase;
 
 class OrgMemberActivationTest extends WebTestCase
@@ -25,8 +26,8 @@ class OrgMemberActivationTest extends WebTestCase
         $res = $this->fixtures->createOrganization(
             'my org',
             $this->admin,
-            [],
-            [$this->member1, $this->member2]
+            [$this->member2],
+            [$this->member1]
         );
 
         $this->org = $res['org'];
@@ -36,6 +37,8 @@ class OrgMemberActivationTest extends WebTestCase
 
     public function testDeactivateAndReactivateOrgMember()
     {
+        $mailbox = Mailbox::create();
+        $mailbox->clean();
 
         $response = $this->client
             ->put("/{$this->org->getId()}/people/members/{$this->member1->getId()}", [
@@ -55,7 +58,38 @@ class OrgMemberActivationTest extends WebTestCase
 
         $this->assertEquals('201', $response->getStatusCode());
         $this->assertTrue($membership->active);
+
+        $messages = $mailbox->getMessages();
+        $this->assertEquals(1, $this->countActivationEmails($this->member2->getEmail(), $messages));
+        $this->assertEquals(1, $this->countDeactivationEmails($this->member2->getEmail(), $messages));
     }
 
+
+    protected function countActivationEmails($account ,$messages) {
+        $count = 0;
+        foreach ($messages as $idx => $message) {
+            if (
+                $message->recipients[0] == '<'.$account.'>' &&
+                strpos($message->subject, 'has been activated') !== false
+            ) {
+                $count++;
+            }
+        }
+        return $count;
+    }
+
+
+    protected function countDeactivationEmails($account ,$messages) {
+        $count = 0;
+        foreach ($messages as $idx => $message) {
+            if (
+                $message->recipients[0] == '<'.$account.'>' &&
+                strpos($message->subject, 'has been deactivated') !== false
+            ) {
+                $count++;
+            }
+        }
+        return $count;
+    }
 
 }
