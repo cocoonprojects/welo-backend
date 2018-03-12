@@ -18,6 +18,8 @@ class StatementsDumper
 
     public function dump(array $results, array $filters, $writer)
     {
+        $writer->writeLine(self::$header);
+
         foreach ($results as $result) {
 
             $data = [
