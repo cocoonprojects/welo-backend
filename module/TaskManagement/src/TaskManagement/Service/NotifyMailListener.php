@@ -387,7 +387,7 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
 				'recipient'=> $member,
 				'host' => $this->host,
                 'sharesSummary' => $sharesSummary,
-                'avgCredits' => number_format($avgCredits, 1, ',', '.'),
+                'avgCredits' => $this->formatFloatForOutput($avgCredits),
                 'router' => $this->feRouter
             ]);
 
@@ -602,7 +602,7 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
 
     private function formatFloatForOutput($number) {
 	    $value = floatval($number);
-        return (abs($value) - intval(abs($value)) > 0) ? number_format($value, 1, '.', ',') : ceil($value);
+        return (abs($value) - intval(abs($value)) > 0) ? number_format($value, 1, ',', '.') : ceil($value);
     }
 
 }
