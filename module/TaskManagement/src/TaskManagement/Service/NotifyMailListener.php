@@ -387,7 +387,7 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
 				'recipient'=> $member,
 				'host' => $this->host,
                 'sharesSummary' => $sharesSummary,
-                'avgCredits' => $avgCredits,
+                'avgCredits' => number_format($avgCredits, 1, ',', '.'),
                 'router' => $this->feRouter
             ]);
 
