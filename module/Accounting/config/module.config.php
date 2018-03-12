@@ -73,6 +73,7 @@ return array(
 		'Accounting\CreatePersonalAccountListener',
 		'Accounting\CreateOrganizationAccountListener',
         'Accounting\CreditTransferNotifiedViaMailListener',
+        Accounting\Processor\NotifyMembershipActivationProcessor::class
     ),
 	'personal_transactions_default_limit' => 10,
 	'organization_transactions_default_limit' => 10
