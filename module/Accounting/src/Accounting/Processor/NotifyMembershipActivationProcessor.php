@@ -40,7 +40,7 @@ class NotifyMembershipActivationProcessor extends Processor
                    ->findUser($event->by());
 
         $memberChanged = $this->userService
-                   ->findUser($event->memberId());
+                   ->findUser($event->userId());
 
         $organization = $this->organizationService
                              ->findOrganization($event->organizationId());

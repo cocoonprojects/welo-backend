@@ -23,7 +23,7 @@ class OrganizationMembershipProjector extends Projector
     public function applyOrganizationMemberActivationChanged(OrganizationMemberActivationChanged $event)
     {
         $membershipReadModel = $this->entityManager
-                             ->find(OrganizationMembership::class, ['member' => $event->memberId(), 'organization' => $event->organizationId()]);
+                             ->find(OrganizationMembership::class, ['member' => $event->userId(), 'organization' => $event->organizationId()]);
 
         $membershipReadModel->setActive($event->active());
 

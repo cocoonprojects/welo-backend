@@ -374,7 +374,7 @@ class Organization extends DomainEntity
 
 	protected function whenOrganizationMemberActivationChanged(OrganizationMemberActivationChanged $event)
     {
-		$id = $event->memberId();
+		$id = $event->userId();
 		$this->members[$id]['active'] = $event->active();
     }
 }
