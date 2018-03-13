@@ -30,6 +30,7 @@ class HistoryController extends HATEOASRestfulController {
                 e.eventName = \'People\OrganizationMemberAdded\' 
                 OR e.eventName = \'People\OrganizationMemberRoleChanged\'
                 OR e.eventName = \'People\Event\OrganizationMemberRemoved\'
+                OR e.eventName = \'People\Event\OrganizationMemberActivationChanged\'
             )')
             ->setParameter(':id', $orgId)
             ->setParameter(':type', 'People\Organization')
