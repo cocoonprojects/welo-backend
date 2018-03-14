@@ -206,7 +206,7 @@ class Organization extends DomainEntity
         }
         $memberId = Uuid::fromString($member->getId());
         $orgId = Uuid::fromString($this->getId());
-        $e = OrganizationMemberActivationChanged::happened($this->id->toString(), $orgId, $memberId, $active, $changedBy);
+        $e = OrganizationMemberActivationChanged::happened($this->id->toString(), $orgId, $member, $active, $changedBy);
 
         $this->recordThat($e);
     }
@@ -285,7 +285,7 @@ class Organization extends DomainEntity
 	 */
 	public function getAdmins() {
 		return array_filter($this->members, function($profile) {
-			return $profile['role'] == self::ROLE_ADMIN;
+			return isset($profile['role']) && $profile['role'] == self::ROLE_ADMIN;
 		});
 	}
 

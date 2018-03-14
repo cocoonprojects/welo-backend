@@ -47,7 +47,7 @@ class NotifyMembershipActivationProcessor extends Processor
 
         $members = $this->organizationService->findOrganizationMemberships($organization, 9999, 0, [OrganizationMembership::ROLE_ADMIN, OrganizationMembership::ROLE_MEMBER]);
         foreach ($members as $memberId => $member) {
-            $this->sendOrganizationMemberActivationChangedMail($organization, $memberChanged, $event->by(), $members, $event->active());
+            $this->sendOrganizationMemberActivationChangedMail($organization, $memberChanged, $by, $members, $event->active());
         }
     }
 
