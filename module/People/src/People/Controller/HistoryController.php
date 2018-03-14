@@ -59,16 +59,20 @@ class HistoryController extends HATEOASRestfulController {
     {
         $serializedEvent = $event->serialize();
 
+        $userId = isset($serializedEvent['payload']['userId']) ? $serializedEvent['payload']['userId'] : 'n/a';
         $role = $this->getEventRole($serializedEvent);
+        $userName = isset($serializedEvent['payload']['userName']) ? $serializedEvent['payload']['userName'] : 'n/a';
+        $active = isset($serializedEvent['payload']['active']) ? isset($serializedEvent['payload']['active']) : 'n/a';
 
         $event = [
             "id" => $serializedEvent['id'],
             "name" => $serializedEvent['name'],
             "on" => \DateTime::createFromFormat('Y-m-d G:i:s', $serializedEvent['occurredOn'])->format('c'),
             "user" => [
-                "id" => $serializedEvent['payload']['userId'],
-                "name" => "",
-                "role" => $role
+                "id" => $userId,
+                "name" => $userName,
+                "role" => $role,
+                "active" => $active
             ]
         ];
 

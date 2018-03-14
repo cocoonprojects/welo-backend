@@ -11,26 +11,37 @@ use Rhumsaa\Uuid\Uuid;
 class OrganizationMemberActivationChanged extends DomainEvent
 {
     protected $userId;
-
+    protected $userName;
     protected $organizationId;
-
     protected $active;
-
     protected $by;
 
-    public static function happened($aggregateId, Uuid $organizationId, Uuid $userId, $active, BasicUser $by)
+    public static function happened($aggregateId, Uuid $organizationId, BasicUser $user, $active, BasicUser $by)
     {
-        $event = self::occur($aggregateId, ['userId' => $userId, 'organizationId' => $organizationId, 'active' => $active, 'by' => $by]);
-        $event->userId = $userId->toString();
-        $event->organizationId = $organizationId->toString();
+        $name = $user->getFirstname().' '.$user->getLastname();
+
+        $event = self::occur($aggregateId, [
+            'userId' => $user->getId(),
+            'userName' => $name,
+            'organizationId' => $organizationId->toString(),
+            'active' => $active,
+            'by' => $by->getId()
+        ]);
+
+        $event->userId = $user->getId();
+        $event->userName = $name;
+        $event->organizationId = $organizationId;
         $event->active = $active;
-        $event->by = $by->getId();
+        $event->by = $by;
 
         return $event;
     }
 
     public function userId()
     {
+        if (!$this->userId) {
+            return null;
+        }
         return is_string($this->userId) ? $this->userId : $this->userId->toString();
     }
 
