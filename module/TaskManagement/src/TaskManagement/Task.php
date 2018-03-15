@@ -267,6 +267,13 @@ class Task extends DomainEntity implements TaskInterface
                 'by' => $executedBy->getId(),
                 'userName' => $executedBy->getFirstname().' '.$executedBy->getLastname(),
         )));
+
+        $this->recordThat(OwnerAdded::occur($this->id->toString(), array(
+            'organizationId' => $this->getOrganizationId(),
+            'new_owner' => $executedBy->getId(),
+            'by' => $executedBy->getId()
+        )));
+
         return $this;
     }
 
@@ -359,6 +366,7 @@ class Task extends DomainEntity implements TaskInterface
                 'prevStatus' => $this->getStatus(),
                 'by' => $executedBy->getId(),
         )));
+
         return $this;
     }
 
@@ -736,14 +744,6 @@ class Task extends DomainEntity implements TaskInterface
             $exOwnerName = $exOwner->getFirstname().' '.$exOwner->getLastname();
         }
 
-        $this->recordThat(OwnerAdded::occur($this->id->toString(), array(
-            'organizationId' => $this->getOrganizationId(),
-            'ex_owner' => $exOwnerId,
-            'ex_owner_name' => $exOwnerName,
-            'new_owner' => $newOwner->getId(),
-            'by' => $by->getId()
-        )));
-
         if (!is_null($exOwner)) {
             $this->recordThat(OwnerRemoved::occur($this->id->toString(), array(
                 'organizationId' => $this->getOrganizationId(),
@@ -752,6 +752,14 @@ class Task extends DomainEntity implements TaskInterface
                 'by' => $newOwner->getId()
             )));
         }
+
+        $this->recordThat(OwnerAdded::occur($this->id->toString(), array(
+            'organizationId' => $this->getOrganizationId(),
+            'ex_owner' => $exOwnerId,
+            'ex_owner_name' => $exOwnerName,
+            'new_owner' => $newOwner->getId(),
+            'by' => $by->getId()
+        )));
     }
 
     public function removeOwner(BasicUser $by)

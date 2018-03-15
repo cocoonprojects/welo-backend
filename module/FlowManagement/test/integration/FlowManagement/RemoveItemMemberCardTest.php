@@ -24,27 +24,35 @@ class RemoveItemMemberCardTest extends WebTestCase
         $member = $this->fixtures->findUserByEmail('paul.smith@ora.local');
 
         $res = $this->fixtures->createOrganization('my org', $admin, [$owner, $member]);
-        $task = $this->fixtures->createOngoingTask('Lorem Ipsum Sic Dolor Amit', $res['stream'], $owner, [$admin, $member]);
+        $task = $this->fixtures->createOngoingTask('Lorem Ipsum Sic Remove Member Card', $res['stream'], $owner, [$member]);
 
         $response = $this->client
             ->delete("/{$res['org']->getId()}/task-management/tasks/{$task->getId()}/members/{$member->getId()}");
 
         $this->assertEquals('200', $response->getStatusCode());
-        $this->assertEquals(1, $this->countOwnerRemovedFlowCard());
+        $this->assertEquals(1, $this->countOwnerRemovedFlowCard($task->getId()));
+
+        $this->client->setJWTToken($this->fixtures->getJWTToken($member->getEmail()));
+        $this->assertEquals(1, $this->countOwnerRemovedFlowCard($task->getId()));
+
+        $this->client->setJWTToken($this->fixtures->getJWTToken($owner->getEmail()));
+        $this->assertEquals(1, $this->countOwnerRemovedFlowCard($task->getId()));
     }
 
 
-    protected function countOwnerRemovedFlowCard()
+    protected function countOwnerRemovedFlowCard($taskId)
     {
         //users get notified via flowcard
         $response = $this->client
-                         ->get('/flow-management/cards?limit=3&offset=0');
+            ->get('/flow-management/cards?limit=300&offset=0');
 
         $flowCards = json_decode($response->getContent(), true);
 
         $count = 0;
         foreach ($flowCards['_embedded']['ora:flowcard'] as $idx => $flowCard) {
-            if ($flowCard['type'] == 'ItemMemberRemoved') {
+            if ($flowCard['type'] == 'ItemMemberRemoved' &&
+                $flowCard['content']['actions']['primary']['itemId'] == $taskId
+                ) {
                 $count++;
             }
         }

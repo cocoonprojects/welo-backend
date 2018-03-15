@@ -25,22 +25,19 @@ class AddItemMemberCardTest extends WebTestCase
 
         $res = $this->fixtures->createOrganization('my org', $admin, [$owner, $member]);
 
-        $task = $this->fixtures->createOngoingTask('Lorem Ipsum Sic Dolor Amit', $res['stream'], $owner, [$member]);
+        $task = $this->fixtures->createOngoingTask('Lorem Ipsum Add Member Card', $res['stream'], $owner, [$member]);
 
         $response = $this->client
             ->post("/{$res['org']->getId()}/task-management/tasks/{$task->getId()}/members", []);
-
-
         $this->assertEquals('201', $response->getStatusCode());
-        $this->assertEquals(1, $this->countMemberAddedFlowCard());
 
 
-        $this->client->setJWTToken($this->fixtures->getJWTToken('paul.smith@ora.local'));
-        $this->assertEquals(3, $this->countMemberAddedFlowCard());
+        $this->client->setJWTToken($this->fixtures->getJWTToken($owner->getEmail()));
+        $this->assertEquals(2, $this->countMemberAddedFlowCard($task->getId()));
     }
 
 
-    protected function countMemberAddedFlowCard()
+    protected function countMemberAddedFlowCard($taskId)
     {
         //users get notified via flowcard
         $response = $this->client
@@ -50,7 +47,9 @@ class AddItemMemberCardTest extends WebTestCase
 
         $count = 0;
         foreach ($flowCards['_embedded']['ora:flowcard'] as $idx => $flowCard) {
-            if ($flowCard['type'] == 'ItemMemberAdded') {
+            if ($flowCard['type'] == 'ItemMemberAdded' &&
+                $flowCard['content']['actions']['primary']['itemId'] == $taskId
+                ) {
                 $count++;
             }
         }
