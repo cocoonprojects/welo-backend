@@ -10,6 +10,7 @@ interface FlowCardInterface {
 	const VOTE_COMPLETED_ITEM_VOTING_CLOSED_CARD = 'VoteCompletedItemVotingClosed';
 	const VOTE_COMPLETED_ITEM_REOPENED_CARD = 'VoteCompletedItemReopened';
 	const ITEM_OWNER_CHANGED_CARD = 'ItemOwnerChanged';
+	const ITEM_MEMBER_ADDED_CARD = 'ItemMemberAdded';
 	const ITEM_MEMBER_REMOVED_CARD = 'ItemMemberRemoved';
 	const ORGANIZATION_MEMBER_ROLE_CHANGED_CARD = 'OrganizationMemberRoleChanged';
 	const CREDITS_ADDED_CARD = 'CreditsAdded';

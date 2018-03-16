@@ -44,7 +44,7 @@ class CreditsSubtractedCard extends FlowCard
             'userId'    => $by->getId(),
             'orgName'   => $org->getName(),
             'orgId'     => $org->getId(),
-            'amount'    => abs($amount),
+            'amount'    => number_format(abs($amount), 1, ',', '.'),
         ];
 
         $flowCard = new static($uuid, $payer);

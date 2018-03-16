@@ -6,6 +6,7 @@ use Application\Service\UserService;
 use ClassesWithParents\E;
 use Doctrine\ORM\EntityManager;
 use FlowManagement\Entity\ItemDeletedCard;
+use FlowManagement\Entity\ItemMemberAddedCard;
 use People\Service\OrganizationService;
 use Prooph\EventStore\EventStore;
 use TaskManagement\TaskArchived;
@@ -18,6 +19,7 @@ use TaskManagement\TaskAccepted;
 use TaskManagement\TaskReopened;
 use TaskManagement\TaskOngoing;
 use TaskManagement\OwnerAdded;
+use TaskManagement\TaskMemberAdded;
 use TaskManagement\Event\TaskMemberRemoved;
 use FlowManagement\Entity\ItemClosedCard;
 use FlowManagement\FlowCardInterface;
@@ -84,6 +86,7 @@ class ItemCommandsListener implements ListenerAggregateInterface {
 		$this->listeners[] = $events->getSharedManager()->attach(Application::class, TaskAccepted::class, array($this, 'processItemCompletedVotingClosed'));
 		$this->listeners[] = $events->getSharedManager()->attach(Application::class, TaskReopened::class, array($this, 'processItemCompletedReopened'));
 		$this->listeners [] = $events->getSharedManager()->attach(Application::class, OwnerAdded::class, array($this, 'processItemOwnerChanged'));
+		$this->listeners [] = $events->getSharedManager()->attach(Application::class, TaskMemberAdded::class, array($this, 'processItemMemberAdded'));
 		$this->listeners [] = $events->getSharedManager()->attach(Application::class, TaskMemberRemoved::class, array($this, 'processItemMemberRemoved'));
 		$this->listeners [] = $events->getSharedManager()->attach(Application::class, TaskClosed::class, array($this, 'processItemClosed'));
 		$this->listeners [] = $events->getSharedManager()->attach(Application::class, TaskDeleted::class, array($this, 'processItemDeleted'));
@@ -174,6 +177,7 @@ class ItemCommandsListener implements ListenerAggregateInterface {
 		array_walk($flowCards, function($card) use($params){
 			$flowService = $params[0];
 			$transactionManager = $params[1];
+
 			$wmCard = $flowService->getCard($card->getId());
 			$transactionManager->beginTransaction();
 			try {
@@ -260,6 +264,28 @@ class ItemCommandsListener implements ListenerAggregateInterface {
         }
 	}
 
+	public function processItemMemberAdded(Event $event) {
+        $metaData = $event->getTarget()->metadata();
+        $payload = $event->getTarget()->payload();
+
+        $memberId = $payload['userId'];
+        if (is_null($memberId)) {
+			return;
+		}
+
+		$itemId = $metaData['aggregate_id'];
+        $item = $this->taskService->findTask($itemId);
+
+        $owner = $item->getOwner();
+
+        if ($owner) {
+            $newMember = $this->userService->findUser($memberId);
+            $addedBy = $this->userService->findUser($payload['by']);
+
+            $this->flowService->createItemMemberAddedCard($owner->getUser(), $itemId, $newMember, $item->getOrganizationId(), $addedBy);
+        }
+	}
+
 	public function processItemMemberRemoved(TaskMemberRemoved $event) {
 		if (is_null($event->userId())) {
 			return;
@@ -310,7 +336,7 @@ class ItemCommandsListener implements ListenerAggregateInterface {
 			$exMember = $params[4];
 
             $flowService->createItemMemberRemovedCard($recipient, $itemId, $exMember, $organization->getId(), $changedBy);
-		});		
+		});
 	}
 
 	public function processItemClosed(Event $event) {

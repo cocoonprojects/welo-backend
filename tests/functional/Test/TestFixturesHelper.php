@@ -82,7 +82,7 @@ class TestFixturesHelper
         return ['org' => $org, 'stream' => $stream];
     }
 
-    public function createOngoingTask($subject, $stream, $admin, $members=[])
+    public function createOngoingTask($subject, $stream, $owner, $members=[])
     {
         $taskService = $this->serviceManager->get('TaskManagement\TaskService');
         $transactionManager = $this->serviceManager->get('prooph.event_store');
@@ -91,14 +91,13 @@ class TestFixturesHelper
 
         try {
 
-            $task = Task::create($stream, $subject, $admin);
+            $task = Task::create($stream, $subject, $owner);
             $taskService->addTask($task);
 
-            $task->open($admin);
-            $task->execute($admin);
+            $task->open($owner);
+            $task->execute($owner);
 
-            $task->addMember($admin, Task::ROLE_OWNER);
-            $task->addEstimation(100, $admin);
+            $task->addEstimation(100, $owner);
 
             foreach ($members as $member) {
                 $task->addMember($member, Task::ROLE_MEMBER);
@@ -112,7 +111,6 @@ class TestFixturesHelper
             $transactionManager->rollback();
             throw $e;
         }
-
         return $task;
     }
 
@@ -199,7 +197,7 @@ class TestFixturesHelper
         return $task;
     }
 
-    public function createCompletedTask($subject, $stream, $admin, $members)
+    public function createCompletedTask($subject, $stream, $owner, $members)
     {
         $taskService = $this->serviceManager->get('TaskManagement\TaskService');
         $transactionManager = $this->serviceManager->get('prooph.event_store');
@@ -207,20 +205,20 @@ class TestFixturesHelper
         $transactionManager->beginTransaction();
 
         try {
-            $task = Task::create($stream, $subject, $admin);
+            $task = Task::create($stream, $subject, $owner);
             $taskService->addTask($task);
 
-            $task->open($admin);
-            $task->execute($admin);
-            $task->addMember($admin);
-            $task->addEstimation(100, $admin);
+            $task->open($owner);
+            $task->execute($owner);
+
+            $task->addEstimation(100, $owner);
 
             foreach ($members as $member) {
                 $task->addMember($member);
                 $task->addEstimation(100, $member);
             }
 
-            $task->complete($admin);
+            $task->complete($owner);
 
             $transactionManager->commit();
         } catch (\Exception $e) {
@@ -233,7 +231,7 @@ class TestFixturesHelper
         return $task;
     }
 
-    public function createAcceptedTask($subject, $stream, $admin, $members)
+    public function createAcceptedTask($subject, $stream, $owner, $members)
     {
         $taskService = $this->serviceManager->get('TaskManagement\TaskService');
         $transactionManager = $this->serviceManager->get('prooph.event_store');
@@ -241,21 +239,21 @@ class TestFixturesHelper
         $transactionManager->beginTransaction();
 
         try {
-            $task = Task::create($stream, $subject, $admin);
+            $task = Task::create($stream, $subject, $owner);
             $taskService->addTask($task);
 
-            $task->open($admin);
-            $task->execute($admin);
-            $task->addMember($admin);
-            $task->addEstimation(100, $admin);
+            $task->open($owner);
+            $task->execute($owner);
+
+            $task->addEstimation(100, $owner);
 
             foreach ($members as $member) {
                 $task->addMember($member);
                 $task->addEstimation(100, $member);
             }
 
-            $task->complete($admin);
-            $task->accept($admin);
+            $task->complete($owner);
+            $task->accept($owner);
 
 
             $transactionManager->commit();
@@ -269,7 +267,7 @@ class TestFixturesHelper
         return $task;
     }
 
-    public function createAcceptedTaskWithShares($subject, $stream, $admin, $members)
+    public function createAcceptedTaskWithShares($subject, $stream, $owner, $members)
     {
         $taskService = $this->serviceManager->get('TaskManagement\TaskService');
         $transactionManager = $this->serviceManager->get('prooph.event_store');
@@ -277,27 +275,27 @@ class TestFixturesHelper
         $transactionManager->beginTransaction();
 
         try {
-            $task = Task::create($stream, $subject, $admin);
+            $task = Task::create($stream, $subject, $owner);
             $taskService->addTask($task);
 
-            $task->open($admin);
-            $task->execute($admin);
-            $task->addMember($admin);
-            $task->addEstimation(100, $admin);
+            $task->open($owner);
+            $task->execute($owner);
+
+            $task->addEstimation(100, $owner);
 
             foreach ($members as $member) {
                 $task->addMember($member);
                 $task->addEstimation(100, $member);
             }
 
-            $task->complete($admin);
-            $task->accept($admin);
+            $task->complete($owner);
+            $task->accept($owner);
 
             $task->assignShares([
-                $admin->getId() => '0.4',
+                $owner->getId() => '0.4',
                 $members[0]->getId() => '0.4',
                 $members[1]->getId() => '0.2',
-            ], $admin);
+            ], $owner);
 
             $transactionManager->commit();
         } catch (\Exception $e) {
@@ -310,7 +308,7 @@ class TestFixturesHelper
         return $task;
     }
 
-    public function createClosedTask($subject, $stream, $admin, $member1, $member2)
+    public function createClosedTask($subject, $stream, $owner, $member1, $member2)
     {
         $taskService = $this->serviceManager->get('TaskManagement\TaskService');
         $transactionManager = $this->serviceManager->get('prooph.event_store');
@@ -318,13 +316,13 @@ class TestFixturesHelper
         $transactionManager->beginTransaction();
 
         try {
-            $task = Task::create($stream, $subject, $admin);
+            $task = Task::create($stream, $subject, $owner);
             $taskService->addTask($task);
 
-            $task->open($admin);
-            $task->execute($admin);
-            $task->addMember($admin);
-            $task->addEstimation(100, $admin);
+            $task->open($owner);
+            $task->execute($owner);
+
+            $task->addEstimation(100, $owner);
 
             $task->addMember($member1);
             $task->addEstimation(100, $member1);
@@ -332,16 +330,16 @@ class TestFixturesHelper
             $task->addMember($member2);
             $task->addEstimation(100, $member2);
 
-            $task->complete($admin);
-            $task->addAcceptance(Vote::VOTE_FOR, $admin, 'bella li');
+            $task->complete($owner);
+            $task->addAcceptance(Vote::VOTE_FOR, $owner, 'bella li');
 
-            $task->accept($admin);
+            $task->accept($owner);
 
-            $task->assignShares([$admin->getId() => '0.4', $member1->getId() => '0.4', $member2->getId() => '0.2'], $admin);
-            $task->assignShares([$admin->getId() => '0.1', $member1->getId() => '0.8', $member2->getId() => '0.1'], $member1);
-            $task->assignShares([$admin->getId() => '0.5', $member1->getId() => '0.2', $member2->getId() => '0.3'], $member2);
+            $task->assignShares([$owner->getId() => '0.4', $member1->getId() => '0.4', $member2->getId() => '0.2'], $owner);
+            $task->assignShares([$owner->getId() => '0.1', $member1->getId() => '0.8', $member2->getId() => '0.1'], $member1);
+            $task->assignShares([$owner->getId() => '0.5', $member1->getId() => '0.2', $member2->getId() => '0.3'], $member2);
 
-            $task->close($admin);
+            $task->close($owner);
 
             $transactionManager->commit();
         } catch (\Exception $e) {
