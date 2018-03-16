@@ -13,6 +13,7 @@ use People\Service\OrganizationService;
 use People\OrganizationMemberAdded;
 use TaskManagement\Entity\Task;
 use TaskManagement\EstimationAdded;
+use TaskManagement\Event\TaskMemberRemoved;
 use TaskManagement\SharesAssigned;
 use TaskManagement\SharesSkipped;
 use TaskManagement\TaskClosed;
@@ -87,6 +88,7 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
 		$this->listeners [] = $events->getSharedManager ()->attach (Application::class, TaskArchived::class, array($this, 'processTaskArchived'));
 		$this->listeners [] = $events->getSharedManager ()->attach (Application::class, TaskDeleted::class, array($this, 'processTaskDeleted'));
 		$this->listeners [] = $events->getSharedManager ()->attach (Application::class, TaskMemberAdded::class, array($this, 'processTaskMemberAdded'));
+		$this->listeners [] = $events->getSharedManager ()->attach (Application::class, TaskMemberRemoved::class, array($this, 'processTaskMemberRemoved'));
 
 	}
 	
@@ -224,6 +226,23 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
         $user = $this->userService->findUser($userId);
 
         $this->sendTaskMemberAddedInfoMail($recipient->getUser(), $task, $user);
+
+    }
+
+    public function processTaskMemberRemoved(TaskMemberRemoved $event)
+    {
+        $taskId = $event->aggregateId();
+        $task = $this->taskService->findTask($taskId);
+        $recipient = $task->getOwner();
+
+        if (!$recipient) {
+            return;
+        }
+
+        $userId = $event->userId();
+        $user = $this->userService->findUser($userId);
+
+        $this->sendTaskMemberRemovedInfoMail($recipient->getUser(), $task, $user);
 
     }
 
@@ -625,7 +644,29 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
 
         return [$recipient];
     }
-    
+
+	public function sendTaskMemberRemovedInfoMail(BasicUser $recipient, Task $task, BasicUser $user)
+    {
+        $org = $task->getStream()->getOrganization();
+        $stream = $task->getStream();
+
+        $message = $this->mailService->getMessage();
+        $message->setTo($recipient->getEmail());
+        $message->setSubject('A user has been removed from the workitem "' . $task->getSubject() . '"');
+
+        $this->mailService->setTemplate( 'mail/task-member-removed-info.phtml', [
+            'task' => $task,
+            'user' => $user,
+            'recipient'=> $recipient,
+            'organization'=> $org,
+            'host' => $this->host,
+            'router' => $this->feRouter
+        ]);
+        $this->mailService->send();
+
+        return [$recipient];
+    }
+
 
     /**
 	 * @return MailServiceInterface

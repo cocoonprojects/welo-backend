@@ -2,6 +2,7 @@
 
 namespace TaskManagement;
 
+use Test\Mailbox;
 use ZFX\Test\WebTestCase;
 
 class RemoveItemMemberCardTest extends WebTestCase
@@ -15,6 +16,8 @@ class RemoveItemMemberCardTest extends WebTestCase
         parent::setUp();
 
         $this->client->setJWTToken($this->fixtures->getJWTToken('bruce.wayne@ora.local'));
+
+        $this->mailbox = Mailbox::create();
     }
 
     public function testRemoveMemberCard()
@@ -25,6 +28,8 @@ class RemoveItemMemberCardTest extends WebTestCase
 
         $res = $this->fixtures->createOrganization('my org', $admin, [$owner, $member]);
         $task = $this->fixtures->createOngoingTask('Lorem Ipsum Sic Remove Member Card', $res['stream'], $owner, [$member]);
+
+        $this->mailbox->clean();
 
         $response = $this->client
             ->delete("/{$res['org']->getId()}/task-management/tasks/{$task->getId()}/members/{$member->getId()}");
@@ -37,6 +42,12 @@ class RemoveItemMemberCardTest extends WebTestCase
 
         $this->client->setJWTToken($this->fixtures->getJWTToken($owner->getEmail()));
         $this->assertEquals(1, $this->countOwnerRemovedFlowCard($task->getId()));
+
+        $emails = $this->mailbox->getMessages();
+
+        $this->assertNotEmpty($emails);
+        $this->assertEquals(1, count($emails));
+        $this->assertContains('A user has been removed from the workitem "'.$task->getSubject().'"', $emails[0]->subject);
     }
 
 

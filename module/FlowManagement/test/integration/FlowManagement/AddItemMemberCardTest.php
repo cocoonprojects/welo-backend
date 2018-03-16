@@ -47,7 +47,7 @@ class AddItemMemberCardTest extends WebTestCase
 
         $this->assertNotEmpty($emails);
         $this->assertEquals(1, count($emails));
-        $this->assertContains($task->getSubject(), $emails[0]->subject);
+        $this->assertContains('A user has joined the workitem "'.$task->getSubject().'"', $emails[0]->subject);
     }
 
 
