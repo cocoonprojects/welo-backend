@@ -59,7 +59,7 @@ class EventHistoryTest extends WebTestCase
 
         $this->assertNotEmpty($deactEvent);
         $this->assertEquals($member->getId(), $deactEvent['user']['id']);
-        $this->assertEquals(1, $deactEvent['user']['active']);
+        $this->assertEquals(0, $deactEvent['user']['active']);
     }
 
 
