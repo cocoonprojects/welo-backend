@@ -20,9 +20,9 @@ class ItemMemberAddedCard extends FlowCard {
         $rv['type'] = $type;
         $rv['createdAt'] = date_format($this->getCreatedAt(), 'c');
         $rv['id'] = $this->getId();
-        $rv['title'] = "Member joined in \"{$item->getSubject()}\"";
+        $rv['title'] = "A new user is taking part in \"{$item->getSubject()}\"";
         $rv['content'] = [
-            'description' => "The user {$content['userName']} joined as a member of this item",
+            'description' => "The user {$content['userName']} has just joined this item",
             'actions' => [
                 'primary' => [
                     'text' => '',

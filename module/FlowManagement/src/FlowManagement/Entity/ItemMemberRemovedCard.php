@@ -20,9 +20,9 @@ class ItemMemberRemovedCard extends FlowCard {
 		$rv['type'] = $type;
 		$rv['createdAt'] = date_format($this->getCreatedAt(), 'c');
 		$rv['id'] = $this->getId();
-		$rv['title'] = "Member removed from \"{$item->getSubject()}\"";
+		$rv['title'] = "A user is no longer taking part in \"{$item->getSubject()}\"";
 		$rv['content'] = [
-			'description' => "The user {$content['userName']} is no more a member of this item",
+			'description' => "The user {$content['userName']} has just left this item",
 			'actions' => [
 				'primary' => [
 					'text' => '',

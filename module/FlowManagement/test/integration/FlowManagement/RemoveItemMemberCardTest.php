@@ -47,7 +47,7 @@ class RemoveItemMemberCardTest extends WebTestCase
 
         $this->assertNotEmpty($emails);
         $this->assertEquals(1, count($emails));
-        $this->assertContains('A user has been removed from the workitem "'.$task->getSubject().'"', $emails[0]->subject);
+        $this->assertContains('A user is no longer taking part in "'.$task->getSubject().'"', $emails[0]->subject);
     }
 
 
