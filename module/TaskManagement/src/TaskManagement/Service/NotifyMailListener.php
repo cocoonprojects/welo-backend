@@ -630,7 +630,7 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
 
         $message = $this->mailService->getMessage();
         $message->setTo($recipient->getEmail());
-        $message->setSubject('A user has joined the workitem "' . $task->getSubject() . '"');
+        $message->setSubject('A new user is taking part in "' . $task->getSubject() . '"');
 
         $this->mailService->setTemplate( 'mail/task-member-added-info.phtml', [
             'task' => $task,
@@ -652,7 +652,7 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
 
         $message = $this->mailService->getMessage();
         $message->setTo($recipient->getEmail());
-        $message->setSubject('A user has been removed from the workitem "' . $task->getSubject() . '"');
+        $message->setSubject('A user is no longer taking part in "' . $task->getSubject() . '"');
 
         $this->mailService->setTemplate( 'mail/task-member-removed-info.phtml', [
             'task' => $task,
