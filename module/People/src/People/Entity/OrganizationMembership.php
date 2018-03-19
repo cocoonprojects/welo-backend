@@ -37,6 +37,12 @@ class OrganizationMembership
 	 */
 	protected $organization;
 
+    /**
+     * @ORM\Column(type="boolean", nullable=true, options={"default": true})
+     * @var boolean
+     */
+    protected $active;
+
 	/**
 	 * @ORM\Column(type="datetime")
 	 * @var \DateTime
@@ -93,6 +99,16 @@ class OrganizationMembership
 	{
 		return $this->role;
 	}
+
+    public function setActive($active)
+    {
+        $this->active = $active;
+    }
+
+    public function getActive()
+    {
+        return $this->active;
+    }
 
 	public function getMember()
 	{

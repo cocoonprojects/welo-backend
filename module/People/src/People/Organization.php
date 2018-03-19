@@ -7,6 +7,7 @@ use People\Event\LaneAdded;
 use People\Event\LaneDeleted;
 use People\Event\LaneUpdated;
 use People\Event\OrganizationMemberRemoved;
+use People\Event\OrganizationMemberActivationChanged;
 use Rhumsaa\Uuid\Uuid;
 use Application\Entity\User;
 use Application\DomainEntity;
@@ -179,6 +180,7 @@ class Organization extends DomainEntity
 		$this->recordThat(OrganizationMemberAdded::occur($this->id->toString(), array(
 			'userId' => $user->getId(),
 			'role' => $role,
+			'active' => true,
 			'by' => $addedBy == null ? $user->getId() : $addedBy->getId(),
 		)));
 	}
@@ -197,7 +199,19 @@ class Organization extends DomainEntity
 		)));
 	}
 
-	public function removeMember(User $member, User $removedBy = null)
+    public function changeMemberActivation(User $member, $active, User $changedBy = null)
+    {
+        if (!array_key_exists($member->getId(), $this->members)) {
+            throw new DomainEntityUnavailableException($this, $member);
+        }
+        $memberId = Uuid::fromString($member->getId());
+        $orgId = Uuid::fromString($this->getId());
+        $e = OrganizationMemberActivationChanged::happened($this->id->toString(), $orgId, $member, $active, $changedBy);
+
+        $this->recordThat($e);
+    }
+
+    public function removeMember(User $member, User $removedBy = null)
 	{
 		if (!array_key_exists($member->getId(), $this->members)) {
 			throw new DomainEntityUnavailableException($this, $member);
@@ -271,11 +285,11 @@ class Organization extends DomainEntity
 	 */
 	public function getAdmins() {
 		return array_filter($this->members, function($profile) {
-			return $profile['role'] == self::ROLE_ADMIN;
+			return isset($profile['role']) && $profile['role'] == self::ROLE_ADMIN;
 		});
 	}
 
-	protected function whenLaneAdded(LaneAdded $event)
+    protected function whenLaneAdded(LaneAdded $event)
     {
         $lane = new Lane($event->id(), $event->name());
 
@@ -308,7 +322,8 @@ class Organization extends DomainEntity
 		$this->createdAt = $event->occurredOn();
 	}
 
-	protected function whenOrganizationUpdated(OrganizationUpdated $event) {
+	protected function whenOrganizationUpdated(OrganizationUpdated $event)
+    {
 		$pl = $event->payload();
 
 
@@ -331,25 +346,35 @@ class Organization extends DomainEntity
         }
 	}
 
-	protected function whenOrganizationAccountChanged(OrganizationAccountChanged $event) {
+	protected function whenOrganizationAccountChanged(OrganizationAccountChanged $event)
+    {
 		$p = $event->payload();
 		$this->accountId = Uuid::fromString($p['accountId']);
 	}
 
-	protected function whenOrganizationMemberAdded(OrganizationMemberAdded $event) {
+	protected function whenOrganizationMemberAdded(OrganizationMemberAdded $event)
+    {
 		$p = $event->payload();
 		$id = $p['userId'];
 		$this->members[$id]['role'] = $p['role'];
 	}
 
-	protected function whenOrganizationMemberRoleChanged(OrganizationMemberRoleChanged $event) {
+	protected function whenOrganizationMemberRoleChanged(OrganizationMemberRoleChanged $event)
+    {
 		$p = $event->payload();
 		$id = $p['userId'];
 		$this->members[$id]['role'] = $p['newRole'];
 	}
 
-	protected function whenOrganizationMemberRemoved(OrganizationMemberRemoved $event) {
+	protected function whenOrganizationMemberRemoved(OrganizationMemberRemoved $event)
+    {
 		$id = $event->userId();
 		unset($this->members[$id]);
 	}
+
+	protected function whenOrganizationMemberActivationChanged(OrganizationMemberActivationChanged $event)
+    {
+		$id = $event->userId();
+		$this->members[$id]['active'] = $event->active();
+    }
 }

@@ -41,7 +41,7 @@ interface OrganizationService
 	 * @param integer $offset
 	 * @return OrganizationMembership[]
 	 */
-	public function findOrganizationMemberships(OrganizationReadModel $organization, $limit, $offset, $roles=[]);
+	public function  findOrganizationMemberships(OrganizationReadModel $organization, $limit, $offset, $roles=[]);
 
 	/**
 	 * @return OrganizationReadModel[]

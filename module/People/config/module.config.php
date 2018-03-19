@@ -1,6 +1,7 @@
 <?php
 namespace People;
 
+use People\Projector\OrganizationMembershipProjector;
 use People\Projector\OrganizationProjector;
 
 return array(
@@ -89,6 +90,7 @@ return array(
 	'listeners' => array(
 		'People\OrganizationCommandsListener',
         OrganizationProjector::class,
+        OrganizationMembershipProjector::class,
 		'People\SendMailListener'
 	),
 	'default_members_limit' => 20

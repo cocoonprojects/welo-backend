@@ -65,7 +65,9 @@ class OrganizationCommandsListener extends ReadModelProjector {
 		  ->setCreatedAt($event->occurredOn())
 		  ->setCreatedBy($createdBy)
 		  ->setMostRecentEditAt($event->occurredOn())
-		  ->setMostRecentEditBy($createdBy);
+		  ->setMostRecentEditBy($createdBy)
+          ->setActive(true)
+        ;
 
 		$this->entityManager->persist($m);
 	}

@@ -37,4 +37,34 @@ class EventHistoryTest extends WebTestCase
         $this->assertCount(3, $data);
         $this->assertEquals(["id", "name", "on", "user" ], array_keys($data[0]));
     }
+
+    public function testShouldShowMemberDeactivationEvent()
+    {
+        $admin = $this->fixtures->findUserByEmail('mark.rogers@ora.local');
+        $member = $this->fixtures->findUserByEmail('phil.toledo@ora.local');
+
+        $res = $this->fixtures->createOrganization('my org', $admin, [$member]);
+
+        $response = $this->client
+            ->put("/{$res['org']->getId()}/people/members/{$member->getId()}", [
+                'active' => false
+            ]);
+
+        $response = $this->client
+            ->get("/{$res['org']->getId()}/people/members/{$member->getId()}/history");
+        $this->assertEquals('201', $response->getStatusCode());
+        $data = json_decode($response->getContent(), true);
+
+        $deactEvent = $this->getDeactivationEvent($data);
+
+        $this->assertNotEmpty($deactEvent);
+        $this->assertEquals($member->getId(), $deactEvent['user']['id']);
+        $this->assertEquals(0, $deactEvent['user']['active']);
+    }
+
+
+    protected function getDeactivationEvent($events) {
+        $eventName = 'People\Event\OrganizationMemberActivationChanged';
+        return $events[array_search($eventName, array_column($events, 'name'))];
+    }
 }

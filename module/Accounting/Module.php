@@ -13,6 +13,7 @@ use Accounting\Controller\PersonalStatementController;
 use Accounting\Controller\StatementsController;
 use Accounting\Controller\StatsController;
 use Accounting\Controller\WithdrawalsController;
+use Accounting\Processor\NotifyMembershipActivationProcessor;
 use Accounting\Service\CreditTransferNotifiedViaMailListener;
 use Accounting\Service\AccountCommandsListener;
 use Accounting\Service\CreateOrganizationAccountListener;
@@ -174,6 +175,12 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
                     $organizationService = $locator->get('People\OrganizationService');
                     return new CreatePersonalAccountListener($accountService, $userService, $organizationService);
 				},
+                Accounting\Processor\NotifyMembershipActivationProcessor::class => function ($locator) {
+                    $organizationService = $locator->get('People\OrganizationService');
+                    $userService =  $locator->get('Application\UserService');
+                    $mailService = $locator->get('AcMailer\Service\MailService');
+                    return new NotifyMembershipActivationProcessor($organizationService, $userService, $mailService);
+                }
 			),
 		);
 	}
