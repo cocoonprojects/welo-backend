@@ -291,6 +291,7 @@ class Task extends DomainEntity implements TaskInterface
             'organizationId' => $this->getOrganizationId(),
             'prevStatus' => $this->getStatus(),
             'by' => $completedBy->getId(),
+            'userName' => $completedBy->getFirstname().' '.$completedBy->getLastname()
         )));
         return $this;
     }
