@@ -271,6 +271,7 @@ class Task extends DomainEntity implements TaskInterface
         $this->recordThat(OwnerAdded::occur($this->id->toString(), array(
             'organizationId' => $this->getOrganizationId(),
             'new_owner' => $executedBy->getId(),
+            'new_owner_name' => $executedBy->getFirstname().' '.$executedBy->getLastname(),
             'by' => $executedBy->getId()
         )));
 
