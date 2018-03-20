@@ -550,6 +550,7 @@ class Task extends DomainEntity implements TaskInterface
         $by = is_null($addedBy) ? $user : $addedBy;
         $this->recordThat(TaskMemberAdded::occur($this->id->toString(), array(
             'userId' => $user->getId(),
+            'userName' => $user->getFirstname().' '.$user->getLastname(),
             'role' => $role,
             'by' => $by->getId(),
         )));
