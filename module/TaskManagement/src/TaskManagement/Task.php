@@ -706,6 +706,7 @@ class Task extends DomainEntity implements TaskInterface
         $this->recordThat(SharesAssigned::occur($this->id->toString(), array(
             'shares' => $membersShares,
             'by' => $member->getId(),
+            'userName' => $member->getFirstname().' '.$member->getLastname()
         )));
     }
 
@@ -721,6 +722,7 @@ class Task extends DomainEntity implements TaskInterface
 
         $this->recordThat(SharesSkipped::occur($this->id->toString(), array(
             'by' => $member->getId(),
+            'userName' => $member->getFirstname().' '.$member->getLastname()
         )));
     }
 
