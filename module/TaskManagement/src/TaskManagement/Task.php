@@ -618,6 +618,7 @@ class Task extends DomainEntity implements TaskInterface
 
         $this->recordThat(ApprovalCreated::occur($this->id->toString(), array(
                 'by' => $member->getId(),
+                'userName' => $member->getFirstname().' '.$member->getLastname(),
                 'vote' => $vote,
                 'task-id' => $this->getId(),
                 'description' => $description
