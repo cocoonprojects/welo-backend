@@ -384,6 +384,7 @@ class Task extends DomainEntity implements TaskInterface
                 'prevStatus' => $this->getStatus(),
                 'position' => $position,
                 'by' => $executedBy->getId(),
+                'userName' => $executedBy->getFirstname().' '.$executedBy->getLastname()
         )));
         return $this;
     }
@@ -397,6 +398,7 @@ class Task extends DomainEntity implements TaskInterface
         $this->recordThat(TaskRevertedToIdea::occur($this->id->toString(), array(
                 'prevStatus' => $this->getStatus(),
                 'by' => $executedBy->getId(),
+                'userName' => $executedBy->getFirstname().' '.$executedBy->getLastname()
         )));
         return $this;
     }
@@ -410,6 +412,7 @@ class Task extends DomainEntity implements TaskInterface
         $this->recordThat(TaskRevertedToOngoing::occur($this->id->toString(), array(
                 'prevStatus' => $this->getStatus(),
                 'by' => $executedBy->getId(),
+                'userName' => $executedBy->getFirstname().' '.$executedBy->getLastname()
         )));
 
         return $this;
