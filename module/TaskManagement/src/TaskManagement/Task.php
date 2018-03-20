@@ -331,6 +331,7 @@ class Task extends DomainEntity implements TaskInterface
 
         $this->recordThat(TaskClosed::occur($this->id->toString(), array(
             'by' => $closedBy->getId(),
+            'userName' => $closedBy->getFirstname().' '.$closedBy->getLastname()
         )));
 
         return $this;
@@ -354,6 +355,7 @@ class Task extends DomainEntity implements TaskInterface
 
         $this->recordThat(TaskClosedByTimebox::occur($this->id->toString(), array(
             'by' => $closedBy->getId(),
+            'userName' => 'system'
         )));
 
         return $this;
