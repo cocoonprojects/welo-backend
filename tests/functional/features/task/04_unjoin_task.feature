@@ -46,5 +46,5 @@ Scenario: Organization admin can successfully unjoin a member of an ongoing task
 Scenario: paul cards again
 	Given that I am authenticated as "paul.smith@ora.local" 
 	When I request "/flow-management/cards"
-	Then the response should contain 'Paul Smith is no more a member'
+	Then the response should contain 'Paul Smith has just left this item'
 
