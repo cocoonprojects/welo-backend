@@ -269,6 +269,7 @@ class Task extends DomainEntity implements TaskInterface
             'organizationId' => $this->getOrganizationId(),
             'new_owner' => $executedBy->getId(),
             'new_owner_name' => $executedBy->getFirstname().' '.$executedBy->getLastname(),
+            'userName' => $executedBy->getFirstname().' '.$executedBy->getLastname(), // needed for event serialization in /history endpoint
             'by' => $executedBy->getId()
         )));
 
