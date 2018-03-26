@@ -175,11 +175,6 @@ class Task extends DomainEntity implements TaskInterface
         }
     }
 
-    /**/
-     * Set the lane for the given tasks.
-     *
-     * @param string    $lane  the lane
-     *
     public function setLane($lane, BasicUser $updatedBy)
     {
         $this->recordThat(TaskUpdated::occur($this->id->toString(), array(
@@ -603,6 +598,7 @@ class Task extends DomainEntity implements TaskInterface
         // TODO: Estimation need an id?
         $this->recordThat(EstimationAdded::occur($this->id->toString(), array(
             'by' => $member->getId(),
+            'userName' => $member->getFirstname().' '.$member->getLastname(),
             'value'     => $value,
         )));
     }
