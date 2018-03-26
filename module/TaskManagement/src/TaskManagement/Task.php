@@ -175,11 +175,11 @@ class Task extends DomainEntity implements TaskInterface
         }
     }
 
-    /**
+    /**/
      * Set the lane for the given tasks.
      *
      * @param string    $lane  the lane
-     */
+     *
     public function setLane($lane, BasicUser $updatedBy)
     {
         $this->recordThat(TaskUpdated::occur($this->id->toString(), array(
@@ -205,6 +205,8 @@ class Task extends DomainEntity implements TaskInterface
             $data['subject'],
             $data['description'],
             isset($data['lane']) ? $data['lane'] : null,
+            $this->getSubject(),
+            $this->getDescription(),
             $this->getLane(),
             $updatedBy->getId()
         );
