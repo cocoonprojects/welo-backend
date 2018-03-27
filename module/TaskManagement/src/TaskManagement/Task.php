@@ -203,7 +203,7 @@ class Task extends DomainEntity implements TaskInterface
             $this->getSubject(),
             $this->getDescription(),
             $this->getLane(),
-            $updatedBy->getId()
+            $updatedBy
         );
 
         $this->recordThat($e);

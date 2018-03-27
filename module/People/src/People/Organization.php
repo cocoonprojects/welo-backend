@@ -124,6 +124,11 @@ class Organization extends DomainEntity
         return $this;
     }
 
+    public function getLanes()
+    {
+        return $this->lanes;
+    }
+
     public function addLane(Uuid $id, LaneData $dto, User $by)
     {
 	    $e = LaneAdded::happened($this->id->toString(), $id, $dto->name, $by);

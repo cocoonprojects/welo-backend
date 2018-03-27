@@ -29,7 +29,8 @@ class TaskUpdated extends DomainEvent
             'previousSubject' => $previousSubject,
             'previousDescription' => $previousDescription,
             'previousLane' => $previousLane,
-            'by' => $by
+            'by' => $by->getId(),
+            'userName' => $by->getFirstname().' '.$by->getLastname(),
         ]);
 
         $event->subject = $subject;
@@ -38,7 +39,7 @@ class TaskUpdated extends DomainEvent
         $event->previousSubject = $previousSubject;
         $event->previousDescription = $previousDescription;
         $event->previousLane = $previousLane;
-        $event->by = $by;
+        $event->by = $by->getId();
 
         return $event;
     }
