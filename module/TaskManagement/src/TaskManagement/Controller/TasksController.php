@@ -451,6 +451,13 @@ class TasksController extends OrganizationAwareController
 		$this->transaction ()->begin ();
 		try {
 
+		    if (isset($data['lane'])) {
+		        $lanes = $this->organization->getLanes();
+                $actualLane = $task->getLane();
+
+		        $data['laneName'] = $lanes[$data['lane']];
+		        $data['previousLaneName'] = isset($actualLane) ? $lanes[$task->getLane()] : '';
+            }
             $task->update($data, $this->identity());
 
 			$this->transaction ()->commit ();
