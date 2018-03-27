@@ -179,6 +179,7 @@ class TasksController extends OrganizationAwareController
 				return $view;
 			}
 		}
+
 		$availableTasks = $this->taskService->findTasks($this->organization, $offset, $limit, $filters, $sorting);
 
 		$view = new TaskJsonModel($this, $this->organization);

@@ -5,6 +5,7 @@ namespace TaskManagement\Processor;
 use Application\DomainEvent;
 use Application\Entity\User;
 use Application\Service\Processor;
+use Application\Service\UserService;
 use Doctrine\ORM\EntityManager;
 use People\Service\OrganizationService;
 use Prooph\EventStore\EventStore;
@@ -18,15 +19,18 @@ class UpdateItemPositionProcessor extends Processor
 {
     protected $organizationService;
 
+    protected $userService;
+
     protected $taskService;
 
     protected $entityManager;
 
     protected $eventStore;
 
-    public function __construct(OrganizationService $organizationService, TaskService $taskService, EntityManager $em, EventStore $es)
+    public function __construct(OrganizationService $organizationService, UserService $userService, TaskService $taskService, EntityManager $em, EventStore $es)
     {
         $this->organizationService = $organizationService;
+        $this->userService = $userService;
         $this->taskService = $taskService;
         $this->entityManager = $em;
         $this->eventStore = $es;
@@ -63,7 +67,8 @@ class UpdateItemPositionProcessor extends Processor
     {
         $streamEvent = $event->getTarget();
         $itemId = $streamEvent->metadata()['aggregate_id'];
-        $by = $event->getParam('by');
+        $byId = $event->getParam('by');
+        $by = $this->userService->findUser($byId);
 
         $task = $this->taskService
             ->getTask($itemId);
@@ -96,9 +101,9 @@ class UpdateItemPositionProcessor extends Processor
         $organization = $this->organizationService->getOrganization($organizationId);
 
         $tasksReadModel = $this->taskService
-            ->findTasks($organization, 0, 99999, ['status' => TaskInterface::STATUS_OPEN], 't.priority');
+            ->findTasks($organization, 0, 99999, ['status' => TaskInterface::STATUS_OPEN], ['orderBy' => 'priority', 'orderType' => 'ASC']);
 
-        $this->updatePositionsForItems($tasksReadModel, 0, $by);
+        $this->updatePositionsForItems($tasksReadModel, 1, $by);
     }
 
 
