@@ -308,6 +308,8 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
                 TaskManagement\Processor\UpdateItemPositionProcessor::class => function($locator) {
 
 				    return new UpdateItemPositionProcessor(
+                        $locator->get('People\OrganizationService'),
+                        $locator->get('Application\UserService'),
 				        $locator->get('TaskManagement\TaskService'),
                         $locator->get('doctrine.entitymanager.orm_default'),
                         $locator->get('prooph.event_store')

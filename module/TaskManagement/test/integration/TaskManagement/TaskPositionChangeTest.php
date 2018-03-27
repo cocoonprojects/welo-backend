@@ -6,6 +6,12 @@ use ZFX\Test\WebTestCase;
 
 class TaskPositionChangeTest extends WebTestCase
 {
+    protected $stream;
+    protected $org;
+    protected $admin;
+    protected $member1;
+    protected $member2;
+
     public function setUp()
     {
         parent::setUp();
@@ -27,6 +33,7 @@ class TaskPositionChangeTest extends WebTestCase
         $this->stream = $res['stream'];
 
     }
+
 
     public function testChangeOpenTasksPositions()
     {
@@ -86,4 +93,33 @@ class TaskPositionChangeTest extends WebTestCase
     }
 
 
+    public function testFixOpenTasksPositionsWhenTaskStarts()
+    {
+
+        $tasks = [
+            $this->fixtures->createOpenTask('Lorem First Ipsum Sic Dolor Amit', $this->stream, $this->admin),
+            $this->fixtures->createOpenTask('Lorem Second Ipsum Sic Dolor Amit', $this->stream, $this->admin),
+            $this->fixtures->createOpenTask('Lorem Third Ipsum Sic Dolor Amit', $this->stream, $this->admin)
+        ];
+
+        $orgId = $this->org->getId();
+        $taskId = $tasks[0]->getId();
+
+        $response = $this->client
+            ->post(
+                "/{$orgId}/task-management/tasks/{$taskId}/transitions",
+                [ "action" => "execute" ]
+            );
+        $this->assertEquals('200', $response->getStatusCode());
+
+        $response = $this->client
+            ->get("/{$orgId}/task-management/tasks?status=10&orderBy=position&orderType=asc");
+        $this->assertEquals('200', $response->getStatusCode());
+
+        $tasks = json_decode($response->getContent(), true);
+
+        $this->assertEquals(2, $tasks['count']);
+        $this->assertEquals(1, $tasks['_embedded']['ora:task'][0]['position']);
+        $this->assertEquals(2, $tasks['_embedded']['ora:task'][1]['position']);
+    }
 }

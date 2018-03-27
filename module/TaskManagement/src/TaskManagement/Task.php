@@ -578,9 +578,11 @@ class Task extends DomainEntity implements TaskInterface
         $event = TaskMemberRemoved::happened(
             $this->id->toString(),
             $this->getOrganizationId(),
+
             $user->getId(),
             $user->getFirstname().' '.$user->getLastname(),
             $this->getMemberRole($user),
+
             $by->getId()
         );
 
