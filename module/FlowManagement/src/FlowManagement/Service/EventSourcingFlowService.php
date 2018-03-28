@@ -18,6 +18,7 @@ use FlowManagement\VoteCompletedItemCard;
 use FlowManagement\VoteCompletedItemVotingClosedCard;
 use FlowManagement\VoteCompletedItemReopenedCard;
 use FlowManagement\ItemOwnerChangedCard;
+use FlowManagement\ItemMemberAddedCard;
 use FlowManagement\ItemMemberRemovedCard;
 use FlowManagement\OrganizationMemberRoleChangedCard;
 use TaskManagement\Entity\Task;
@@ -157,6 +158,29 @@ class EventSourcingFlowService extends AggregateRepository implements FlowServic
 		}
 		return $card;
 	}
+
+	/**
+	 * (non-PHPdoc)
+	 * @see \FlowManagement\Service\FlowService::createItemMemberAddedCard()
+	 */
+	public function createItemMemberAddedCard(BasicUser $recipient, $itemId, BasicUser $newMember, $organizationid, BasicUser $createdBy){
+		$content = [
+			"orgId" => $organizationid,
+			'userId' => $newMember->getId(),
+			'userName' => $newMember->getFirstname().' '.$newMember->getLastname()
+		];
+		$this->eventStore->beginTransaction();
+		try {
+			$card = ItemMemberAddedCard::create($recipient, $content, $createdBy, $itemId);
+			$this->addAggregateRoot($card);
+			$this->eventStore->commit();
+		} catch (\Exception $e) {
+			$this->eventStore->rollback();
+			throw $e;
+		}
+		return $card;
+	}
+
 	/**
 	 * (non-PHPdoc)
 	 * @see \FlowManagement\Service\FlowService::createItemMemberRemovedCard()
@@ -178,6 +202,7 @@ class EventSourcingFlowService extends AggregateRepository implements FlowServic
 		}
 		return $card;
 	}
+
 	/**
 	 * (non-PHPdoc)
 	 * @see \FlowManagement\Service\FlowService::createItemMemberRemovedCard()

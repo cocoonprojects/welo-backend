@@ -2,14 +2,16 @@
 
 namespace TaskManagement;
 
-use Test\Mailbox;
 use ZFX\Test\WebTestCase;
+use Test\Mailbox;
 
-class RemoveItemMemberCardTest extends WebTestCase
+class AddItemMemberCardTest extends WebTestCase
 {
     protected $client;
     protected $fixtures;
     protected $flowService;
+
+    protected $mailbox;
 
     public function setUp()
     {
@@ -20,48 +22,46 @@ class RemoveItemMemberCardTest extends WebTestCase
         $this->mailbox = Mailbox::create();
     }
 
-    public function testRemoveMemberCard()
+    public function testAddMemberCard()
     {
+
         $admin = $this->fixtures->findUserByEmail('bruce.wayne@ora.local');
         $owner = $this->fixtures->findUserByEmail('phil.toledo@ora.local');
         $member = $this->fixtures->findUserByEmail('paul.smith@ora.local');
 
         $res = $this->fixtures->createOrganization('my org', $admin, [$owner, $member]);
-        $task = $this->fixtures->createOngoingTask('Lorem Ipsum Sic Remove Member Card', $res['stream'], $owner, [$member]);
+
+        $task = $this->fixtures->createOngoingTask('Lorem Ipsum Add Member Card', $res['stream'], $owner, [$member]);
 
         $this->mailbox->clean();
 
         $response = $this->client
-            ->delete("/{$res['org']->getId()}/task-management/tasks/{$task->getId()}/members/{$member->getId()}");
+            ->post("/{$res['org']->getId()}/task-management/tasks/{$task->getId()}/members", []);
+        $this->assertEquals('201', $response->getStatusCode());
 
-        $this->assertEquals('200', $response->getStatusCode());
-        $this->assertEquals(1, $this->countOwnerRemovedFlowCard($task->getId()));
-
-        $this->client->setJWTToken($this->fixtures->getJWTToken($member->getEmail()));
-        $this->assertEquals(1, $this->countOwnerRemovedFlowCard($task->getId()));
 
         $this->client->setJWTToken($this->fixtures->getJWTToken($owner->getEmail()));
-        $this->assertEquals(1, $this->countOwnerRemovedFlowCard($task->getId()));
+        $this->assertEquals(2, $this->countMemberAddedFlowCard($task->getId()));
 
         $emails = $this->mailbox->getMessages();
 
         $this->assertNotEmpty($emails);
         $this->assertEquals(1, count($emails));
-        $this->assertContains('A user is no longer taking part in "'.$task->getSubject().'"', $emails[0]->subject);
+        $this->assertContains('A new user is taking part in "'.$task->getSubject().'"', $emails[0]->subject);
     }
 
 
-    protected function countOwnerRemovedFlowCard($taskId)
+    protected function countMemberAddedFlowCard($taskId)
     {
         //users get notified via flowcard
         $response = $this->client
-            ->get('/flow-management/cards?limit=300&offset=0');
+                         ->get('/flow-management/cards?limit=10&offset=0');
 
         $flowCards = json_decode($response->getContent(), true);
 
         $count = 0;
         foreach ($flowCards['_embedded']['ora:flowcard'] as $idx => $flowCard) {
-            if ($flowCard['type'] == 'ItemMemberRemoved' &&
+            if ($flowCard['type'] == 'ItemMemberAdded' &&
                 $flowCard['content']['actions']['primary']['itemId'] == $taskId
                 ) {
                 $count++;
