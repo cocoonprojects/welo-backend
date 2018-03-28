@@ -200,9 +200,11 @@ class Task extends DomainEntity implements TaskInterface
             $data['subject'],
             $data['description'],
             isset($data['lane']) ? $data['lane'] : null,
+            isset($data['laneName']) ? $data['laneName'] : null,
             $this->getSubject(),
             $this->getDescription(),
             $this->getLane(),
+            isset($data['previousLaneName']) ? $data['previousLaneName'] : null,
             $updatedBy
         );
 
