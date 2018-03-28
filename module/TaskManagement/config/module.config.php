@@ -130,6 +130,7 @@ return array(
         TaskManagement\Projector\TaskProjector::class,
         TaskManagement\Processor\RevertCreditsAssignedProcessor::class,
         TaskManagement\Processor\UpdateItemPositionProcessor::class,
-        TaskManagement\Processor\RemoveMemberFromItemsProcessor::class
+        TaskManagement\Processor\RemoveMemberFromItemsProcessor::class,
+        TaskManagement\Processor\NotifyTaskRevertedToOpenProcessor::class
 	],
 );

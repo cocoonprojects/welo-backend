@@ -3,6 +3,7 @@
 namespace TaskManagement;
 
 use ZFX\Test\WebTestCase;
+use Test\Mailbox;
 
 class RollbackStateTransitionProcessTest extends WebTestCase
 {
@@ -40,12 +41,16 @@ class RollbackStateTransitionProcessTest extends WebTestCase
 
     }
 
-    public function testRevertFromOngoingToOpen() {
+    public function testRevertFromOngoingToOpen()
+    {
+        $mailbox = Mailbox::create();
+        $mailbox->clean();
 
         $admin = $this->fixtures->findUserByEmail('bruce.wayne@ora.local');
         $member1 = $this->fixtures->findUserByEmail('phil.toledo@ora.local');
+        $member2 = $this->fixtures->findUserByEmail('paul.smith@ora.local');
 
-        $res = $this->fixtures->createOrganization('my org', $admin, [$member1]);
+        $res = $this->fixtures->createOrganization('my org', $admin, [$member1], [$member2]);
         $task = $this->fixtures->createOngoingTask('Lorem Ipsum Sic Dolor Amit', $res['stream'], $admin, [$member1]);
 
         $response = $this->client
@@ -59,6 +64,11 @@ class RollbackStateTransitionProcessTest extends WebTestCase
         $this->assertEquals(TASK::STATUS_OPEN, $task['status']);
         $this->assertEquals(1, $task['position']);
         $this->assertEmpty($task['members']);
+
+        $messages = $mailbox->getMessages();
+        $this->assertEquals(1, $this->countBackToOpenEmails($admin->getEmail(), $messages));
+        $this->assertEquals(1, $this->countBackToOpenEmails($member1->getEmail(), $messages));
+        $this->assertEquals(0, $this->countBackToOpenEmails($member2->getEmail(), $messages));
     }
 
     public function testRevertFromOpenToIdea() {
@@ -198,6 +208,21 @@ class RollbackStateTransitionProcessTest extends WebTestCase
         ];
 
         $this->assertEquals($expected, $response);
-
     }
+
+
+    protected function countBackToOpenEmails($account ,$messages) {
+        $count = 0;
+
+        foreach ($messages as $idx => $message) {
+            if (
+                $message->recipients[0] == '<'.$account.'>' &&
+                strpos($message->subject, 'was reverted back to Open state') !== false
+            ) {
+                $count++;
+            }
+        }
+        return $count;
+    }
+
 }
