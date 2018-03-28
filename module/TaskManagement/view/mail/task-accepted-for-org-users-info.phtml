@@ -13,9 +13,26 @@
         </thead>
         <tbody>
         <?php foreach($acceptances as $acceptance): ?>
+            <?php
+                $vote = '';
+                switch ($acceptance->getVote()->getValue()) {
+                    case 1:
+                        $vote = 'voted pro';
+                        break;
+                    case 0:
+                        $vote = 'voted against';
+                        break;
+                    case 2:
+                        $vote = 'abstained';
+                        break;
+                    case -1:
+                        $vote = 'didn\'t vote';
+                        break;
+                }
+            ?>
             <tr>
                 <td><?= $acceptance->getVoter()->getFirstname().' '.$acceptance->getVoter()->getLastname(); ?></td>
-                <td><?= $acceptance->getVote()->getValue(); ?></td>
+                <td><?= $vote ?></td>
                 <td><?= $acceptance->getDescription(); ?></td>
             </tr>
         <?php endforeach; ?>
