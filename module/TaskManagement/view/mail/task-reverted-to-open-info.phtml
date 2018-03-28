@@ -1,0 +1,8 @@
+<?php $link = $this->router->item($this->task); ?>
+
+<p>Hi <?php echo $this->recipient->getFirstname()?>,<br>
+    <a href="<?= $link ?>">"<?= $this->task->getSubject()?>"</a> has an important update: <b>has been reverted to OPEN state</b> from <?php echo $this->by->getFirstname() . ' ' . $this->by->getLastname()?></p>
+<p>Check the shares assignment progress!</p>
+<p>Welo</p>
+<hr>
+<p style="font-size: 12px">You are receiving this e-mail because you are an owner of the <a href="<?= $link ?>">"<?= $this->task->getSubject() ?>"</a> item.</p>

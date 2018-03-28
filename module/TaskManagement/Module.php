@@ -23,6 +23,7 @@ use TaskManagement\Controller\TasksController;
 use TaskManagement\Controller\TransitionsController;
 use TaskManagement\Controller\VotingResultsController;
 use TaskManagement\Controller\HistoryController;
+use TaskManagement\Processor\NotifyTaskRevertedToOpenProcessor;
 use TaskManagement\Processor\RemoveMemberFromItemsProcessor;
 use TaskManagement\Processor\RevertCreditsAssignedProcessor;
 use TaskManagement\Processor\UpdateMembershipActivationProcessor;
@@ -322,6 +323,15 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
 				        $locator->get('People\OrganizationService'),
                         $locator->get('doctrine.entitymanager.orm_default'),
                         $locator->get('prooph.event_store')
+                    );
+                },
+                TaskManagement\Processor\NotifyTaskRevertedToOpenProcessor::class => function($locator) {
+				    return new NotifyTaskRevertedToOpenProcessor(
+				        $locator->get('People\OrganizationService'),
+				        $locator->get('TaskManagement\TaskService'),
+                        $locator->get('AcMailer\Service\MailService'),
+                        $locator->get('doctrine.entitymanager.orm_default'),
+                        $locator->get('Application\FrontendRouter')
                     );
                 },
 				'TaskManagement\TaskService' => function ($locator) {
