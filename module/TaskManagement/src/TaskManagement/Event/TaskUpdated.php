@@ -20,15 +20,17 @@ class TaskUpdated extends DomainEvent
 
     protected $by;
 
-    public static function happened($aggregateId, $subject, $description, $lane = null, $previousSubject = null, $previousDescription = null, $previousLane = null, $by)
+    public static function happened($aggregateId, $subject, $description, $lane = null, $laneName, $previousSubject = null, $previousDescription = null, $previousLane = null, $previousLaneName = null, $by)
     {
         $event = self::occur($aggregateId, [
             'subject'=> $subject,
             'description' => $description,
             'lane' => $lane,
+            'laneName' => $laneName,
             'previousSubject' => $previousSubject,
             'previousDescription' => $previousDescription,
             'previousLane' => $previousLane,
+            'previousLaneName' => $previousLaneName,
             'by' => $by->getId(),
             'userName' => $by->getFirstname().' '.$by->getLastname(),
         ]);
