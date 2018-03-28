@@ -32,4 +32,9 @@ class ItemCompletedAcceptance extends Approval
 
         return $this;
     }
+
+    public function getVote()
+    {
+        return $this->vote;
+    }
 }

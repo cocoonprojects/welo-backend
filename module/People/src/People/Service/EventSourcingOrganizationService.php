@@ -130,6 +130,43 @@ class EventSourcingOrganizationService extends AggregateRepository implements Or
         return $query->getResult();
 	}
 
+	/**
+	 * @param ReadModelOrg $organization
+	 * @param integer $offset
+	 * @param integer $limit
+	 * @return array
+	 */
+	public function findActiveOrganizationMemberships(ReadModelOrg $organization, $limit, $offset, $roles = [])
+	{
+        $builder = $this->entityManager->createQueryBuilder();
+
+        $qb = $builder->select('om')
+            ->addSelect("(CASE WHEN om.role = 'admin' THEN 0 WHEN om.role = 'member' THEN 1 ELSE 2 END) AS HIDDEN ord")
+            ->from(OrganizationMembership::class, 'om')
+            ->leftJoin(User::class, 'u', 'WITH', 'om.member = u.id')
+            ->where('om.organization = :organization')
+            ->andWhere('om.active = 1')
+            ->orderBy('ord', 'ASC')
+            ->addOrderBy('u.firstname', 'ASC')
+            ->addOrderBy('u.lastname', 'ASC')
+            ->setParameter(':organization', $organization)
+        ;
+
+        $diff = array_diff($roles, [OrganizationMembership::ROLE_ADMIN, OrganizationMembership::ROLE_MEMBER, OrganizationMembership::ROLE_CONTRIBUTOR]);
+
+        if (!empty($roles) && empty($diff)) {
+            $qb
+                ->andWhere('om.role in (:roles)')
+                ->setParameter(':roles', $roles);
+        }
+
+        $query = $qb->setMaxResults($limit)
+                    ->setFirstResult($offset)
+                    ->getQuery();
+
+        return $query->getResult();
+	}
+
     /**
      * Returns all admins for a given organization
      */

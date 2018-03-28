@@ -4,7 +4,7 @@
 ?>
 
 <p>Hi <?= $this->recipient->getFirstname() ?>,<br>
-    the item you contributed to <a href="<?= $link ?>">"<?= $this->task->getSubject()?>"</a> has been accepted!</p>
+    the item <a href="<?= $link ?>">"<?= $this->task->getSubject()?>"</a> has been accepted!</p>
 <p>
     Here's the recap of the members' votes:
     <table class="summary">
@@ -22,8 +22,6 @@
         </tbody>
     </table>
 </p>
-<p>It's time to assign your shares to the members of this item.</p>
-<p>Don't forget it! Do it right now!</p>
 <p>Welo</p>
 <hr>
 <a style="font-size: 12px">You are receiving this e-mail because you are member of the <a href="<?= $link ?>"<?= $this->task->getSubject() ?>"</a> item.</p>
