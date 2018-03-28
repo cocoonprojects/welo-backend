@@ -40,12 +40,14 @@ class NotifyTaskRevertedToOpenProcessor extends Processor
     public function handleTaskRevertedToOpen(Event $event)
     {
         $streamEvent = $event->getTarget();
-
         $taskId = $streamEvent->metadata()['aggregate_id'];
         $task = $this->taskService
                     ->findTask($taskId);
-
         $organization = $this->organizationService->findOrganization($task->getOrganizationId());
+
+        if (!$organization->getParams()->get('manage_priorities')) {
+            return;
+        }
 
         $executedById = $event->getParam ( 'by' );
         $by = $this->entityManager
