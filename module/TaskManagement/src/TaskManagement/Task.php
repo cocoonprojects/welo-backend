@@ -741,6 +741,10 @@ class Task extends DomainEntity implements TaskInterface
      */
     public function changeOwner(BasicUser $newOwner, $exOwner, BasicUser $by)
     {
+        if ($newOwner->getId() == $exOwner->getId()) {
+            return false;
+        }
+
         if (!$newOwner->isMemberOf($this->getOrganizationId())) {
             throw new MissingOrganizationMembershipException(
                 $this->getOrganizationId(), $newOwner->getId()
@@ -773,6 +777,7 @@ class Task extends DomainEntity implements TaskInterface
             'ex_owner' => $exOwnerId,
             'ex_owner_name' => $exOwnerName,
             'new_owner' => $newOwner->getId(),
+            'new_owner_name' => $newOwner->getFirstname().' '.$newOwner->getLastname(),
             'by' => $by->getId()
         )));
     }
