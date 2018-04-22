@@ -45,8 +45,9 @@ class CreateVoteIdeaCardTest extends \PHPUnit_Framework_TestCase{
 	
 	public function testCreateIdeaVoteCard(){
 
-		$previousItemIdeas = $this->taskService->findTasks(Uuid::fromString($this->stream->getOrganizationId()), null, null, ['status' => Task::STATUS_IDEA]);
-		$previousOwnerFlowCards = $this->flowService->findFlowCards($this->owner, null, null, null);
+        $previousItemIdeas = $this->taskService->findTasks(Uuid::fromString($this->stream->getOrganizationId()), null, null, ['status' => Task::STATUS_IDEA]);
+
+        $previousOwnerFlowCards = $this->flowService->findOrgFlowCards($this->owner, $this->stream->getOrganizationId(), null, null, null);
 		$previousMemberFlowCards = $this->flowService->findFlowCards($this->member, null, null, null);
 
 		$this->transactionManager->beginTransaction();
