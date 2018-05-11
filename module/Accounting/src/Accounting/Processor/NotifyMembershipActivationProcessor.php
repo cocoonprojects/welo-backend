@@ -45,14 +45,19 @@ class NotifyMembershipActivationProcessor extends Processor
         $organization = $this->organizationService
                              ->findOrganization($event->organizationId());
 
-        $members = $this->organizationService->findOrganizationMemberships($organization, 9999, 0, [OrganizationMembership::ROLE_ADMIN, OrganizationMembership::ROLE_MEMBER]);
+        $members = $this->organizationService->findOrganizationMemberships(
+                                                    $organization,
+                                                    9999,
+                                                    0,
+                                                    [OrganizationMembership::ROLE_ADMIN, OrganizationMembership::ROLE_MEMBER]
+        );
         foreach ($members as $memberId => $member) {
-            $this->sendOrganizationMemberActivationChangedMail($organization, $memberChanged, $by, $members, $event->active());
+            $this->sendOrganizationMemberActivationChangedMail($organization, $memberChanged, $by, $member, $event->active());
         }
     }
 
 
-    public function sendOrganizationMemberActivationChangedMail(Organization $org, User $changedMember, User $by, $members, $newStatus)
+    public function sendOrganizationMemberActivationChangedMail(Organization $org, User $changedMember, User $by, $member, $newStatus)
     {
         $rv = [];
         if ($newStatus) {
@@ -63,22 +68,21 @@ class NotifyMembershipActivationProcessor extends Processor
             $title = "The user {$changedMember->getFirstname()} {$changedMember->getLastname()} has been deactivated";
         }
 
-        foreach ($members as $member) {
-            $recipient = $member->getMember();
+        $recipient = $member->getMember();
 
-            $message = $this->mailService->getMessage();
-            $message->setTo($recipient->getEmail());
-            $message->setSubject($title);
+        $message = $this->mailService->getMessage();
+        $message->setTo($recipient->getEmail());
+        $message->setSubject($title);
 
-            $this->mailService->setTemplate($emailTemplate, [
-                'member' => $changedMember,
-                'recipient'=> $recipient,
-                'by'=> $by,
-                'organization'=> $org
-            ]);
-            $this->mailService->send();
-            $rv[] = $recipient;
-        }
+        $this->mailService->setTemplate($emailTemplate, [
+            'member' => $changedMember,
+            'recipient'=> $recipient,
+            'by'=> $by,
+            'organization'=> $org
+        ]);
+        $this->mailService->send();
+        $rv[] = $recipient;
+
         return $rv;
 
     }

@@ -60,8 +60,9 @@ class OrgMemberActivationTest extends WebTestCase
         $this->assertTrue($membership->active);
 
         $messages = $mailbox->getMessages();
-        $this->assertEquals(2, $this->countActivationEmails($this->member2->getEmail(), $messages));
-        $this->assertEquals(2, $this->countDeactivationEmails($this->member2->getEmail(), $messages));
+
+        $this->assertEquals(1, $this->countActivationEmails($this->member2->getEmail(), $messages));
+        $this->assertEquals(1, $this->countDeactivationEmails($this->member2->getEmail(), $messages));
     }
 
 
