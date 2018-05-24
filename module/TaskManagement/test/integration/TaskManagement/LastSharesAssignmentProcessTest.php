@@ -48,7 +48,7 @@ class LastSharesAssignmentTaskProcessTest extends \BaseTaskProcessTest
 		$transactionManager->beginTransaction();
 
 		try {
-			$task = Task::create($stream, 'Cras placerat libero non tempor', $this->owner);
+			$task = Task::create($stream, 'Cras placerat libero non tempor c', $this->owner);
 			$task->addMember($this->owner, Task::ROLE_OWNER);
 			$task->open($this->owner);
 			$task->execute($this->owner);

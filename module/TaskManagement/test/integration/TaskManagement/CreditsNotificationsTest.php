@@ -149,6 +149,7 @@ class CreditsNotificationsTest extends WebTestCase
         $this->assertEquals(1, $this->countCreditsAddedEmails($member->getEmail(), $messages));
 
         $lastMessage = end($messages);
+
         $this->assertContains('6,7 credits', $lastMessage->subject);
 
     }

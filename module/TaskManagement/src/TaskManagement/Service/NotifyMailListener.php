@@ -422,7 +422,7 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
             $sharesSummary = array_map(function($share) {
                 $share['share'] = $this->formatFloatForOutput($share['share']);
                 $share['value'] = !empty($share['value']) ? $this->formatFloatForOutput($share['value']) : 'n/a';
-                $share['gap']   = !empty($share['gap']) ? $this->formatFloatForOutput($share['gap']) : 'n/a';
+                $share['gap']   = ($share['gap']!='n/a') ? $this->formatFloatForOutput($share['gap']) : 'n/a';
                 return $share;
             }, $sharesSummary);
 
