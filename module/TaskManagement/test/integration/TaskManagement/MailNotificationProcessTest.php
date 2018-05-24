@@ -45,6 +45,7 @@ class MailNotificationProcessTest extends \PHPUnit_Framework_TestCase
 		$userService = $serviceManager->get('Application\UserService');
 		$this->owner = $userService->findUser('60000000-0000-0000-0000-000000000000');
 		$this->member = $userService->findUser('70000000-0000-0000-0000-000000000000');
+		$this->member2 = $userService->findUser('80000000-0000-0000-0000-000000000000');
 
 		$streamService = $serviceManager->get('TaskManagement\StreamService');
 		$stream = $streamService->getStream('00000000-1000-0000-0000-000000000000');
@@ -76,6 +77,7 @@ class MailNotificationProcessTest extends \PHPUnit_Framework_TestCase
 		$task = Task::create($stream, 'Cras placerat libero non tempor', $this->owner);
 		$task->addMember($this->owner, Task::ROLE_OWNER);
 		$task->addMember($this->member, Task::ROLE_MEMBER);
+		$task->addMember($this->member2, Task::ROLE_MEMBER);
 		$task->open($this->owner);
 		$task->execute($this->owner);
 		$this->task = $taskService->addTask($task);
@@ -114,13 +116,14 @@ class MailNotificationProcessTest extends \PHPUnit_Framework_TestCase
 		$this->transactionManager->beginTransaction();
 		$this->task->addEstimation(1500, $this->owner);
 		$this->task->addEstimation(3100, $this->member);
+		$this->task->addEstimation(2300, $this->member2);
 		$this->task->complete($this->owner);
 		$this->task->accept($this->owner, $this->intervalForCloseTasks);
 		$this->transactionManager->commit();
 		$this->cleanEmailMessages();
 
 		$this->transactionManager->beginTransaction();
-		$this->task->assignShares([ $this->owner->getId() => 0.4, $this->member->getId() => 0.6 ], $this->member);
+		$this->task->assignShares([ $this->owner->getId() => 0.4, $this->member->getId() => 0.1, $this->member2->getId() => 0.5 ], $this->member);
 		$this->transactionManager->commit();
 
 		$email = $this->getLastEmailMessage();
@@ -135,16 +138,18 @@ class MailNotificationProcessTest extends \PHPUnit_Framework_TestCase
 	public function testTaskClosedNotification()
     {
 		$this->transactionManager->beginTransaction();
-		$this->task->addEstimation(2, $this->owner);
-		$this->task->addEstimation(5, $this->member);
+		$this->task->addEstimation(100, $this->owner);
+		$this->task->addEstimation(100, $this->member);
+		$this->task->addEstimation(100, $this->member2);
 		$this->task->complete($this->owner);
 		$this->task->accept($this->owner, $this->intervalForCloseTasks);
 		$this->transactionManager->commit();
 		$this->cleanEmailMessages();
 
 		$this->transactionManager->beginTransaction();
-        $this->task->assignShares([ $this->owner->getId() => 0.7, $this->member->getId() => 0.3 ], $this->member);
-        $this->task->assignShares([ $this->owner->getId() => 0.1, $this->member->getId() => 0.9 ], $this->owner);
+        $this->task->assignShares([ $this->owner->getId() => 0.4, $this->member->getId() => 0.3, $this->member2->getId() => 0.3 ], $this->member);
+        $this->task->assignShares([ $this->owner->getId() => 0.1, $this->member->getId() => 0.3, $this->member2->getId() => 0.6 ], $this->member2);
+        $this->task->skipShares($this->owner);
         $this->transactionManager->commit();
 
         $this->transactionManager->beginTransaction();
@@ -152,7 +157,7 @@ class MailNotificationProcessTest extends \PHPUnit_Framework_TestCase
         $this->transactionManager->commit();
 
 		$emails = $this->getEmailMessages();
-		$email = $emails[1];
+		$email = $emails[2];
 
 		$body = $this->getEmailBody($email)->getBody(true);
 
@@ -161,7 +166,18 @@ class MailNotificationProcessTest extends \PHPUnit_Framework_TestCase
 		$this->assertContains($this->task->getSubject(), $email->subject);
 		$this->assertNotEmpty($email->recipients);
 		$this->assertEquals($email->recipients[0], '<mark.rogers@ora.local>');
-        $this->assertContains('<td>Mark Rogers</td>', $body);
+        $this->assertContains('<td>Mark Rogers</td>
+                <td>25</td>
+                <td>25</td>
+                <td>n/a</td>', $body);
+        $this->assertContains('<td>Phil Toledo</td>
+                <td>30</td>
+                <td>30</td>
+                <td>0</td>', $body);
+        $this->assertContains('<td>Bruce Wayne</td>
+                <td>45</td>
+                <td>45</td>
+                <td>15</td>', $body);
 	}
 
     /**
@@ -194,6 +210,7 @@ class MailNotificationProcessTest extends \PHPUnit_Framework_TestCase
 		$this->transactionManager->beginTransaction();
 		$this->task->addEstimation(1500, $this->owner);
 		$this->task->addEstimation(3100, $this->member);
+        $this->task->addEstimation(2300, $this->member2);
 		$this->task->complete($this->owner);
 		$this->transactionManager->commit();
 		$this->cleanEmailMessages();
