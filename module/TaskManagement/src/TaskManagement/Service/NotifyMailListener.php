@@ -411,17 +411,15 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
 		$sharesSummary = $task->getSharesSummary();
 		$avgCredits = $task->getAverageEstimation();
 
+        $sharesSummary = array_map(function ($share) {
+            $share['share'] = $this->formatFloatForOutput($share['share'], 1);
+            $share['value'] = !is_null($share['value']) ? $this->formatFloatForOutput($share['value'], 1) : 'n/a';
+
+            $share['gap'] = ($share['gap'] !== 'n/a') ? $this->formatFloatForOutput($share['gap'], 1) : 'n/a';
+            return $share;
+        }, $sharesSummary);
+
 		$taskMembers = $task->getMembers();
-		foreach ($taskMembers as $taskMember) {
-            $sharesSummary = array_map(function ($share) {
-                $share['share'] = $this->formatFloatForOutput($share['share'], 1);
-                $share['value'] = !is_null($share['value']) ? $this->formatFloatForOutput($share['value'], 1) : 'n/a';
-
-                $share['gap'] = ($share['gap'] !== 'n/a') ? $this->formatFloatForOutput($share['gap'], 1) : 'n/a';
-                return $share;
-            }, $sharesSummary);
-        }
-
 		foreach ($taskMembers as $taskMember) {
             $member = $taskMember->getMember();
 
