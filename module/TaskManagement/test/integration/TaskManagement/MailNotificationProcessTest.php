@@ -138,9 +138,9 @@ class MailNotificationProcessTest extends \PHPUnit_Framework_TestCase
 	public function testTaskClosedNotification()
     {
 		$this->transactionManager->beginTransaction();
-		$this->task->addEstimation(100, $this->owner);
-		$this->task->addEstimation(100, $this->member);
-		$this->task->addEstimation(100, $this->member2);
+		$this->task->addEstimation(7, $this->owner);
+		$this->task->addEstimation(7, $this->member);
+		$this->task->addEstimation(7, $this->member2);
 		$this->task->complete($this->owner);
 		$this->task->accept($this->owner, $this->intervalForCloseTasks);
 		$this->transactionManager->commit();
@@ -157,27 +157,34 @@ class MailNotificationProcessTest extends \PHPUnit_Framework_TestCase
         $this->transactionManager->commit();
 
 		$emails = $this->getEmailMessages();
-		$email = $emails[2];
 
-		$body = $this->getEmailBody($email)->getBody(true);
+		$email1 = $emails[2];
+		$email2 = $emails[3];
+		$email3 = $emails[4];
+
+		$body1 = $this->getEmailBody($email1)->getBody(true);
+		$body2 = $this->getEmailBody($email2)->getBody(true);
+		$body3 = $this->getEmailBody($email3)->getBody(true);
+
+        $emailData1 = $this->extractDataTableFromClosedEmailBody($body1);
+        $emailData2 = $this->extractDataTableFromClosedEmailBody($body2);
+        $emailData3 = $this->extractDataTableFromClosedEmailBody($body3);
 
 		$this->assertEquals($this->task->getStatus(), Task::STATUS_CLOSED);
-		$this->assertNotNull($email);
-		$this->assertContains($this->task->getSubject(), $email->subject);
-		$this->assertNotEmpty($email->recipients);
-		$this->assertEquals($email->recipients[0], '<mark.rogers@ora.local>');
-        $this->assertContains('<td>Mark Rogers</td>
-                <td>25</td>
-                <td>25</td>
-                <td>n/a</td>', $body);
-        $this->assertContains('<td>Phil Toledo</td>
-                <td>30</td>
-                <td>30</td>
-                <td>0</td>', $body);
-        $this->assertContains('<td>Bruce Wayne</td>
-                <td>45</td>
-                <td>45</td>
-                <td>15</td>', $body);
+		$this->assertNotNull($email1);
+		$this->assertContains($this->task->getSubject(), $email1->subject);
+		$this->assertNotEmpty($email1->recipients);
+		$this->assertEquals($email1->recipients[0], '<mark.rogers@ora.local>');
+
+        $this->assertContains('<td>Mark Rogers</td><td>25</td><td>1.8</td><td>n/a</td>', $emailData1);
+        $this->assertContains('<td>Phil Toledo</td><td>30</td><td>2.1</td><td>0</td>', $emailData1);
+        $this->assertContains('<td>Bruce Wayne</td><td>45</td><td>3.2</td><td>15</td>', $emailData1);
+        $this->assertContains('<td>Mark Rogers</td><td>25</td><td>1.8</td><td>n/a</td>', $emailData2);
+        $this->assertContains('<td>Phil Toledo</td><td>30</td><td>2.1</td><td>0</td>', $emailData2);
+        $this->assertContains('<td>Bruce Wayne</td><td>45</td><td>3.2</td><td>15</td>', $emailData2);
+        $this->assertContains('<td>Mark Rogers</td><td>25</td><td>1.8</td><td>n/a</td>', $emailData3);
+        $this->assertContains('<td>Phil Toledo</td><td>30</td><td>2.1</td><td>0</td>', $emailData3);
+        $this->assertContains('<td>Bruce Wayne</td><td>45</td><td>3.2</td><td>15</td>', $emailData3);
 	}
 
     /**
@@ -268,4 +275,15 @@ class MailNotificationProcessTest extends \PHPUnit_Framework_TestCase
 
 		$this->assertContains($needle, (string)$response->getBody(), $description);
 	}
+
+    protected function extractDataTableFromClosedEmailBody($body)
+    {
+        $body = preg_replace('/>[\s\r\n]+</', '><', $body);
+
+        $start = strpos($body, '<tbody') + 7;
+        $end = strpos($body, '</tbody>');
+        $dataTable = (substr($body, $start, $end - $start));
+
+        return $dataTable;
+    }
 }
