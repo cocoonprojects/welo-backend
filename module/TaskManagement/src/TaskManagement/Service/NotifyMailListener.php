@@ -413,25 +413,28 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
 
 		$taskMembers = $task->getMembers();
 		foreach ($taskMembers as $taskMember) {
-			$member = $taskMember->getMember();
+            $sharesSummary = array_map(function ($share) {
+                $share['share'] = $this->formatFloatForOutput($share['share'], 1);
+                $share['value'] = !is_null($share['value']) ? $this->formatFloatForOutput($share['value'], 1) : 'n/a';
 
-			$message = $this->mailService->getMessage();
-			$message->setTo($member->getEmail());
-			$message->setSubject('The "'.$task->getSubject().'" item has been closed');
-
-            $sharesSummary = array_map(function($share) {
-                $share['share'] = $this->formatFloatForOutput($share['share']);
-                $share['value'] = !empty($share['value']) ? $this->formatFloatForOutput($share['value']) : 'n/a';
-                $share['gap']   = ($share['gap']!='n/a') ? $this->formatFloatForOutput($share['gap']) : 'n/a';
+                $share['gap'] = ($share['gap'] !== 'n/a') ? $this->formatFloatForOutput($share['gap'], 1) : 'n/a';
                 return $share;
             }, $sharesSummary);
+        }
 
-			$this->mailService->setTemplate( 'mail/task-closed-info.phtml', [
+		foreach ($taskMembers as $taskMember) {
+            $member = $taskMember->getMember();
+
+            $message = $this->mailService->getMessage();
+            $message->setTo($member->getEmail());
+            $message->setSubject('The "' . $task->getSubject() . '" item has been closed');
+
+            $this->mailService->setTemplate( 'mail/task-closed-info.phtml', [
 				'task' => $task,
 				'recipient'=> $member,
 				'host' => $this->host,
                 'sharesSummary' => $sharesSummary,
-                'avgCredits' => $this->formatFloatForOutput($avgCredits),
+                'avgCredits' => $this->formatFloatForOutput($avgCredits, 1),
                 'router' => $this->feRouter
             ]);
 
@@ -734,9 +737,12 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
 		return $this;
 	}
 
-    private function formatFloatForOutput($number) {
-	    $value = floatval($number);
-        return (abs($value) - intval(abs($value)) > 0) ? number_format($value, 1, ',', '.') : ceil($value);
+    private function formatFloatForOutput($number, $decimals) {
+	    $value = round(floatval($number), $decimals);
+	    if ($value == floor($value)) {
+	        $value = round(floatval($number), $decimals-1);
+        }
+        return $value;
     }
 
 }
