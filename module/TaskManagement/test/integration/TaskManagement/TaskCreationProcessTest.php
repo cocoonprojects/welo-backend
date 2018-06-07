@@ -32,7 +32,7 @@ class TaskCreationProcessTest extends \BaseTaskProcessTest
 
 
         try {
-            $task = Task::create($stream, 'Cras placerat libero non tempor', $this->admin);
+            $task = Task::create($stream, 'Cras placerat libero non tempor a', $this->admin);
             $this->task = $this->taskService->addTask($task);
 
             $this->transactionManager->commit();
