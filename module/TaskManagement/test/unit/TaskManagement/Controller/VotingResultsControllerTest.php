@@ -45,7 +45,7 @@ class VotingResultsControllerTest extends ControllerTest
 		$this->owner->addMembership($this->organization);
 		$this->member->addMembership($this->organization);
 
-		$this->task = Task::create($stream, 'Cras placerat libero non tempor', $this->owner);
+		$this->task = Task::create($stream, 'Cras placerat libero non tempor e', $this->owner);
 		$this->task->addMember($this->owner, Task::ROLE_OWNER);
 		$this->task->addMember($this->member, Task::ROLE_MEMBER);
 		$this->task->open($this->owner);

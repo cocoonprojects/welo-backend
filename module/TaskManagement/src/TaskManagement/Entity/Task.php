@@ -474,15 +474,16 @@ class Task extends EditableEntity implements TaskInterface
                     $selfShare[$valuedId] = $taskShares->getValue();
                 }
 
-                $rv[$valuedId][] = $taskShares->getValue();
+                $rv[$valuedId][$memberId] = $taskShares->getValue();
             }
         }
-
         $avgs = [];
         $gaps = [];
 
         foreach($rv as $uid => $singleShare) {
-            $avgs[$uid] = array_sum($singleShare) / count($singleShare);
+            $votes = array_filter($singleShare, function($x) { return !empty($x); });
+
+            $avgs[$uid] = array_sum($votes) / count($votes);
         }
 
 

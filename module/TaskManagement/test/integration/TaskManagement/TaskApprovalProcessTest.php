@@ -68,7 +68,7 @@ class TaskApprovalTaskProcessTest extends \BaseTaskProcessTest
 
         $transactionManager->beginTransaction();
         try {
-            $task = Task::create($stream, 'Cras placerat libero non tempor', $this->author);
+            $task = Task::create($stream, 'Cras placerat libero non tempor d', $this->author);
 
             $this->task = $this->taskService->addTask($task);
             $this->task->addApproval(Vote::VOTE_ABSTAIN, $this->admin, 'Voto a favore');

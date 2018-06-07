@@ -56,7 +56,7 @@ class CreateVoteIdeaCardTest extends \PHPUnit_Framework_TestCase{
 			$item->setDescription("a very useful description", $this->owner);
 			$this->taskService->addTask($item);
 			$this->transactionManager->commit();
-		}catch (\Exception $e) {
+		} catch (\Exception $e) {
 			var_dump($e);
 			$this->transactionManager->rollback();
 			throw $e;
