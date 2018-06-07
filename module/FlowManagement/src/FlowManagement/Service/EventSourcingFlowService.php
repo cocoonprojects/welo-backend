@@ -84,32 +84,13 @@ class EventSourcingFlowService extends AggregateRepository implements FlowServic
 	 */
 	public function findOrgFlowCards(User $recipient, $orgId, $offset, $limit, $filters = [])
     {
-		$builder = $this->entityManager->createQueryBuilder();
-		$query = $builder->select('f')
-			->from(ReadModelFlowCard::class, 'f')
-            ->innerJoin(Stream::class, 's', 'WITH', 's.organization = :organization')
-            ->where('f.recipient = :recipient')
-            ->andWhere('f.hidden = false');
+        $cards = $this->findFlowCards($recipient, $offset, $limit, $filters);
 
-		dump($filters);
-        if (is_array($filters)) {
-            foreach ($filters as $param => $value) {
-                $paramSlug = str_replace('.', '_', $param);
-                $query
-                    ->andWhere("$param = :$paramSlug")
-                    ->setParameter(":$paramSlug", $value);
-            }
-        }
+        $cards = array_filter($cards, function($card) use ($orgId) {
+            return ($orgId == $card->getItem()->getStream()->getOrganization()->getId());
+        });
 
-        $query
-            ->groupBy('f.id')
-            ->orderBy('f.createdAt', 'DESC')
-            ->setFirstResult($offset)
-            ->setMaxResults($limit)
-            ->setParameter(':recipient', $recipient)
-            ->setParameter('organization', $orgId);
-
-		return $query->getQuery()->getResult();
+		return $cards;
 	}
 
 

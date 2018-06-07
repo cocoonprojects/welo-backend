@@ -63,7 +63,7 @@ class CreateVoteIdeaCardTest extends \PHPUnit_Framework_TestCase{
 		}
 		
 		
-		$ownerFlowCards = $this->flowService->findFlowCards($this->owner, null, null, null);
+		$ownerFlowCards = $this->flowService->findOrgFlowCards($this->owner, $this->stream->getOrganizationId(), null, null);
 		$memberFlowCards = $this->flowService->findFlowCards($this->member, null, null, null);
 		$newItemIdeas = $this->taskService->findTasks(Uuid::fromString($this->stream->getOrganizationId()), null, null, ['status' => Task::STATUS_IDEA]);
 
