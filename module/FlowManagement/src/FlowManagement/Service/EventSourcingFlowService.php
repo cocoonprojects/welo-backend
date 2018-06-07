@@ -84,13 +84,16 @@ class EventSourcingFlowService extends AggregateRepository implements FlowServic
 	 */
 	public function findOrgFlowCards(User $recipient, $orgId, $offset, $limit, $filters = [])
     {
-        $cards = $this->findFlowCards($recipient, $offset, $limit, $filters);
+        $cards = $this->findFlowCards($recipient, null, null, $filters);
 
         $cards = array_filter($cards, function($card) use ($orgId) {
+            if (!$card->getItem()) {
+                return false;
+            }
             return ($orgId == $card->getItem()->getStream()->getOrganization()->getId());
         });
 
-		return $cards;
+		return array_slice($cards, $offset, $limit);
 	}
 
 
@@ -298,29 +301,9 @@ class EventSourcingFlowService extends AggregateRepository implements FlowServic
 	 * @see \FlowManagement\Service\FlowService::countCards()
 	 */
 	public function countOrgCards(BasicUser $recipient, $orgId, $filters){
-		$builder = $this->entityManager->createQueryBuilder();
-		$query = $builder->select('count(f)')
-			->from(ReadModelFlowCard::class, 'f')
-            ->innerJoin(Stream::class, 's', 'WITH', 's.organization = :organization')
-			->where('f.recipient = :recipient')
-			->andWhere('f.hidden = false')
-        ;
+	    $cards = $this->findOrgFlowCards($recipient, $orgId, null, null, $filters);
 
-        if (is_array($filters)) {
-            foreach ($filters as $param => $value) {
-                $paramSlug = str_replace('.', '_', $param);
-                $query
-                    ->andWhere("$param = :$paramSlug")
-                    ->setParameter(":$paramSlug", $value);
-            }
-        }
-
-        $query
-            ->setParameter(':recipient', $recipient)
-            ->setParameter(':organization', $orgId)
-        ;
-
-		return intval($query->getQuery()->getSingleScalarResult());
+		return count($cards);
 	}
 
 	public function findFlowCardsByItem(Task $item){
