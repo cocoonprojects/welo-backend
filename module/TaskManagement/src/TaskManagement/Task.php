@@ -896,8 +896,9 @@ class Task extends DomainEntity implements TaskInterface
 
         $rv = array();
         foreach ($this->members as $id => $info) {
-            $rv[$id] = isset($info['share']) ? round($credits * $info['share'], 2) : 0;
+            $rv[$id] = isset($info['share']) ? round($credits * $info['share'], 3) : 0;
         }
+
         return $rv;
     }
 
