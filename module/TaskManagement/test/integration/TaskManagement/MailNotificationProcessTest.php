@@ -187,6 +187,52 @@ class MailNotificationProcessTest extends \PHPUnit_Framework_TestCase
         $this->assertContains('<td>Bruce Wayne</td><td>45</td><td>3.2</td><td>15</td>', $emailData3);
 	}
 
+	public function testSecondTaskClosedNotification()
+    {
+		$this->transactionManager->beginTransaction();
+		$this->task->addEstimation(567, $this->owner);
+		$this->task->addEstimation(567, $this->member);
+		$this->task->addEstimation(567, $this->member2);
+		$this->task->complete($this->owner);
+		$this->task->accept($this->owner, $this->intervalForCloseTasks);
+		$this->transactionManager->commit();
+		$this->cleanEmailMessages();
+
+		$this->transactionManager->beginTransaction();
+        $this->task->assignShares([ $this->owner->getId() => 0.16, $this->member->getId() => 0.35, $this->member2->getId() => 0.49 ], $this->member);
+        $this->task->assignShares([ $this->owner->getId() => 0.45, $this->member->getId() => 0.12, $this->member2->getId() => 0.43 ], $this->member2);
+        $this->task->skipShares($this->owner);
+        $this->transactionManager->commit();
+
+        $this->transactionManager->beginTransaction();
+        $this->task->close($this->owner);
+        $this->transactionManager->commit();
+
+		$emails = $this->getEmailMessages();
+
+		$email1 = $emails[2];
+		$email2 = $emails[3];
+		$email3 = $emails[4];
+
+		$body1 = $this->getEmailBody($email1)->getBody(true);
+		$body2 = $this->getEmailBody($email2)->getBody(true);
+		$body3 = $this->getEmailBody($email3)->getBody(true);
+
+        $emailData1 = $this->extractDataTableFromClosedEmailBody($body1);
+        $emailData2 = $this->extractDataTableFromClosedEmailBody($body2);
+        $emailData3 = $this->extractDataTableFromClosedEmailBody($body3);
+
+		$this->assertEquals($this->task->getStatus(), Task::STATUS_CLOSED);
+		$this->assertNotNull($email1);
+		$this->assertContains($this->task->getSubject(), $email1->subject);
+		$this->assertNotEmpty($email1->recipients);
+		$this->assertEquals($email1->recipients[0], '<mark.rogers@ora.local>');
+
+        $this->assertContains('<td>Mark Rogers</td><td>30.5</td><td>172.9</td><td>n/a</td>', $emailData1);
+        $this->assertContains('<td>Phil Toledo</td><td>23.5</td><td>133.2</td><td>11.5</td>', $emailData1);
+        $this->assertContains('<td>Bruce Wayne</td><td>46</td><td>260.8</td><td>-3</td>', $emailData1);
+	}
+
     /**
      * @depends testTaskClosedNotification
      */
