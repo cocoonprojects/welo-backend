@@ -11,9 +11,6 @@
 
  <target name="prepare" depends="clean" description="Prepare for build">
   <mkdir dir="${basedir}/build/logs"/>
-  <exec executable="/usr/local/bin/mailcatcher" failonerror="true">
-   <arg value="--http-ip=0.0.0.0" />
-  </exec>
  </target>
 
  <target name="lint" description="Perform syntax check of sourcecode files">
