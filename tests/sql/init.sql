@@ -42,6 +42,10 @@ INSERT INTO users (id, status, createdAt, mostRecentEditAt, firstname, lastname,
 INSERT INTO users (id, status, createdAt, mostRecentEditAt, firstname, lastname, email, role) VALUES
   ('30000000-0000-0000-0000-000000000000', 1, '2014-10-09 11:33:45', '2014-10-09 11:33:45', 'Clark', 'Kent',
    'clark.kent@ora.local', 'user');
+# user 12300000-0000-0000-0000-000000000000 Stephen Strànge
+INSERT INTO users (id, status, createdAt, mostRecentEditAt, firstname, lastname, email, role) VALUES
+  ('12300000-0000-0000-0000-000000000000', 1, '2014-10-09 11:33:45', '2014-10-09 11:33:45', 'Stephen', 'Strànge',
+   'stephen.strange@ora.local', 'user');
 
 # organization 00000000-0000-0000-1000-000000000000
 INSERT INTO event_stream (eventId, version, eventName, payload, occurredOn, aggregate_type, aggregate_id) VALUES
