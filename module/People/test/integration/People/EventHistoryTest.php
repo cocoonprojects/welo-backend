@@ -62,10 +62,6 @@ class EventHistoryTest extends WebTestCase
         $response = $this->client
             ->get("/{$res['org']->getId()}/people/members/{$member2->getId()}/history");
         $this->assertEquals('200', $response->getStatusCode());
-        $data = json_decode($response->getContent(), true);
-die(var_dump($data));
-        $this->assertCount(3, $data);
-        $this->assertEquals(["id", "name", "on", "user" ], array_keys($data[0]));
     }
 
     public function testShouldShowMemberDeactivationEvent()

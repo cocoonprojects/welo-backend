@@ -45,7 +45,10 @@ $adapter = array(
 			'port' 	   => getenv('DB_PORT'),
 			'username' => getenv('DB_USERNAME'),
 			'password' => getenv('DB_PASSWORD'),
-			'database' => getenv('DB_NAME')
+			'database' => getenv('DB_NAME'),
+            'driver_options' => array(
+                \PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES \'UTF8\''
+            )
 		),
 		//It's also possible to specify an DI alias for Zend\Db\Adapter\Adapter instead of configure a connection.
 		//'zend_db_adapter' => 'Zend\Db\Adapter\Adapter',
