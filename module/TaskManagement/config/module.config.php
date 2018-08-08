@@ -92,7 +92,16 @@ return array(
 							'action' => 'send'
                         ]
                     ]
-                ]
+                ],
+                'cleaner' => [
+                    'options' => [
+                        'route'    => 'cleaner [--verbose|-v]',
+                        'defaults' => [
+                            'controller' => 'TaskManagement\Controller\Console\CleanEvents',
+                            'action' => 'clean'
+                        ]
+                    ]
+                ],
             ]
         ]
     ],

@@ -8,6 +8,7 @@ use People\Organization;
 use PHPUnit_Framework_TestCase;
 use TaskManagement\Controller\SharesController;
 use Test\TestFixturesHelper;
+use Test\ZFHttpClient;
 use Zend\Http\Request;
 use Zend\Http\Response;
 use Zend\Mvc\MvcEvent;
@@ -17,11 +18,12 @@ use Zend\Uri\Http;
 use ZFX\Test\Authentication\AdapterMock;
 use ZFX\Test\Authentication\OAuth2AdapterMock;
 use Behat\Testwork\Tester\Setup\Teardown;
+use ZFX\Test\WebTestCase;
 
-class CreateWelcomeCardTest extends BaseIntegrationTest
+class CreateWelcomeCardTest extends WebTestCase
 {	
 	protected $task;
-	protected $owner;
+    protected $admin;
 	protected $member;
 	protected $organization;
 
@@ -29,43 +31,53 @@ class CreateWelcomeCardTest extends BaseIntegrationTest
 	 * @var \DateInterval
 	 */
 	protected $intervalForCloseTasks;
+	protected $client;
 
-	protected function setUp()
+	public function setUp()
 	{
-        $this->request = new Request();
+        parent::setUp();
 
-        $this->admin = $this->createUser(['given_name' => 'Admin', 'family_name' => 'Uber', 'email' => TestFixturesHelper::generateRandomEmail()], User::ROLE_ADMIN);
-        $this->user = $this->createUser([ 'given_name' => 'John', 'family_name' => 'Doe', 'email' => TestFixturesHelper::generateRandomEmail() ], User::ROLE_USER);
+        $this->client->setJWTToken($this->fixtures->getJWTToken('bruce.wayne@ora.local'));
 
-        $this->organization = $this->createOrganization(TestFixturesHelper::generateRandomName(), $this->admin);
+        $this->admin = $this->fixtures->findUserByEmail('bruce.wayne@ora.local');
+        $this->member = $this->fixtures->findUserByEmail('phil.toledo@ora.local');
 
-        $this->setupController('FlowManagement\Controller\Cards', 'list');
-        $this->setupAuthenticatedUser($this->user->getEmail());
+        $orgData = $this->fixtures->createOrganization('my org', $this->admin, []);
+        $this->organization = $orgData['org'];
 	}
 
 	public function testWelcomeFlowcard() {
-        $this->transactionManager->beginTransaction();
-        try {
-            $this->organization->addMember($this->user, Organization::ROLE_MEMBER);
-            $this->transactionManager->commit();
-        } catch (\Exception $e) {
-            var_dump($e->getMessage());
-            $this->transactionManager->rollback();
-            throw $e;
-        }
+	    $orgId = $this->organization->getId();
+	    $memberId = $this->member->getId();
 
-		$result   = $this->controller->dispatch($this->request);
-		$response = $this->controller->getResponse();
+        $response = $this->client
+            ->put("/{$orgId}/people/members/{$memberId}", [
+                'memberId' => $this->member->getId(),
+                'orgId' => $orgId,
+                'role' => 'member'
+            ]);
 
-		$readModelCards = $this->flowService->findFlowCards($this->user, 0, 1000);
-        $cardContent = $readModelCards[0]->getContent();
 
         $this->assertEquals(200, $response->getStatusCode());
-		$this->assertCount(1, $readModelCards);
-        $this->assertArrayHasKey('Welcome', $cardContent);
-        $this->assertEquals($this->organization->getId(), $cardContent['Welcome']['orgId']);
-        $this->assertNotEmpty($cardContent['Welcome']['text']);
-        $this->assertEquals($this->organization->getParams()->get('flow_welcome_card_text'), $cardContent['Welcome']['text']);
+        $this->assertEquals(1, $this->countWelcomeFlowCardForOrg($this->organization->getId()));
     }
 
+
+    protected function countWelcomeFlowCardForOrg($orgId)
+    {
+        //users get notified via flowcard
+        $response = $this->client
+            ->get('/flow-management/cards?limit=10&offset=0&org='.$orgId);
+
+        $flowCards = json_decode($response->getContent(), true);
+        $count = 0;
+
+        foreach ($flowCards['_embedded']['ora:flowcard'] as $idx => $flowCard) {
+            if ($flowCard['type'] == 'Welcome') {
+                $count++;
+            }
+        }
+
+        return $count;
+    }
 }
