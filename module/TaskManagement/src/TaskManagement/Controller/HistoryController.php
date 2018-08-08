@@ -27,7 +27,8 @@ class HistoryController extends HATEOASRestfulController {
 	}
 	
 	public function get($id) {
-		$streamEvents = $this->taskService->getTaskHistory($id);
+
+        $streamEvents = $this->taskService->getTaskHistory($id);
 
 		return new JsonModel($streamEvents);
 	}

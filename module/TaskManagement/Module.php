@@ -5,6 +5,7 @@ namespace TaskManagement;
 use TaskManagement\Controller\AcceptancesController;
 use TaskManagement\Controller\ApprovalsController;
 use TaskManagement\Controller\AttachmentsController;
+use TaskManagement\Controller\Console\CleanEventsController;
 use TaskManagement\Controller\Console\SendController;
 use TaskManagement\Controller\Console\SharesRemindersController;
 use TaskManagement\Controller\Console\SharesClosingController;
@@ -256,6 +257,12 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
                     $streamService = $locator->get('TaskManagement\StreamService');
 
                     return new PositionsController($orgService, $streamService, $taskService);
+                },
+                'TaskManagement\Controller\Console\CleanEvents' => function($sm) {
+                    $locator = $sm->getServiceLocator();
+					$eventStore = $locator->get('prooph.event_store');
+                    $entityManager = $locator->get('doctrine.entitymanager.orm_default');
+                    return new CleanEventsController($eventStore, $entityManager);
                 }
             ]
 		];
