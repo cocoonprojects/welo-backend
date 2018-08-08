@@ -4,6 +4,7 @@ namespace Application;
 
 use Application\Authentication\OAuth2\LoadLocalProfileListener;
 use Application\Controller\AuthController;
+use Application\Controller\Console\CleanEventsController;
 use Application\Controller\MembershipsController;
 use Application\Controller\UsersSecondaryEmailsController;
 use Application\Service\DomainEventDispatcher;
@@ -208,7 +209,7 @@ class Module
                             }
 
                             return $rv;
-                        },
+                        }
 /*                        EventProxyService::class => function() {
 
                             $client = new Client(getenv('PROXY_URL'));

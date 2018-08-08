@@ -27,21 +27,21 @@ class CardsController extends HATEOASRestfulController {
 
 	public function getList()
     {
-        if (is_null($this->identity())) {
-            $this->response->setStatusCode(401);
+		if (is_null($this->identity())) {
+			$this->response->setStatusCode(401);
 
-            return $this->response;
-        }
+			return $this->response;
+		}
 
-        $filters = [];
-        $integerValidator = new ValidatorChain();
-        $integerValidator
-            ->attach(new IsInt())
-            ->attach(new GreaterThan(['min' => 0, 'inclusive' => false]));
-        $offset = $this->getRequest()->getQuery("offset");
-        $offset = $integerValidator->isValid($offset) ? intval($offset) : 0;
-        $limit = $this->getRequest()->getQuery("limit");
-        $limit = $integerValidator->isValid($limit) ? intval($limit) : $this->getListLimit();
+		$filters = [];
+		$integerValidator = new ValidatorChain();
+		$integerValidator
+			->attach(new IsInt())
+			->attach(new GreaterThan(['min' => 0, 'inclusive' => false]));
+		$offset = $this->getRequest()->getQuery("offset");
+		$offset = $integerValidator->isValid($offset) ? intval($offset) : 0;
+		$limit = $this->getRequest()->getQuery("limit");
+		$limit = $integerValidator->isValid($limit) ? intval($limit) : $this->getListLimit();
 
         $orgId = $this->getRequest()->getQuery("org");
         if (Uuid::isValid($orgId)) {
@@ -53,21 +53,20 @@ class CardsController extends HATEOASRestfulController {
         }
 
         $count = count($flowCards);
-
         $serializer = function ($flowCard) {
             return $flowCard->serialize();
         };
 
-        $hal['count'] = $count;
-        $hal['total'] = $totalCards;
+		$hal['count'] = $count;
+		$hal['total'] = $totalCards;
 
-        if ($hal['count'] < $hal['total']) {
-            $hal['_links']['next']['href'] = $this->url()->fromRoute('flow');
-        }
-        $hal['_links']['self']['href'] = $this->url()->fromRoute('flow');
-        $hal['_embedded']['ora:flowcard'] = $count ? array_column(array_map($serializer, $flowCards), null, 'id') : new \stdClass();
+		if($hal['count'] < $hal['total']){
+			$hal['_links']['next']['href'] = $this->url()->fromRoute('flow');
+		}
+		$hal['_links']['self']['href'] = $this->url()->fromRoute('flow');
+		$hal['_embedded']['ora:flowcard'] = $count ? array_column(array_map($serializer, $flowCards), null, 'id') : new \stdClass();
 
-        return new JsonModel($hal);
+		return new JsonModel($hal);
 	}
 
 	protected function getCollectionOptions(){
