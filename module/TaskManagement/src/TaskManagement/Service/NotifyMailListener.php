@@ -412,26 +412,27 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
 		$avgCredits = $task->getAverageEstimation();
 
 		$taskMembers = $task->getMembers();
+        $sharesSummary = array_map(function ($share) {
+            $share['share'] = $this->formatFloatForOutput($share['share'], 1);
+            $share['value'] = !is_null($share['value']) ? $this->formatFloatForOutput($share['value'], 1) : 'n/a';
+
+            $share['gap'] = ($share['gap'] !== 'n/a') ? $this->formatFloatForOutput($share['gap'], 1) : 'n/a';
+            return $share;
+        }, $sharesSummary);
+
 		foreach ($taskMembers as $taskMember) {
-			$member = $taskMember->getMember();
+            $member = $taskMember->getMember();
 
-			$message = $this->mailService->getMessage();
-			$message->setTo($member->getEmail());
-			$message->setSubject('The "'.$task->getSubject().'" item has been closed');
+            $message = $this->mailService->getMessage();
+            $message->setTo($member->getEmail());
+            $message->setSubject('The "' . $task->getSubject() . '" item has been closed');
 
-            $sharesSummary = array_map(function($share) {
-                $share['share'] = $this->formatFloatForOutput($share['share']);
-                $share['value'] = !empty($share['value']) ? $this->formatFloatForOutput($share['value']) : 'n/a';
-                $share['gap']   = !empty($share['gap']) ? $this->formatFloatForOutput($share['gap']) : 'n/a';
-                return $share;
-            }, $sharesSummary);
-
-			$this->mailService->setTemplate( 'mail/task-closed-info.phtml', [
+            $this->mailService->setTemplate( 'mail/task-closed-info.phtml', [
 				'task' => $task,
 				'recipient'=> $member,
 				'host' => $this->host,
                 'sharesSummary' => $sharesSummary,
-                'avgCredits' => $this->formatFloatForOutput($avgCredits),
+                'avgCredits' => $this->formatFloatForOutput($avgCredits, 1),
                 'router' => $this->feRouter
             ]);
 
@@ -549,26 +550,20 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
 	{
 		$rv = [];
 		$taskMembers = $task->getMembers();
-
-        $taskMemberEmails = array_map(function($member) {
-            return $member->getMember()->getEmail();
-        }, $taskMembers);
-
-
-        foreach ($taskMembers as $taskMember) {
+		foreach ($taskMembers as $taskMember) {
 			$member = $taskMember->getMember();
-
+	
 			$message = $this->mailService->getMessage();
 			$message->setTo($member->getEmail());
 			$message->setSubject('The "'.$task->getSubject().'" item has been accepted');
-
+	
 			$this->mailService->setTemplate( 'mail/task-accepted-info.phtml', [
 				'task' => $task,
 				'recipient'=> $member,
 				'host' => $this->host,
                 'router' => $this->feRouter
             ]);
-
+				
 			$this->mailService->send();
 			$rv[] = $member;
 		}
@@ -576,45 +571,46 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
 		return $rv;
 	}
 
-	/**
-	 * Send an email notification to the members of $taskToNotify to inform them that it has been accepted, and it's time to assign shares
-	 * @param Task $task
-	 * @return BasicUser[] receivers
-	 */
-	public function sendTaskAcceptedInfoMailToOrgUsers(Task $task)
-	{
-		$rv = [];
-		$taskMembers = $task->getMembers();
-        $taskMemberEmails = array_map(function($member) {
+
+    /**
+     * Send an email notification to the members of $taskToNotify to inform them that it has been accepted, and it's time to assign shares
+     * @param Task $task
+     * @return BasicUser[] receivers
+     */
+    public function sendTaskAcceptedInfoMailToOrgUsers(Task $task)
+    {
+        $rv = [];
+        $taskMembers = $task->getMembers();
+        $taskMemberEmails = array_map(function ($member) {
             return $member->getMember()->getEmail();
         }, $taskMembers);
 
         $organization = $task->getStream()->getOrganization();
         $organizationUsers = $this->orgService->findActiveOrganizationMemberships($organization, 9999999, 0);
-        $organizationUsers = array_filter($organizationUsers, function($organizationUser) use ($taskMemberEmails){
+        $organizationUsers = array_filter($organizationUsers, function ($organizationUser) use ($taskMemberEmails) {
             return !in_array($organizationUser->getMember()->getEmail(), $taskMemberEmails);
         });
 
         foreach ($organizationUsers as $orgUser) {
-			$member = $orgUser->getMember();
+            $member = $orgUser->getMember();
 
-			$message = $this->mailService->getMessage();
-			$message->setTo($member->getEmail());
-			$message->setSubject('The "'.$task->getSubject().'" item has been accepted');
+            $message = $this->mailService->getMessage();
+            $message->setTo($member->getEmail());
+            $message->setSubject('The "' . $task->getSubject() . '" item has been accepted');
 
-			$this->mailService->setTemplate( 'mail/task-accepted-for-org-users-info.phtml', [
-				'task' => $task,
-				'recipient'=> $member,
-				'host' => $this->host,
+            $this->mailService->setTemplate('mail/task-accepted-for-org-users-info.phtml', [
+                'task' => $task,
+                'recipient' => $member,
+                'host' => $this->host,
                 'router' => $this->feRouter
             ]);
 
-			$this->mailService->send();
-			$rv[] = $member;
-		}
+            $this->mailService->send();
+            $rv[] = $member;
+        }
 
-		return $rv;
-	}
+        return $rv;
+    }
 
 
 	public function sendTaskOpenedInfoMail(Task $task, $memberships)
@@ -734,9 +730,12 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
 		return $this;
 	}
 
-    private function formatFloatForOutput($number) {
-	    $value = floatval($number);
-        return (abs($value) - intval(abs($value)) > 0) ? number_format($value, 1, ',', '.') : ceil($value);
+    private function formatFloatForOutput($number, $decimals) {
+	    $value = round(floatval($number), $decimals);
+	    if ($value == floor($value)) {
+	        $value = round(floatval($number), $decimals-1);
+        }
+        return $value;
     }
 
 }
