@@ -179,6 +179,7 @@ class TasksController extends OrganizationAwareController
 				return $view;
 			}
 		}
+
 		$availableTasks = $this->taskService->findTasks($this->organization, $offset, $limit, $filters, $sorting);
 
 		$view = new TaskJsonModel($this, $this->organization);
@@ -451,6 +452,13 @@ class TasksController extends OrganizationAwareController
 		$this->transaction ()->begin ();
 		try {
 
+		    if (isset($data['lane']) && $data['lane']) {
+		        $lanes = $this->organization->getLanes();
+                $previousLane = $task->getLane();
+
+		        $data['laneName'] = $lanes[$data['lane']];
+		        $data['previousLaneName'] = !empty($previousLane) ? $lanes[$previousLane] : '';
+            }
             $task->update($data, $this->identity());
 
 			$this->transaction ()->commit ();

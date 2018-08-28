@@ -23,6 +23,7 @@ use TaskManagement\TaskMemberAdded;
 use TaskManagement\TaskNotClosedByTimebox;
 use TaskManagement\TaskCreated;
 use TaskManagement\TaskAccepted;
+use TaskManagement\TaskReopened;
 use TaskManagement\WorkItemIdeaCreated;
 use Zend\EventManager\Event;
 use Zend\EventManager\EventManagerInterface;
@@ -159,9 +160,10 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
 		$taskId = $streamEvent->metadata()['aggregate_id'];
 		$task = $this->taskService->findTask($taskId);
 		$this->sendTaskAcceptedInfoMail($task);
+		$this->sendTaskAcceptedInfoMailToOrgUsers($task);
 	}
-	
-	
+
+
 	public function processTaskOpened(Event $event){
 		$streamEvent = $event->getTarget ();
 		$taskId = $streamEvent->metadata ()['aggregate_id'];
@@ -548,26 +550,74 @@ class NotifyMailListener implements NotificationService, ListenerAggregateInterf
 	{
 		$rv = [];
 		$taskMembers = $task->getMembers();
-		foreach ($taskMembers as $taskMember) {
+
+        $taskMemberEmails = array_map(function($member) {
+            return $member->getMember()->getEmail();
+        }, $taskMembers);
+
+
+        foreach ($taskMembers as $taskMember) {
 			$member = $taskMember->getMember();
-	
+
 			$message = $this->mailService->getMessage();
 			$message->setTo($member->getEmail());
 			$message->setSubject('The "'.$task->getSubject().'" item has been accepted');
-	
+
 			$this->mailService->setTemplate( 'mail/task-accepted-info.phtml', [
 				'task' => $task,
 				'recipient'=> $member,
 				'host' => $this->host,
                 'router' => $this->feRouter
             ]);
-				
+
 			$this->mailService->send();
 			$rv[] = $member;
 		}
+
 		return $rv;
 	}
-	
+
+	/**
+	 * Send an email notification to the members of $taskToNotify to inform them that it has been accepted, and it's time to assign shares
+	 * @param Task $task
+	 * @return BasicUser[] receivers
+	 */
+	public function sendTaskAcceptedInfoMailToOrgUsers(Task $task)
+	{
+		$rv = [];
+		$taskMembers = $task->getMembers();
+        $taskMemberEmails = array_map(function($member) {
+            return $member->getMember()->getEmail();
+        }, $taskMembers);
+
+        $organization = $task->getStream()->getOrganization();
+        $organizationUsers = $this->orgService->findActiveOrganizationMemberships($organization, 9999999, 0);
+        $organizationUsers = array_filter($organizationUsers, function($organizationUser) use ($taskMemberEmails){
+            return !in_array($organizationUser->getMember()->getEmail(), $taskMemberEmails);
+        });
+
+        foreach ($organizationUsers as $orgUser) {
+			$member = $orgUser->getMember();
+
+			$message = $this->mailService->getMessage();
+			$message->setTo($member->getEmail());
+			$message->setSubject('The "'.$task->getSubject().'" item has been accepted');
+
+			$this->mailService->setTemplate( 'mail/task-accepted-for-org-users-info.phtml', [
+				'task' => $task,
+				'recipient'=> $member,
+				'host' => $this->host,
+                'router' => $this->feRouter
+            ]);
+
+			$this->mailService->send();
+			$rv[] = $member;
+		}
+
+		return $rv;
+	}
+
+
 	public function sendTaskOpenedInfoMail(Task $task, $memberships)
 	{
 		$rv = [];

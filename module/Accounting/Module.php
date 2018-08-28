@@ -20,6 +20,7 @@ use Accounting\Service\CreateOrganizationAccountListener;
 use Accounting\Service\CreatePersonalAccountListener;
 use Accounting\Service\EventSourcingAccountService;
 use Application\Service\CsvWriter;
+use AcMailer\Service\MailService;
 use Zend\ModuleManager\Feature\AutoloaderProviderInterface;
 use Zend\ModuleManager\Feature\ConfigProviderInterface;
 

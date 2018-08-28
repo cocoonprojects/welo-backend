@@ -175,11 +175,6 @@ class Task extends DomainEntity implements TaskInterface
         }
     }
 
-    /**
-     * Set the lane for the given tasks.
-     *
-     * @param string    $lane  the lane
-     */
     public function setLane($lane, BasicUser $updatedBy)
     {
         $this->recordThat(TaskUpdated::occur($this->id->toString(), array(
@@ -205,8 +200,12 @@ class Task extends DomainEntity implements TaskInterface
             $data['subject'],
             $data['description'],
             isset($data['lane']) ? $data['lane'] : null,
+            isset($data['laneName']) ? $data['laneName'] : null,
+            $this->getSubject(),
+            $this->getDescription(),
             $this->getLane(),
-            $updatedBy->getId()
+            isset($data['previousLaneName']) ? $data['previousLaneName'] : null,
+            $updatedBy
         );
 
         $this->recordThat($e);
@@ -271,6 +270,8 @@ class Task extends DomainEntity implements TaskInterface
         $this->recordThat(OwnerAdded::occur($this->id->toString(), array(
             'organizationId' => $this->getOrganizationId(),
             'new_owner' => $executedBy->getId(),
+            'new_owner_name' => $executedBy->getFirstname().' '.$executedBy->getLastname(),
+            'userName' => $executedBy->getFirstname().' '.$executedBy->getLastname(), // needed for event serialization in /history endpoint
             'by' => $executedBy->getId()
         )));
 
@@ -290,6 +291,7 @@ class Task extends DomainEntity implements TaskInterface
             'organizationId' => $this->getOrganizationId(),
             'prevStatus' => $this->getStatus(),
             'by' => $completedBy->getId(),
+            'userName' => $completedBy->getFirstname().' '.$completedBy->getLastname()
         )));
         return $this;
     }
@@ -329,6 +331,7 @@ class Task extends DomainEntity implements TaskInterface
 
         $this->recordThat(TaskClosed::occur($this->id->toString(), array(
             'by' => $closedBy->getId(),
+            'userName' => $closedBy->getFirstname().' '.$closedBy->getLastname()
         )));
 
         return $this;
@@ -352,6 +355,7 @@ class Task extends DomainEntity implements TaskInterface
 
         $this->recordThat(TaskClosedByTimebox::occur($this->id->toString(), array(
             'by' => $closedBy->getId(),
+            'userName' => 'system'
         )));
 
         return $this;
@@ -380,6 +384,7 @@ class Task extends DomainEntity implements TaskInterface
                 'prevStatus' => $this->getStatus(),
                 'position' => $position,
                 'by' => $executedBy->getId(),
+                'userName' => $executedBy->getFirstname().' '.$executedBy->getLastname()
         )));
         return $this;
     }
@@ -393,6 +398,7 @@ class Task extends DomainEntity implements TaskInterface
         $this->recordThat(TaskRevertedToIdea::occur($this->id->toString(), array(
                 'prevStatus' => $this->getStatus(),
                 'by' => $executedBy->getId(),
+                'userName' => $executedBy->getFirstname().' '.$executedBy->getLastname()
         )));
         return $this;
     }
@@ -406,6 +412,7 @@ class Task extends DomainEntity implements TaskInterface
         $this->recordThat(TaskRevertedToOngoing::occur($this->id->toString(), array(
                 'prevStatus' => $this->getStatus(),
                 'by' => $executedBy->getId(),
+                'userName' => $executedBy->getFirstname().' '.$executedBy->getLastname()
         )));
 
         return $this;
@@ -549,6 +556,7 @@ class Task extends DomainEntity implements TaskInterface
         $by = is_null($addedBy) ? $user : $addedBy;
         $this->recordThat(TaskMemberAdded::occur($this->id->toString(), array(
             'userId' => $user->getId(),
+            'userName' => $user->getFirstname().' '.$user->getLastname(),
             'role' => $role,
             'by' => $by->getId(),
         )));
@@ -595,6 +603,7 @@ class Task extends DomainEntity implements TaskInterface
         // TODO: Estimation need an id?
         $this->recordThat(EstimationAdded::occur($this->id->toString(), array(
             'by' => $member->getId(),
+            'userName' => $member->getFirstname().' '.$member->getLastname(),
             'value'     => $value,
         )));
     }
@@ -612,6 +621,7 @@ class Task extends DomainEntity implements TaskInterface
 
         $this->recordThat(ApprovalCreated::occur($this->id->toString(), array(
                 'by' => $member->getId(),
+                'userName' => $member->getFirstname().' '.$member->getLastname(),
                 'vote' => $vote,
                 'task-id' => $this->getId(),
                 'description' => $description
@@ -630,6 +640,7 @@ class Task extends DomainEntity implements TaskInterface
 
         $this->recordThat(AcceptanceCreated::occur($this->id->toString(), array(
                 'by' => $member->getId(),
+                'userName' => $member->getFirstname().' '.$member->getLastname(),
                 'vote' => $vote,
                 'task-id' => $this->getId(),
                 'description' => $description
@@ -698,6 +709,7 @@ class Task extends DomainEntity implements TaskInterface
         $this->recordThat(SharesAssigned::occur($this->id->toString(), array(
             'shares' => $membersShares,
             'by' => $member->getId(),
+            'userName' => $member->getFirstname().' '.$member->getLastname()
         )));
     }
 
@@ -713,6 +725,7 @@ class Task extends DomainEntity implements TaskInterface
 
         $this->recordThat(SharesSkipped::occur($this->id->toString(), array(
             'by' => $member->getId(),
+            'userName' => $member->getFirstname().' '.$member->getLastname()
         )));
     }
 
@@ -728,6 +741,10 @@ class Task extends DomainEntity implements TaskInterface
      */
     public function changeOwner(BasicUser $newOwner, $exOwner, BasicUser $by)
     {
+        if ($newOwner->getId() == $exOwner->getId()) {
+            return false;
+        }
+
         if (!$newOwner->isMemberOf($this->getOrganizationId())) {
             throw new MissingOrganizationMembershipException(
                 $this->getOrganizationId(), $newOwner->getId()
@@ -760,6 +777,7 @@ class Task extends DomainEntity implements TaskInterface
             'ex_owner' => $exOwnerId,
             'ex_owner_name' => $exOwnerName,
             'new_owner' => $newOwner->getId(),
+            'new_owner_name' => $newOwner->getFirstname().' '.$newOwner->getLastname(),
             'by' => $by->getId()
         )));
     }

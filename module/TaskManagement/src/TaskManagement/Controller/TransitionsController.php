@@ -197,7 +197,7 @@ class TransitionsController extends HATEOASRestfulController
                                    ->get('manage_lanes');
 
                 $this->transaction()->begin();
-                
+
                 try {
 
                     $lane = $manageLanes ? $task->getLane() : null;
@@ -323,7 +323,6 @@ class TransitionsController extends HATEOASRestfulController
 				$view->setCode(400);
 				$view->setDescription('Unknown action value: '.$action);
 		}
-
 		return $view;
 	}
 

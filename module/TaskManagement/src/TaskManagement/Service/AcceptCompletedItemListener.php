@@ -97,13 +97,14 @@ class AcceptCompletedItemListener implements ListenerAggregateInterface
 
         $threshold = $memberhipcount / 2;
 
+
+        $interval = $organization->getParams()
+                                 ->get('completed_item_interval_close_task');
+
         if ($accept > $threshold) {
 
 			$this->transactionManager->beginTransaction ();
 			try {
-
-                $interval = $organization->getParams()
-                                         ->get('completed_item_interval_close_task');
 
 				$task->accept( $owner, $interval );
 				$this->transactionManager->commit ();

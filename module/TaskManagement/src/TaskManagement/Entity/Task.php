@@ -389,17 +389,21 @@ class Task extends EditableEntity implements TaskInterface
 		$estimationsCount = 0;
 		$notEstimationCount = 0;
 		foreach ($this->members as $member) {
-			$estimation = $member->getEstimation()->getValue();
-			switch ($estimation) {
-			case null:
-				break;
-			case Estimation::NOT_ESTIMATED:
-				$notEstimationCount++;
-				break;
-			default:
-				$tot += $estimation;
-				$estimationsCount++;
-			}
+			$estimation = $member->getEstimation();
+
+			if ($estimation) {
+                $estimationValue = $estimation->getValue();
+                switch ($estimationValue) {
+                    case null:
+                        break;
+                    case Estimation::NOT_ESTIMATED:
+                        $notEstimationCount++;
+                        break;
+                    default:
+                        $tot += $estimationValue;
+                        $estimationsCount++;
+                }
+            }
 		}
 		if($notEstimationCount == count($this->members)) {
 			return Estimation::NOT_ESTIMATED;

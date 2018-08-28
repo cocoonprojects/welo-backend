@@ -5,19 +5,78 @@ use Rhumsaa\Uuid\Uuid;
 use TaskManagement\Entity\Stream as ReadModelStream;
 use TaskManagement\Entity\Task as ReadModelTask;
 use TaskManagement\Entity\Vote;
+use Test\Mailbox;
 use ZFX\Test\WebTestCase;
 
 class TaskAcceptanceTest extends WebTestCase
 {	
 	protected $client;
     protected $fixtures;
+    protected $mailbox;
 
     public function setUp()
     {
         parent::setUp();
 
         $this->client->setJWTToken($this->fixtures->getJWTToken('bruce.wayne@ora.local'));
+
+        $this->mailbox = Mailbox::create();
     }
+
+
+	public function testAcceptTask()
+    {
+        $this->mailbox->clean();
+
+        $admin = $this->fixtures->findUserByEmail('bruce.wayne@ora.local');
+        $member = $this->fixtures->findUserByEmail('phil.toledo@ora.local');
+
+        $res = $this->fixtures->createOrganization('my org', $admin, [], [$member]);
+        $task = $this->fixtures->createCompletedTask('Lorem Ipsum Sic Dolor Amit', $res['stream'], $admin, $member);
+
+        $response = $this->client
+            ->get("/{$res['org']->getId()}/task-management/tasks/{$task->getId()}");
+
+        $data = json_decode($response->getContent(), true);
+
+        $this->assertEquals(TaskInterface::STATUS_COMPLETED, $data['status']);
+        $this->assertCount(0, $data['acceptances']);
+
+        $response = $this->client
+                         ->post(
+                             "/{$res['org']->getId()}/task-management/tasks/{$task->getId()}/acceptances",
+                             [
+                                 'value' => Vote::VOTE_FOR,
+                                 'description' => 'lot of money for you!'
+                             ]
+                         );
+
+        $this->assertEquals('201', $response->getStatusCode());
+
+
+        $data = json_decode($response->getContent(), true);
+
+        $this->assertEquals(TaskInterface::STATUS_ACCEPTED, $data['status']);
+        $this->assertCount(1, $data['acceptances']);
+
+
+        $messages = $this->mailbox->getMessages();
+        $orgUserAcceptMessage = end($messages);
+        $memberAcceptMessage = prev($messages);
+        $memberAcceptMessageText = $this->mailbox->getMessage($memberAcceptMessage->id)->getBody(true);
+        $orgUserAcceptMessageText = $this->mailbox->getMessage($orgUserAcceptMessage->id)->getBody(true);
+
+        $this->assertEquals(1, $this->countTaskAcceptedEmails($admin->getEmail(), $messages));
+        $this->assertEquals(1, $this->countTaskAcceptedEmails($member->getEmail(), $messages));
+        $this->assertEquals('The "Lorem Ipsum Sic Dolor Amit" item has been accepted', $memberAcceptMessage->subject);
+        $this->assertEquals('The "Lorem Ipsum Sic Dolor Amit" item has been accepted', $orgUserAcceptMessage->subject);
+        $this->assertEquals('<bruce.wayne@ora.local>', $memberAcceptMessage->recipients[0]);
+        $this->assertEquals('<phil.toledo@ora.local>', $orgUserAcceptMessage->recipients[0]);
+        $this->assertContains('<td>lot of money for you!</td>', $memberAcceptMessageText);
+        $this->assertContains('time to assign your shares', $memberAcceptMessageText);
+        $this->assertContains('<td>lot of money for you!</td>', $orgUserAcceptMessageText);
+        $this->assertNotContains('time to assign your shares', $orgUserAcceptMessageText);
+	}
 
 
 	public function testReopenTask()
@@ -327,6 +386,20 @@ class TaskAcceptanceTest extends WebTestCase
         }
 
         $this->assertEquals(Task::STATUS_ACCEPTED, $task->getStatus());
+    }
+
+
+    protected function countTaskAcceptedEmails($account ,$messages) {
+        $count = 0;
+        foreach ($messages as $idx => $message) {
+            if (
+                $message->recipients[0] == '<'.$account.'>' &&
+                strpos($message->subject, 'item has been accepted') !== false
+            ) {
+                $count++;
+            }
+        }
+        return $count;
     }
 
 }

@@ -6,6 +6,7 @@ use Doctrine\ORM\EntityManager;
 use FlowManagement\Entity\FlowCard as ReadModelFlowCard;
 use FlowManagement\FlowCard;
 use Application\Entity\User;
+use People\Entity\Organization;
 use Rhumsaa\Uuid\Uuid;
 use Prooph\EventStore\EventStore;
 use Prooph\EventStore\Aggregate\AggregateRepository;
@@ -71,7 +72,6 @@ class EventSourcingFlowService extends AggregateRepository implements FlowServic
             ->setFirstResult($offset)
             ->setMaxResults($limit)
             ->setParameter(':recipient', $recipient);
-
 
 		return $query->getQuery()->getResult();
 	}

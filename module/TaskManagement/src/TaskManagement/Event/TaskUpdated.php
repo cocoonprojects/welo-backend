@@ -12,25 +12,36 @@ class TaskUpdated extends DomainEvent
 
     protected $subject;
 
+    protected $previousSubject;
+
     protected $description;
+
+    protected $previousDescription;
 
     protected $by;
 
-    public static function happened($aggregateId, $subject, $description, $lane = null, $previousLane = null, $by)
+    public static function happened($aggregateId, $subject, $description, $lane = null, $laneName, $previousSubject = null, $previousDescription = null, $previousLane = null, $previousLaneName = null, $by)
     {
         $event = self::occur($aggregateId, [
             'subject'=> $subject,
             'description' => $description,
             'lane' => $lane,
+            'laneName' => $laneName,
+            'previousSubject' => $previousSubject,
+            'previousDescription' => $previousDescription,
             'previousLane' => $previousLane,
-            'by' => $by
+            'previousLaneName' => $previousLaneName,
+            'by' => $by->getId(),
+            'userName' => $by->getFirstname().' '.$by->getLastname(),
         ]);
 
         $event->subject = $subject;
         $event->description = $description;
         $event->lane = $lane;
+        $event->previousSubject = $previousSubject;
+        $event->previousDescription = $previousDescription;
         $event->previousLane = $previousLane;
-        $event->by = $by;
+        $event->by = $by->getId();
 
         return $event;
     }
