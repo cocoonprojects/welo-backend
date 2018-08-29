@@ -87,7 +87,7 @@ class EventSourcingFlowService extends AggregateRepository implements FlowServic
             $content = $card->getContent();
             $currentCardContent = array_shift($content);
 
-            if ($currentCardContent['orgId']) {
+            if (isset($currentCardContent['orgId']) && $currentCardContent['orgId']) {
                 $currentOrgId = $currentCardContent['orgId'];
             }
 
