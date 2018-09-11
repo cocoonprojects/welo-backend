@@ -1081,6 +1081,7 @@ class Task extends DomainEntity implements TaskInterface
 
         $this->status = self::STATUS_IDEA;
         $this->mostRecentEditAt = $event->occurredOn();
+        $this->createdAt = $event->occurredOn(); // for timebox purpose
     }
 
     protected function whenTaskRevertedToOngoing(TaskRevertedToOngoing $event)
@@ -1095,6 +1096,7 @@ class Task extends DomainEntity implements TaskInterface
         $this->status = self::STATUS_COMPLETED;
         $this->organizationMembersAcceptances = [];
         $this->mostRecentEditAt = $event->occurredOn();
+        $this->completedAt = $event->occurredOn(); // for timebox purpose
 
         $unsetShares = function($member) {
             unset($member['shares'], $member['share'], $member['delta']);
@@ -1109,6 +1111,7 @@ class Task extends DomainEntity implements TaskInterface
     {
         $this->status = self::STATUS_ACCEPTED;
         $this->mostRecentEditAt = $event->occurredOn();
+        $this->acceptedAt = $event->occurredOn(); // for timebox purpose
 
         $resetShareAndCredits = function($member) {
             unset($member['shares'], $member['share'], $member['delta'], $member['credits']);
