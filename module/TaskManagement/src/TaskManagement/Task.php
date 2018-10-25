@@ -741,7 +741,7 @@ class Task extends DomainEntity implements TaskInterface
      */
     public function changeOwner(BasicUser $newOwner, $exOwner, BasicUser $by)
     {
-        if ($newOwner->getId() == $exOwner->getId()) {
+        if ($exOwner && $newOwner->getId() == $exOwner->getId()) {
             return false;
         }
 
