@@ -210,6 +210,11 @@ class EventSourcingAccountService extends AggregateRepository implements Account
 	 * @throws \Exception
 	 */
 	public function transfer(Account $payer,Account $payee, $amount, $description, User $by){
+
+	    if (!$amount) {
+	        return;
+        }
+
 		$this->eventStore->beginTransaction();
 		try {
 			$payer->transferOut(-$amount, $payee, $description, $by, Account::CREDITS_FROM_SHARES);
