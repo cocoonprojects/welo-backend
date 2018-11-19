@@ -67,4 +67,44 @@ class OrgMemberRemovedEvenFromTasksTest extends WebTestCase
     }
 
 
+    public function testRemoveDisabledOrgMemberWhoIsTaskMember()
+    {
+
+        $tasks = [
+            $this->fixtures->createIdea('Lorem First Ipsum Sic Dolor Amit', $this->stream, $this->admin),
+            $this->fixtures->createOngoingTask('Lorem First Ipsum Sic Dolor Amit', $this->stream, $this->admin, [$this->member1]),
+            $this->fixtures->createCompletedTask('Lorem Second Ipsum Sic Dolor Amit', $this->stream, $this->admin, [$this->member1]),
+            $this->fixtures->createAcceptedTask('Lorem Third Ipsum Sic Dolor Amit', $this->stream, $this->admin, [$this->member1]),
+            $this->fixtures->createAcceptedTaskWithShares('Lorem Fourth Ipsum Sic Dolor Amit', $this->stream, $this->admin, [$this->member1, $this->member2])
+        ];
+
+        $response = $this->client
+            ->put("/{$this->org->getId()}/people/members/{$this->member1->getId()}", [
+            'active' => false
+        ]);
+
+        $this->assertEquals('201', $response->getStatusCode());
+
+        $response = $this->client
+            ->delete("/{$this->org->getId()}/people/members/{$this->member1->getId()}");
+
+        $this->assertEquals('200', $response->getStatusCode());
+
+        $response = $this->client
+            ->get("/{$this->org->getId()}/task-management/tasks");
+
+        $this->assertEquals('200', $response->getStatusCode());
+
+        $responseTasks = json_decode($response->getContent(), true);
+        $memberId = $this->member1->getId();
+
+        array_walk($responseTasks['_embedded']['ora:task'], function($task) use ($memberId) {
+            $membersIds = array_keys($task['members']);
+            $this->assertArrayNotHasKey($memberId, $membersIds);
+        });
+
+
+    }
+
+
 }
