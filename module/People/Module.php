@@ -7,6 +7,7 @@ use People\Controller\MembersController;
 use People\Controller\OrganizationsController;
 use People\Controller\InvitesController;
 use People\Controller\AcceptInviteController;
+use People\Controller\UsersController;
 use People\Projector\OrganizationMembershipProjector;
 use People\Projector\OrganizationProjector;
 use People\Service\EventSourcingOrganizationService;
@@ -47,6 +48,12 @@ class Module
 					$controller = new OrganizationsController($orgService);
 					return $controller;
 				},
+                'People\Controller\Users' => function ($sm) {
+                    $locator = $sm->getServiceLocator();
+                    $userService = $locator->get('Application\UserService');
+                    $controller = new UsersController($userService);
+                    return $controller;
+                },
 				'People\Controller\Members' => function ($sm) {
 					$locator = $sm->getServiceLocator();
 					$orgService = $locator->get('People\OrganizationService');

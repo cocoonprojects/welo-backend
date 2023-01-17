@@ -7,6 +7,16 @@ use People\Projector\OrganizationProjector;
 return array(
 	'router' => array(
 		'routes' => array(
+            'user' => [
+                'type' => 'Segment',
+                'options' => [
+                    'route' => '/users[/:id]',
+                    'defaults' => [
+                        '__NAMESPACE__' => 'People\Controller',
+                        'controller' => 'Users',
+                    ],
+                ],
+            ],
 			'invites' => [
 				'type' => 'Segment',
 				'options' => [
